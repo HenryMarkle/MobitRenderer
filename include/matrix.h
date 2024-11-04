@@ -13,12 +13,12 @@ namespace mr {
     {
         air                 = 0,
         solid               = 1,
-        slopeNE             = 2,
-        slopeNW             = 3,
-        slopeES             = 4,
-        slopeSW             = 5,
+        slope_ne            = 2,
+        slope_nw            = 3,
+        slope_es            = 4,
+        slope_sw            = 5,
         platform            = 6,
-        shortcutEntrance    = 7,
+        shortcut_entrance   = 7,
         glass               = 9
     };
 
