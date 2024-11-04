@@ -5,6 +5,8 @@
 
 #include "spdlog/spdlog.h"
 
+#include "raylib.h"
+
 #ifdef __linux__
 #include <unistd.h>
 #include <limits.h>
@@ -74,8 +76,19 @@ namespace mr {
     class Textures {
         private:
         
+        RenderTexture2D main_level_viewport;
 
         public:
+
+        /// @brief Returns a read-only reference to the main level viewport.
+        /// @warning Do not access this while modifying main_level_viewport.
+        const RenderTexture2D& get_main_level_viewport() const;
+
+        /// @brief Replaces the existing render texture with a new one.
+        void new_main_level_viewport(int width, int height);
+
+        /// @brief Creates a new render texture and draws the old render texture over.
+        void resize_main_level_viewport(int width, int height);
 
         Textures(const dirs& _dirs);
         ~Textures();
@@ -87,6 +100,7 @@ namespace mr {
         std::shared_ptr<spdlog::logger> logger;
         dirs directories;
         Textures textures;
+        Camera2D camera;
 
         public:
 
@@ -95,6 +109,11 @@ namespace mr {
 
         const dirs& get_dirs() const;
         void set_dirs(dirs);
+
+        Camera2D& get_camera();
+        void set_camera(Camera2D);
+
+        Textures& get_textures();
 
         context();
         ~context();

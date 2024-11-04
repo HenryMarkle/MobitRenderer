@@ -9,7 +9,7 @@
 #include "definitions.h"
 
 namespace mr {
-    enum GeoType : uint8_t
+    enum class GeoType : uint8_t
     {
         air                 = 0,
         solid               = 1,
@@ -22,7 +22,7 @@ namespace mr {
         glass               = 9
     };
 
-    enum GeoFeature : uint16_t
+    enum class GeoFeature : uint16_t
     {
         none               = 0,
         horizontal_pole    = 1 << 0,
@@ -64,13 +64,13 @@ namespace mr {
         GeoType type;
         GeoFeature features;
 
-        inline bool is_solid() { return type == solid || type == glass; }
+        inline bool is_solid() { return type == GeoType::solid || type == GeoType::glass; }
 
         inline bool has_feature(GeoFeature feature)     { return (features & feature) == feature; }
         inline void switch_feature(GeoFeature feature)  { features = features ^ feature; }
         inline void enable(GeoFeature feature)          { features = features | feature; }
         inline void disable(GeoFeature feature)         { features = features & ~feature; }
-        inline void clear_features()                    { features = none; }
+        inline void clear_features()                    { features = GeoFeature::none; }
     };
 
     //

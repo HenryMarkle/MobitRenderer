@@ -63,13 +63,37 @@ int main() {
 
     io.ConfigDockingWithShift = true;
 
+    logger->info("initializing");
+
+    ctx->get_textures().new_main_level_viewport(72 * 20, 53 * 20);
+
+    BeginTextureMode(ctx->get_textures().get_main_level_viewport());
+    ClearBackground(BLACK);
+    EndTextureMode();
+
     logger->info("entering main loop");
 
     while (!WindowShouldClose()) {
+
+        // simple panning
+        if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+            auto delta = GetMouseDelta();
+            auto &camera = ctx->get_camera();
+
+            camera.target.x -= delta.x / camera.zoom;
+            camera.target.y -= delta.y / camera.zoom;
+        }
+
         BeginDrawing();
         ClearBackground(DARKGRAY);
 
+        BeginMode2D(ctx->get_camera());
+
+        DrawTexture(ctx->get_textures().get_main_level_viewport().texture, 0, 0, WHITE);
+
         DrawText("Hello", 0, 0, 30, WHITE);
+
+        EndMode2D();
 
         rlImGuiBegin();
 

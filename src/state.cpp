@@ -5,6 +5,8 @@
 
 #include "spdlog/spdlog.h"
 
+#include "raylib.h"
+
 const std::filesystem::path& mr::dirs::get_executable() const  { return executable; }
 
 const std::filesystem::path& mr::dirs::get_assets() const      { return assets; }
@@ -110,8 +112,40 @@ void mr::context::set_logger(const std::shared_ptr<spdlog::logger> _logger) { lo
 const mr::dirs& mr::context::get_dirs() const { return directories; }
 void mr::context::set_dirs(mr::dirs _dirs) { directories = _dirs; }
 
-mr::context::context() : logger(nullptr), directories(mr::dirs()), textures(mr::Textures(directories)) { }
+Camera2D& mr::context::get_camera() { return camera; }
+void mr::context::set_camera(Camera2D _camera) { camera = _camera; }
+
+mr::Textures& mr::context::get_textures() { return textures; }
+
+mr::context::context() : logger(nullptr), directories(mr::dirs()), textures(mr::Textures(directories)), camera(Camera2D { .target = 1, .zoom = 1.5f }) { }
 mr::context::~context() { }
+
+const RenderTexture2D& mr::Textures::get_main_level_viewport() const { return main_level_viewport; }
+
+void mr::Textures::new_main_level_viewport(int width, int height)
+{
+    if (width < 0 || height < 0) return;
+
+    if (main_level_viewport.id != 0) UnloadRenderTexture(main_level_viewport);
+
+    main_level_viewport = LoadRenderTexture(width, height);
+}
+
+void mr::Textures::resize_main_level_viewport(int width, int height)
+{
+    if (width < 0 || height < 0) return;
+
+    auto new_viewport = LoadRenderTexture(width, height);
+
+    BeginTextureMode(new_viewport);
+    ClearBackground(BLACK);
+
+    DrawTexture(main_level_viewport.texture, 0, 0, WHITE);
+    EndTextureMode();
+
+    if (main_level_viewport.id != 0) UnloadRenderTexture(main_level_viewport);
+    main_level_viewport = new_viewport;
+}
 
 mr::Textures::Textures(const dirs &_dirs)
 {
@@ -119,4 +153,5 @@ mr::Textures::Textures(const dirs &_dirs)
 
 mr::Textures::~Textures()
 {
+    if (main_level_viewport.id != 0) UnloadRenderTexture(main_level_viewport);
 }
