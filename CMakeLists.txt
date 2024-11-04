@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(MobitRenderer VERSION 0.1.0 LANGUAGES C CXX)
 
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_CXX_STANDARD_REQUIRED 17)
 
 add_subdirectory(libs/raylib)
+add_subdirectory(libs/spdlog)
 
 # Parser library
 file(GLOB PARSER_SOURCES libs/parser/*.cpp)
@@ -26,7 +29,13 @@ file(GLOB MAIN_SOURCES src/*.cpp)               # sources
 include_directories(include)                    # headers
 add_executable(MobitRenderer ${MAIN_SOURCES})
 
-target_link_libraries(MobitRenderer PRIVATE raylib parser imgui rlimgui)
+target_compile_definitions(MobitRenderer PRIVATE
+    APP_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    APP_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+    APP_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+)
+
+target_link_libraries(MobitRenderer PRIVATE raylib parser imgui rlimgui spdlog)
 
 include(CTest)
 enable_testing()
