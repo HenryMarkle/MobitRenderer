@@ -3,17 +3,6 @@
 #include <vector>
 #include <memory>
 
-#include "raylib.h"
-#include "imgui.h"
-#include "rlImGui.h"
-
-#include "matrix.h"
-#include "definitions.h"
-#include "state.h"
-
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
-
 #ifdef __linux__
 #include <unistd.h>
 #include <limits.h>
@@ -28,13 +17,22 @@
 #include <windows.h>
 #endif
 
+#include "raylib.h"
+#include "imgui.h"
+#include "rlImGui.h"
+
+#include "matrix.h"
+#include "definitions.h"
+#include "state.h"
+
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h"
+
 using std::string;
 using std::shared_ptr;
 using spdlog::logger;
 
 int main() {
-    // std::cout << "Size is: " << sizeof(mr::TileDef) << " bytes" << std::endl;
-
     shared_ptr<mr::context> ctx = std::make_shared<mr::context>();
     shared_ptr<logger> logger = nullptr;
 
@@ -47,7 +45,7 @@ int main() {
 
     ctx->set_logger(logger);
 
-    logger->info("starting program");
+    logger->info("------ starting program");
     logger->info("Mobit Renderer v{}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
     SetTargetFPS(40);
@@ -92,7 +90,7 @@ int main() {
 
     CloseWindow();
 
-    logger->info("program has terminated");
+    logger->info("------ program has terminated");
 
     return 0;
 }
