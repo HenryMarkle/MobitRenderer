@@ -1,11 +1,11 @@
-#include "state.h"
+#include <MobitRenderer/state.h>
 
 #include <memory>
 #include <filesystem>
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
-#include "raylib.h"
+#include <raylib.h>
 
 const std::filesystem::path& mr::dirs::get_executable() const  { return executable; }
 

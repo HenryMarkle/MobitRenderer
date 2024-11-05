@@ -24,6 +24,7 @@ namespace hmp {
         global_call,    // point(0, 1) rect(0, 0, 6, 3)..
         void_val,       // void
         concat,         // &
+        concat_space,   // &&
         constant        // RETURN QUOTE..
     };
 

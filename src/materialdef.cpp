@@ -1,6 +1,6 @@
 #include <string>
 
-#include "definitions.h"
+#include <MobitRenderer/definitions.h>
 
 // To be used in unordered maps and sets
 namespace std {

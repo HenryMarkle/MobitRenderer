@@ -40,6 +40,10 @@ target_link_libraries(MobitRenderer PRIVATE raylib parser imgui rlimgui spdlog)
 include(CTest)
 enable_testing()
 
+add_executable(SerializationTest tests/serialization.cpp src/serialization.cpp)
+target_link_libraries(SerializationTest PRIVATE parser)
+add_test(NAME SerializationTest COMMAND SerializationTest)
+
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)

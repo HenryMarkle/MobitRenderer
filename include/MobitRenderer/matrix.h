@@ -6,7 +6,7 @@
 #include <memory>
 #include <stdexcept>
 
-#include "definitions.h"
+#include <MobitRenderer/definitions.h>
 
 namespace mr {
     enum class GeoType : uint8_t

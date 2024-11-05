@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "raylib.h"
+#include <raylib.h>
 
 namespace mr {
 

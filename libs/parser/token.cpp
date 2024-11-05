@@ -69,6 +69,9 @@ std::ostream& hmp::operator<<(std::ostream& stream, token const& _token) {
 
         case token_type::concat:
         return stream << '&';
+
+        case token_type::concat_space:
+        return stream << "&&";
     }
     
     return stream << "";
@@ -115,7 +118,15 @@ int hmp::tokenize(std::string const& input, std::vector<token>& tokens) {
             break;
 
             case '&':
-            tokens.push_back(token(token_type::concat));
+            {
+                auto peek = cursor + 1;
+                if (peek != input.end() && *peek == '&') {
+                    tokens.push_back(token(token_type::concat_space));
+                    cursor++;
+                } else {
+                    tokens.push_back(token(token_type::concat));
+                }
+            }
             break;
 
             case '#':

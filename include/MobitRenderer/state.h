@@ -3,9 +3,9 @@
 #include <memory>
 #include <filesystem>
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
-#include "raylib.h"
+#include <raylib.h>
 
 #ifdef __linux__
 #include <unistd.h>

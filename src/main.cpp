@@ -17,16 +17,16 @@
 #include <windows.h>
 #endif
 
-#include "raylib.h"
-#include "imgui.h"
-#include "rlImGui.h"
+#include <raylib.h>
+#include <imgui.h>
+#include <rlImGui.h>
 
-#include "matrix.h"
-#include "definitions.h"
-#include "state.h"
+#include <MobitRenderer/matrix.h>
+#include <MobitRenderer/definitions.h>
+#include <MobitRenderer/state.h>
 
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 using std::string;
 using std::shared_ptr;
