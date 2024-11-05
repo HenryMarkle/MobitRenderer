@@ -6,15 +6,13 @@
 #include <sstream>
 #include <vector>
 
-#include <token.hpp>
-#include <node.hpp>
-
+#include <MobitRenderer/parsing.h>
 #include <MobitRenderer/serialization.h>
 #include <MobitRenderer/exceptions.h>
 
 namespace mr {
 
-    std::shared_ptr<TileDef> parse_tiledef(std::unique_ptr<hmp::AST_Node> const& nodes) {
+    std::shared_ptr<TileDef> parse_tiledef(std::unique_ptr<mr::AST_Node> const& nodes) {
         return nullptr;
     }
 
@@ -58,13 +56,13 @@ namespace mr {
 
         auto nodes = std::make_unique<ProjectSaveFileNodes>();
     
-        std::vector<hmp::token> geo_tokens, tile_tokens;
+        std::vector<token> geo_tokens, tile_tokens;
 
-        hmp::tokenize(file_lines->geometry, geo_tokens);
-        hmp::tokenize(file_lines->tiles, tile_tokens);
+        tokenize(file_lines->geometry, geo_tokens);
+        tokenize(file_lines->tiles, tile_tokens);
 
-        hmp::parse_tokens(geo_tokens, nodes->geometry);
-        hmp::parse_tokens(tile_tokens, nodes->tiles);
+        parse_tokens(geo_tokens, nodes->geometry);
+        parse_tokens(tile_tokens, nodes->tiles);
 
         return nodes;
     }

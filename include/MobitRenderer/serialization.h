@@ -8,11 +8,9 @@
 
 #include <raylib.h>
 
-#include <token.hpp>
-#include <node.hpp>
-
 #include <MobitRenderer/definitions.h>
 #include <MobitRenderer/matrix.h>
+#include <MobitRenderer/parsing.h>
 
 namespace mr {
     struct ProjectSaveFileLines {
@@ -28,15 +26,15 @@ namespace mr {
     };
 
     struct ProjectSaveFileNodes {
-        std::unique_ptr<hmp::AST_Node> geometry;
-        std::unique_ptr<hmp::AST_Node> tiles;
-        std::unique_ptr<hmp::AST_Node> effects;
-        std::unique_ptr<hmp::AST_Node> light_settings;
-        std::unique_ptr<hmp::AST_Node> terrain_settings;
-        std::unique_ptr<hmp::AST_Node> seed_and_buffers;
-        std::unique_ptr<hmp::AST_Node> cameras_and_size;
-        std::unique_ptr<hmp::AST_Node> water;
-        std::unique_ptr<hmp::AST_Node> props;
+        std::unique_ptr<AST_Node> geometry;
+        std::unique_ptr<AST_Node> tiles;
+        std::unique_ptr<AST_Node> effects;
+        std::unique_ptr<AST_Node> light_settings;
+        std::unique_ptr<AST_Node> terrain_settings;
+        std::unique_ptr<AST_Node> seed_and_buffers;
+        std::unique_ptr<AST_Node> cameras_and_size;
+        std::unique_ptr<AST_Node> water;
+        std::unique_ptr<AST_Node> props;
     };
 
     // Save file parsers
@@ -44,11 +42,11 @@ namespace mr {
     std::unique_ptr<ProjectSaveFileLines> read_project_save_file(const std::filesystem::path&);
     std::unique_ptr<ProjectSaveFileNodes> parse_project_save_lines(const std::unique_ptr<ProjectSaveFileLines>&);
 
-    std::unique_ptr<Matrix<GeoCell>>   parse_geo_matrix(const std::unique_ptr<hmp::AST_Node>&);
-    std::unique_ptr<Matrix<TileCell>> parse_tile_matrix(const std::unique_ptr<hmp::AST_Node>&);
+    std::unique_ptr<Matrix<GeoCell>>   parse_geo_matrix(const std::unique_ptr<AST_Node>&);
+    std::unique_ptr<Matrix<TileCell>> parse_tile_matrix(const std::unique_ptr<AST_Node>&);
     
     // Init line parsers
 
-    std::shared_ptr<TileDef>              parse_tiledef(const std::unique_ptr<hmp::AST_Node>&);
+    std::shared_ptr<TileDef>              parse_tiledef(const std::unique_ptr<AST_Node>&);
 
 };

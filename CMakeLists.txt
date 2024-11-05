@@ -8,10 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED 17)
 add_subdirectory(libs/raylib)
 add_subdirectory(libs/spdlog)
 
-# Parser library
-file(GLOB PARSER_SOURCES libs/parser/*.cpp)
-add_library(parser STATIC ${PARSER_SOURCES})
-target_include_directories(parser PUBLIC libs/parser)
+# # Parser library
+# file(GLOB PARSER_SOURCES libs/parser/*.cpp)
+# add_library(parser STATIC ${PARSER_SOURCES})
+# target_include_directories(parser PUBLIC libs/parser)
 
 # ImGui library
 file(GLOB IMGUI_SOURCES libs/imgui/*.cpp)
@@ -35,13 +35,13 @@ target_compile_definitions(MobitRenderer PRIVATE
     APP_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
-target_link_libraries(MobitRenderer PRIVATE raylib parser imgui rlimgui spdlog)
+target_link_libraries(MobitRenderer PRIVATE raylib imgui rlimgui spdlog)
 
 include(CTest)
 enable_testing()
 
-add_executable(SerializationTest tests/serialization.cpp src/serialization.cpp)
-target_link_libraries(SerializationTest PRIVATE parser)
+add_executable(SerializationTest tests/serialization.cpp src/serialization.cpp src/nodes.cpp src/parsing.cpp src/tokens.cpp)
+# target_link_libraries(SerializationTest PRIVATE )
 add_test(NAME SerializationTest COMMAND SerializationTest)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
