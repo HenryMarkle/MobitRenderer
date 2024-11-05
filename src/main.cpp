@@ -3,20 +3,6 @@
 #include <vector>
 #include <memory>
 
-#ifdef __linux__
-#include <unistd.h>
-#include <limits.h>
-#endif
-
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#include <limits.h>
-#endif
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include <raylib.h>
 #include <imgui.h>
 #include <rlImGui.h>
