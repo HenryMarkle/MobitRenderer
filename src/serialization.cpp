@@ -16,7 +16,7 @@ namespace mr {
         return nullptr;
     }
 
-    std::unique_ptr<ProjectSaveFileLines> read_project_save_file(const std::filesystem::path& file_path) {
+    std::unique_ptr<ProjectSaveFileLines> read_project(const std::filesystem::path& file_path) {
         std::fstream file(file_path);
 
         if (!file.is_open()) {
@@ -51,7 +51,7 @@ namespace mr {
         return lines;
     }
 
-    std::unique_ptr<ProjectSaveFileNodes> parse_project_save_lines(const std::unique_ptr<ProjectSaveFileLines>& file_lines) {
+    std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::unique_ptr<ProjectSaveFileLines>& file_lines) {
         if (file_lines == nullptr) return nullptr;
 
         auto nodes = std::make_unique<ProjectSaveFileNodes>();

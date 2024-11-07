@@ -387,6 +387,15 @@ namespace mr {
             return 600;
         }
 
+        // MARK: Operations here
+        // Parse operation expressions here.
+        // It's very unlikely for it to be needed for the puposes of this project, but still.
+
+        
+        
+        
+        //
+
         ptr = std::move(expr);
 
         return 0;

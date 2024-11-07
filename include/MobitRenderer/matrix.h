@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 #include <MobitRenderer/definitions.h>
 
@@ -95,21 +96,20 @@ namespace mr {
     TileCell create_undefined_head_tile(std::string name);
     TileCell create_undefined_material_tile(std::string name);
 
-    // 16 bytes
     template <typename T>
     class Matrix {
         private:
 
-        T*** array;
+        std::vector<T> matrix;          // Might change it to a shared pointer (shared_ptr<vector<T>>)
         uint16_t width, height, depth;
 
-        void free_array();
+        uint64_t index(uint16_t x, uint16_t y, uint16_t z);
 
         public:
 
-        uint16_t get_width() const;
+        uint16_t get_width()  const;
         uint16_t get_height() const;
-        uint16_t get_depth() const;
+        uint16_t get_depth()  const;
 
         bool is_in_bounds(uint16_t x, uint16_t y, uint16_t z) const;
         
@@ -121,7 +121,7 @@ namespace mr {
         T* get_ptr(uint16_t x, uint16_t y, uint16_t z) const;
         const T* get_const_ptr(uint16_t x, uint16_t y, uint16_t z) const;
 
-        void resize(int left, int top, int right, int bottom);
+        void resize(int16_t left, int16_t top, int16_t right, int16_t bottom);
 
         Matrix<T>& operator=(const Matrix<T>&) = delete;
         Matrix<T>& operator=(Matrix<T>&&);
@@ -134,19 +134,7 @@ namespace mr {
     };
 
     template<typename T>
-    void Matrix<T>::free_array() {
-        if (array == nullptr) return;
-
-        for (uint16_t x = 0; x < width; x++) {
-            for (uint16_t y = 0; y < height; y++) {
-                delete[] array[x][y];
-            }
-
-            delete[] array[x];
-        }
-
-        delete[] array;
-    }
+    uint64_t Matrix<T>::index(uint16_t x, uint16_t y, uint16_t z) { return x + (y * width) + (z * width * height); }
 
     template<typename T>
     Matrix<T>::Matrix(uint16_t _width, uint16_t _height, uint16_t _depth) {
@@ -156,26 +144,17 @@ namespace mr {
         height = _height;
         depth = _depth;
 
-        array = new T**[width];
-
-        for (uint16_t x = 0; x < width; x++) {
-            array[x] = new T*[height];
-
-            for (uint16_t y = 0; y < height; y++) {
-                array[x][y] = new T[depth];
-            }
-        }
+        matrix.reserve(width * height * depth);
     }
 
     template<typename T>
-    Matrix<T>::Matrix(Matrix<T>&& m) : array(nullptr), width(0), height(0), depth(0) {
-        array = m.array;
+    Matrix<T>::Matrix(Matrix<T>&& m) : matrix(nullptr), width(0), height(0), depth(0) {
+        matrix = std::move(m.matrix);
         
         width = m.width;
-        height = m.array;
+        height = m.height;
         depth = m.depth;
 
-        m.array = nullptr;
         m.width = 0;
         m.height = 0;
         m.depth = 0;
@@ -185,15 +164,12 @@ namespace mr {
     Matrix<T>& Matrix<T>::operator=(Matrix<T>&& other) {
         if (this == other) return *this;
 
-        free_array();
-
-        array = other.array;
+        matrix = std::move(other.matrix);
 
         width = other.width;
         height = other.height;
         depth = other.depth;
 
-        other.array = nullptr;
         other.width = 0;
         other.height = 0;
         other.depth = 0;
@@ -202,9 +178,7 @@ namespace mr {
     }
 
     template<typename T>
-    Matrix<T>::~Matrix() {
-        free_array();
-    }
+    Matrix<T>::~Matrix() { }
 
     template<typename T>
     uint16_t Matrix<T>::get_width() const { return width; }
@@ -226,48 +200,42 @@ namespace mr {
     T& Matrix<T>::get(uint16_t x, uint16_t y, uint16_t z) const {
         if (!is_in_bounds(x, y, z)) throw std::out_of_range("matrix index is out of bounds");
 
-        return array[x][y][z];
+        return matrix[index(x, y, z)];
     }
 
     template<typename T>
     const T& Matrix<T>::get_const(uint16_t x, uint16_t y, uint16_t z) const {
         if (!is_in_bounds(x, y, z)) throw std::out_of_range("matrix index is out of bounds");
 
-        return array[x][y][z];
+        return matrix[index(x, y, z)];
     }
 
     template<typename T>
     T* Matrix<T>::get_ptr(uint16_t x, uint16_t y, uint16_t z) const {
         if (!is_in_bounds(x, y, z)) return nullptr;
 
-        return &array[x][y][z];
+        return &matrix[index(x, y, z)];
     }
 
     template<typename T>
     const T* Matrix<T>::get_const_ptr(uint16_t x, uint16_t y, uint16_t z) const {
         if (!is_in_bounds(x, y, z)) return nullptr;
 
-        return &array[x][y][z];
+        return &matrix[index(x, y, z)];
     }
 
     // No depth resizing
     template<typename T>
-    void Matrix<T>::resize(int left, int top, int right, int bottom) {
+    void Matrix<T>::resize(int16_t left, int16_t top, int16_t right, int16_t bottom) {
         if (left == 0 && top == 0 && right == 0 && bottom == 0) return;
         if (-left == width || -right == width || -top == height || -bottom == height) return;
     
         uint16_t new_width = width + left + right;
         uint16_t new_height = height + top + bottom;
 
-        T*** new_array = new T**[new_width];
+        std::vector<T> new_matrix{};
 
-        for (uint16_t x = 0; x < new_width; x++) {
-            new_array[x] = new T*[new_height];
-
-            for (uint16_t y = 0; y < new_height; y++) {
-                new_array[x][y] = new T[depth];
-            }
-        }
+        new_matrix.reserve(new_width * new_height * depth);
 
         // Copy over
 
@@ -282,15 +250,11 @@ namespace mr {
                 if (new_y < 0 || new_y >= new_height) break;
 
                 for (uint16_t z = 0; z < depth; z++) {
-                    new_array[new_x][new_y][z] = array[x][y][z];
+                    new_matrix[index(new_x, new_y, z)] = matrix[index(x, y, z)];
                 }
             }
         }
 
-        // Delete the old matrix
-
-        free_array();
-
-        array = new_array;
+        matrix = std::move(new_matrix);
     }
 };

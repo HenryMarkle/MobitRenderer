@@ -39,8 +39,8 @@ namespace mr {
 
     // Save file parsers
 
-    std::unique_ptr<ProjectSaveFileLines> read_project_save_file(const std::filesystem::path&);
-    std::unique_ptr<ProjectSaveFileNodes> parse_project_save_lines(const std::unique_ptr<ProjectSaveFileLines>&);
+    std::unique_ptr<ProjectSaveFileLines>  read_project(const std::filesystem::path&);
+    std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::unique_ptr<ProjectSaveFileLines>&);
 
     std::unique_ptr<Matrix<GeoCell>>   parse_geo_matrix(const std::unique_ptr<AST_Node>&);
     std::unique_ptr<Matrix<TileCell>> parse_tile_matrix(const std::unique_ptr<AST_Node>&);

@@ -8,11 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED 17)
 add_subdirectory(libs/raylib)
 add_subdirectory(libs/spdlog)
 
-# # Parser library
-# file(GLOB PARSER_SOURCES libs/parser/*.cpp)
-# add_library(parser STATIC ${PARSER_SOURCES})
-# target_include_directories(parser PUBLIC libs/parser)
-
 # ImGui library
 file(GLOB IMGUI_SOURCES libs/imgui/*.cpp)
 add_library(imgui STATIC ${IMGUI_SOURCES} libs/imgui/backends/imgui_impl_opengl3.cpp)
