@@ -31,6 +31,19 @@ namespace mr {
         constant        // RETURN QUOTE..
     };
 
+    enum class binary_operator {
+        addition,           // (..) + (..)
+        subtraction,        // (..) - (..)
+        multiplication,     // (..) * (..)
+        division            // (..) / (..)
+    };
+
+    enum class unary_operator {
+        logical_negation,       // not (..)
+        mathematical_negation,  // -   (..)
+        positive                // +   (..)
+    };
+
     struct token {
         token_type type;
         std::string value;
@@ -41,6 +54,8 @@ namespace mr {
     };
 
     std::ostream& operator<<(std::ostream&, token const&);
+    std::ostream& operator<<(std::ostream&, binary_operator const&);
+    std::ostream& operator<<(std::ostream&, unary_operator const&);
 
     // Turns a string of utf-8 characters into a sequence of tokens.
     int tokenize(std::string const&, std::vector<token>&);
@@ -92,6 +107,59 @@ namespace mr {
 
         AST_Void();
 
+        void print() const override;
+    };
+
+    class AST_Symbol : public AST_Node {
+        public:
+
+        std::string str;
+
+        AST_Symbol(std::string const&);
+        AST_Symbol(std::string&&);
+        AST_Symbol(AST_Symbol&) = delete;
+        AST_Symbol(AST_Symbol&&);
+
+        AST_Symbol& operator=(AST_Symbol const&) = delete;
+        AST_Symbol& operator=(AST_Symbol&&) noexcept;
+        
+        void print() const override;
+    };
+
+    class AST_BinaryOperation : public AST_Node {
+        public:
+
+        binary_operator op;
+        std::unique_ptr<AST_Node> left, right;
+
+        AST_BinaryOperation& operator=(AST_BinaryOperation const&) = delete;
+        AST_BinaryOperation& operator=(AST_BinaryOperation&&) noexcept;
+        
+        AST_BinaryOperation() = delete;
+        AST_BinaryOperation(AST_BinaryOperation const&) = delete;
+        AST_BinaryOperation(AST_BinaryOperation&&);
+
+        AST_BinaryOperation(binary_operator, std::unique_ptr<AST_Node>, std::unique_ptr<AST_Node>);
+        
+        void print() const override;
+    };
+
+    class AST_UnaryOperation : public AST_Node {
+        public:
+
+        unary_operator op;
+
+        std::unique_ptr<AST_Node> right;
+
+        AST_UnaryOperation& operator=(AST_UnaryOperation const&) = delete;
+        AST_UnaryOperation& operator=(AST_UnaryOperation&&) noexcept;
+        
+        AST_UnaryOperation() = delete;
+        AST_UnaryOperation(AST_UnaryOperation const&) = delete;
+        AST_UnaryOperation(AST_UnaryOperation&&);
+
+        AST_UnaryOperation(unary_operator, std::unique_ptr<AST_Node>);
+        
         void print() const override;
     };
 

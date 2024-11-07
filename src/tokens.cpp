@@ -77,7 +77,30 @@ namespace mr {
         return stream << "";
     }
 
-    int tokenize(std::string const& input, std::vector<token>& tokens) {
+    std::ostream &operator<<(std::ostream& stream, const binary_operator& op)
+    {
+        switch (op) {
+            case binary_operator::addition:       return stream << "+";
+            case binary_operator::subtraction:    return stream << "-";
+            case binary_operator::multiplication: return stream << "*";
+            case binary_operator::division:       return stream << "/";
+        }
+
+        return stream;
+    }
+
+    std::ostream& operator<<(std::ostream& stream, const unary_operator& op) {
+        switch (op) {
+            case unary_operator::logical_negation:      return stream << "not";
+            case unary_operator::mathematical_negation: return stream << "-";
+            case unary_operator::positive:              return stream << "+";
+        }
+
+        return stream;
+    }
+
+    int tokenize(std::string const &input, std::vector<token> &tokens)
+    {
         if (input.size() == 0) {
             #ifdef DEBUG_LOG
             std::cout << "DEBUG [tokenize]: ERROR: empty string" << std::endl;

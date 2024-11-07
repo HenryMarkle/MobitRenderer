@@ -25,34 +25,29 @@ namespace mr {
     {
         auto cursor = begin;
 
+        std::unique_ptr<AST_Node> expr = nullptr;
 
-        // while (cursor != end) {
-            
-            
-        //     cursor++;
-        // }
         switch (cursor->type) {
             case token_type::void_val:
             {
                 begin = cursor + 1;
-                ptr = make_unique<AST_Void>(AST_Void());
-                return 0;;
+                expr = make_unique<AST_Void>();
             }
 
             case token_type::integer:
             {
                 int integer = std::stoi(cursor->value);
-                ptr = make_unique<AST_Integer>(AST_Integer(integer));
+                expr = make_unique<AST_Integer>(AST_Integer(integer));
+
                 begin = cursor + 1;
-                return 0;
             }
 
             case token_type::floating:
             {
                 float floating = std::stof(cursor->value);
-                ptr = make_unique<AST_Float>(AST_Float(floating));
+                expr = make_unique<AST_Float>(AST_Float(floating));
+           
                 begin = cursor + 1;
-                return 0;
             }
 
             case token_type::string:
@@ -102,8 +97,14 @@ namespace mr {
 
                 begin = cursor = str_cur++;
 
-                ptr = make_unique<AST_String>(AST_String(move(str)));
-                return 0;
+                expr = make_unique<AST_String>(AST_String(move(str)));
+            }
+
+            case token_type::identifier:
+            {
+                expr = make_unique<AST_Symbol>(cursor->value);
+
+                begin = cursor + 1;
             }
 
             case token_type::open_bracket:
@@ -386,7 +387,9 @@ namespace mr {
             return 600;
         }
 
-        return 1;
+        ptr = std::move(expr);
+
+        return 0;
     }
 
     int parse_tokens(std::vector<token> const& tokens, std::unique_ptr<AST_Node>& result) {

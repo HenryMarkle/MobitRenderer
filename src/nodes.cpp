@@ -50,7 +50,65 @@ namespace mr {
 
     AST_Void::AST_Void() {}
 
+    AST_Symbol::AST_Symbol(std::string const& _str) : str(_str) {}
+    AST_Symbol::AST_Symbol(std::string&& _str) : str(std::move(_str)) {}
+    AST_Symbol::AST_Symbol(AST_Symbol&& other) : str(std::move(other.str)) {}
+    AST_Symbol& AST_Symbol::operator=(AST_Symbol&& other) noexcept {
+        if (this == &other) return *this;
 
+        str = std::move(other.str);
+        return *this;
+    }
+
+    void AST_Symbol::print() const { std::cout << '#' << str; }
+
+    AST_BinaryOperation& AST_BinaryOperation::operator=(AST_BinaryOperation&& other) noexcept {
+        if (this == &other) return *this;
+
+        op = other.op;
+
+        left = std::move(other.left);
+        right = std::move(other.right);
+
+        return *this;
+    }
+
+    AST_BinaryOperation::AST_BinaryOperation(AST_BinaryOperation&& other) {
+        op = other.op;
+
+        left = std::move(other.left);
+        right = std::move(other.right);
+    }
+
+    AST_BinaryOperation::AST_BinaryOperation(
+        binary_operator _op, 
+        std::unique_ptr<AST_Node> _left, 
+        std::unique_ptr<AST_Node> _right
+    ) : op(op), left(std::move(_left)), right(std::move(_right)) {}
+
+    void AST_BinaryOperation::print() const
+    {
+        left->print();
+        std::cout << op;
+        right->print();
+    }
+
+    AST_UnaryOperation& AST_UnaryOperation::operator=(AST_UnaryOperation&& other) noexcept {
+        if (this == &other) return *this;
+
+        op = other.op;
+        right = std::move(other.right);
+
+        return *this;
+    }
+
+    AST_UnaryOperation::AST_UnaryOperation(AST_UnaryOperation&& other) : op(other.op), right(std::move(other.right)) {}
+    AST_UnaryOperation::AST_UnaryOperation(unary_operator _op, std::unique_ptr<AST_Node> _right) : op(op), right(std::move(_right)) {}
+
+    void AST_UnaryOperation::print() const {
+        std::cout << op;
+        right->print();
+    }
 
     void AST_GlobalCall::print() const {
         std::cout << name << "("; 
