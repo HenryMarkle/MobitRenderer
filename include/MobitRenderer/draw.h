@@ -1,6 +1,8 @@
 #pragma once
 
+#include "MobitRenderer/definitions.h"
 #include <MobitRenderer/matrix.h>
+#include <memory>
 #include <raylib.h>
 
 namespace mr {
@@ -60,7 +62,7 @@ void draw_geo_feature(GeoFeature features, int x, int y, float scale,
 /// @note Scake affects the X and Y coordinates by multiplying them by scale.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_mtx_tile(TileCell const &cell, int x, int y, float scale,
+void draw_mtx_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
                    Color color);
 
 /// @brief Draws a tile cell from the origin (x - origin.x, y - origin.y).
@@ -72,8 +74,8 @@ void draw_mtx_tile(TileCell const &cell, int x, int y, float scale,
 /// @note Scake affects the X and Y coordinates by multiplying them by scale.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_mtx_tile_from_origin(TileCell const &cell, int x, int y, float scale,
-                               Color color);
+void draw_mtx_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
+                               float scale, Color color);
 
 /// @brief Draws a tile cell from the top left corner.
 /// @param cell The tile cell.
@@ -83,7 +85,8 @@ void draw_mtx_tile_from_origin(TileCell const &cell, int x, int y, float scale,
 /// @param color The color of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_tile(TileCell const &cell, int x, int y, float scale, Color color);
+void draw_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
+               Color color);
 
 /// @brief Draws a tile cell from the origin (x - origin.x, y - origin.y).
 /// @param cell The tile cell.
@@ -93,6 +96,6 @@ void draw_tile(TileCell const &cell, int x, int y, float scale, Color color);
 /// @param color The color of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_tile_from_origin(TileCell const &cell, int x, int y, float scale,
-                           Color color);
+void draw_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
+                           float scale, Color color);
 }; // namespace mr

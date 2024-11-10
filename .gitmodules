@@ -1,0 +1,3 @@
+[submodule "libs/MobitParser"]
+	path = libs/MobitParser
+	url = git@github.com:HenryMarkle/MobitParser.git

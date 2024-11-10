@@ -9,6 +9,10 @@
 #include <MobitRenderer/definitions.h>
 
 namespace mr {
+
+constexpr uint8_t MATRIX_UNIT = 20;
+constexpr uint8_t MATRIX_UNIT_LEGACY = 16;
+
 enum class GeoType : uint8_t {
   air = 0,
   solid = 1,
@@ -84,12 +88,12 @@ struct GeoCell {
 
 enum TileType : uint8_t { _default, head, body, material };
 
-// 88 bytes
+// 80 bytes
 struct TileCell {
   TileType type;
 
   std::string und_name;
-  unsigned int head_pos_x, head_pos_y, head_pos_z;
+  uint16_t head_pos_x, head_pos_y, head_pos_z;
 
   std::shared_ptr<TileDef> tile_def;
   std::shared_ptr<MaterialDef> material_def;
@@ -97,7 +101,7 @@ struct TileCell {
 
 TileCell create_default_tile();
 TileCell create_head_tile(std::shared_ptr<TileDef> tile);
-TileCell create_body_tile(unsigned int x, unsigned int y, unsigned int z,
+TileCell create_body_tile(uint16_t x, uint16_t y, uint16_t z,
                           std::shared_ptr<TileDef> tile = nullptr);
 TileCell create_material_tile(std::shared_ptr<MaterialDef> material);
 TileCell create_undefined_head_tile(std::string name);
@@ -157,7 +161,7 @@ Matrix<T>::Matrix(uint16_t _width, uint16_t _height, uint16_t _depth) {
 
 template <typename T>
 Matrix<T>::Matrix(Matrix<T> &&m)
-    : matrix(nullptr), width(0), height(0), depth(0) {
+    : width(0), height(0), depth(0) {
   matrix = std::move(m.matrix);
 
   width = m.width;

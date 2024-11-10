@@ -29,7 +29,7 @@ namespace mr {
         };
     }
 
-    TileCell create_body_tile(unsigned int x, unsigned int y, unsigned int z, std::shared_ptr<TileDef> tile) {
+    TileCell create_body_tile(uint16_t x, uint16_t y, uint16_t z, std::shared_ptr<TileDef> tile) {
         return TileCell {
             .type = body,
             .und_name = "",
