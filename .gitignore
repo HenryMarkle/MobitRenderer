@@ -2,4 +2,6 @@
 /out/*
 /.vscode
 /tests
-/.cahce
+/.cache
+.cahce
+.cache/**
