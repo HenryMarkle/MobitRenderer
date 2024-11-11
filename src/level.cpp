@@ -61,6 +61,20 @@ void mr::Level::resize(int16_t left, int16_t top, int16_t right,
   lightmap = new_lightmap;
 }
 
+mr::Level::Level(uint16_t width, uint16_t height)
+    : width(width), height(height), geo_matrix(width, height),
+      tile_matrix(width, height), water(-1), front_water(false), light(true),
+      terrain(true) {
+
+  this->lightmap = LoadRenderTexture(width * 20, height * 20);
+
+  BeginTextureMode(this->lightmap);
+
+  ClearBackground(WHITE);
+
+  EndTextureMode();
+}
+
 mr::Level::Level(uint16_t width, uint16_t height,
 
                  mr::Matrix<mr::GeoCell> &&geo_matrix,
@@ -78,7 +92,7 @@ mr::Level::Level(uint16_t width, uint16_t height,
 
   BeginTextureMode(this->lightmap);
 
-  ClearBackground(BLACK);
+  ClearBackground(WHITE);
 
   DrawTexture(lightmap, 0, 0, WHITE);
 

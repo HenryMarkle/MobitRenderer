@@ -47,8 +47,8 @@ std::unique_ptr<ProjectSaveFileNodes>
 parse_project(const std::unique_ptr<ProjectSaveFileLines> &);
 
 void parse_size(const std::unique_ptr<mp::Node> &, uint16_t &, uint16_t &);
-std::unique_ptr<Matrix<GeoCell>>
-parse_geo_matrix(const std::unique_ptr<mp::Node> &);
+
+void parse_geo_matrix(const std::unique_ptr<mp::Node> &, Matrix<GeoCell> &);
 std::unique_ptr<Matrix<TileCell>>
 parse_tile_matrix(const std::unique_ptr<mp::Node> &);
 std::vector<mr::LevelCamera> parse_cameras(const std::unique_ptr<mp::Node> &);

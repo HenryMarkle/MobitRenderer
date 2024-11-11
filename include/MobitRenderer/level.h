@@ -85,6 +85,8 @@ public:
 
   Level() = delete;
 
+  Level(uint16_t width, uint16_t height);
+
   /// @brief Constructs a level from the provided arguments.
   /// @param width The width of the level in units of 20 pixels.
   /// @param height The height of the level in units of 20 pixels.

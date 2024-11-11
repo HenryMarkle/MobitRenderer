@@ -23,4 +23,18 @@ public:
   explicit parse_failure(const std::string &);
   const char *what() const noexcept override;
 };
+
+class deserialization_failure : public std::exception {
+private:
+  std::string msg_;
+
+public:
+  explicit deserialization_failure(const std::string &);
+  const char *what() const noexcept override;
+};
+
+class malformed_geometry : public deserialization_failure {
+public:
+  explicit malformed_geometry(const std::string &);
+};
 }; // namespace mr
