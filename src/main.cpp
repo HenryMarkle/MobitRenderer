@@ -7,6 +7,7 @@
 #include <rlImGui.h>
 
 #include <MobitRenderer/definitions.h>
+#include <MobitRenderer/imwin.h>
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/state.h>
 
@@ -19,7 +20,7 @@ using std::string;
 
 int main() {
   // std::cout << "size is " << sizeof(mr::TileCell) << " bytes" << std::endl;
-  
+
   shared_ptr<mr::context> ctx = std::make_shared<mr::context>();
   shared_ptr<logger> logger = nullptr;
 
@@ -66,6 +67,9 @@ int main() {
   ClearBackground(BLACK);
   EndTextureMode();
 
+  auto pe =
+      std::make_unique<mr::ProjectExplorer>(ctx->get_dirs().get_projects());
+
   logger->info("entering main loop");
 
   while (!WindowShouldClose()) {
@@ -97,9 +101,7 @@ int main() {
                                  ImGui::GetMainViewport(),
                                  ImGuiDockNodeFlags_PassthruCentralNode);
 
-    ImGui::Begin("Test");
-    ImGui::Text("Hello");
-    ImGui::End();
+    pe->draw();
 
     rlImGuiEnd();
 
