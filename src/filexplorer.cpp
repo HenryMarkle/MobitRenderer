@@ -1,10 +1,8 @@
-#include "imgui_internal.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <exception>
 #include <filesystem>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -175,7 +173,6 @@ void ProjectExplorer::draw() noexcept {
 
       ImGui::TableSetColumnIndex(1);
       if (preview_rt.id != 0) {
-        // rlImGuiImageRenderTexture(&preview_rt);
         rlImGuiImageRenderTextureFit(&preview_rt, false);
       }
 
