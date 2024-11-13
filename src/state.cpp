@@ -1,157 +1,184 @@
-#include <MobitRenderer/state.h>
-
-#include <memory>
 #include <filesystem>
+#include <memory>
 
 #include <spdlog/spdlog.h>
 
 #include <raylib.h>
 
-const std::filesystem::path& mr::dirs::get_executable() const  { return executable; }
+#include <MobitRenderer/managed.h>
+#include <MobitRenderer/state.h>
 
-const std::filesystem::path& mr::dirs::get_assets() const      { return assets; }
-const std::filesystem::path& mr::dirs::get_projects() const    { return projects; }
-const std::filesystem::path& mr::dirs::get_levels() const      { return levels; }
-const std::filesystem::path& mr::dirs::get_data() const        { return data; }
-const std::filesystem::path& mr::dirs::get_logs() const        { return logs; }
+namespace mr {
 
-const std::filesystem::path& mr::dirs::get_shaders() const     { return shaders; }
-const std::filesystem::path& mr::dirs::get_materials() const   { return materials; }
-const std::filesystem::path& mr::dirs::get_tiles() const       { return tiles; }
-const std::filesystem::path& mr::dirs::get_props() const       { return props; }
-const std::filesystem::path& mr::dirs::get_cast() const        { return cast; }
+const std::filesystem::path &dirs::get_executable() const { return executable; }
 
-mr::dirs::dirs() {
-    #ifdef __linux__
-    {
-        char result[PATH_MAX];
-        ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-        
-        if (count == -1) throw "could not retrieve executable's path";
-        result[count] = '\0';
-        executable = std::filesystem::absolute(result).parent_path();
-    }
-    #endif
+const std::filesystem::path &dirs::get_assets() const { return assets; }
+const std::filesystem::path &dirs::get_projects() const { return projects; }
+const std::filesystem::path &dirs::get_levels() const { return levels; }
+const std::filesystem::path &dirs::get_data() const { return data; }
+const std::filesystem::path &dirs::get_logs() const { return logs; }
 
-    assets   = executable / "Assets";
-    projects = executable / "Projects";
-    levels   = executable / "Levels";
-    data     = executable / "Data";
-    logs     = executable / "Logs";
+const std::filesystem::path &dirs::get_shaders() const { return shaders; }
+const std::filesystem::path &dirs::get_materials() const { return materials; }
+const std::filesystem::path &dirs::get_tiles() const { return tiles; }
+const std::filesystem::path &dirs::get_props() const { return props; }
+const std::filesystem::path &dirs::get_cast() const { return cast; }
 
-    if (!exists(assets)) throw std::invalid_argument("assets does not exist");
-    if (!exists(data)) throw std::invalid_argument("data does not exist");
+dirs::dirs() {
+#ifdef __linux__
+  {
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
 
-    if (!exists(projects)) {
-        std::filesystem::create_directory(projects);
-    }
+    if (count == -1)
+      throw "could not retrieve executable's path";
+    result[count] = '\0';
+    executable = std::filesystem::absolute(result).parent_path();
+  }
+#endif
 
-    if (!exists(levels)) {
-        std::filesystem::create_directory(levels);
-    }
+  assets = executable / "Assets";
+  projects = executable / "Projects";
+  levels = executable / "Levels";
+  data = executable / "Data";
+  logs = executable / "Logs";
 
-    if (!exists(levels)) {
-        std::filesystem::create_directory(logs);
-    }
+  if (!exists(assets))
+    throw std::invalid_argument("assets does not exist");
+  if (!exists(data))
+    throw std::invalid_argument("data does not exist");
 
-    shaders = assets / "Shaders";
-    materials = data / "Materials";
-    tiles = data / "Graphics";
-    props = data / "Props";
-    cast = data / "Cast";
+  if (!exists(projects)) {
+    std::filesystem::create_directory(projects);
+  }
 
-    if (!exists(shaders))   throw std::invalid_argument("Assets/Shaders does not exist");
-    if (!exists(materials)) throw std::invalid_argument("Data/Materials does not exist");
-    if (!exists(tiles))     throw std::invalid_argument("Data/Graphics does not exist");
-    if (!exists(props))     throw std::invalid_argument("Data/Props does not exist");
-    if (!exists(cast))      throw std::invalid_argument("Data/Cast does not exist");
+  if (!exists(levels)) {
+    std::filesystem::create_directory(levels);
+  }
+
+  if (!exists(levels)) {
+    std::filesystem::create_directory(logs);
+  }
+
+  shaders = assets / "Shaders";
+  materials = data / "Materials";
+  tiles = data / "Graphics";
+  props = data / "Props";
+  cast = data / "Cast";
+
+  if (!exists(shaders))
+    throw std::invalid_argument("Assets/Shaders does not exist");
+  if (!exists(materials))
+    throw std::invalid_argument("Data/Materials does not exist");
+  if (!exists(tiles))
+    throw std::invalid_argument("Data/Graphics does not exist");
+  if (!exists(props))
+    throw std::invalid_argument("Data/Props does not exist");
+  if (!exists(cast))
+    throw std::invalid_argument("Data/Cast does not exist");
 }
 
-mr::dirs::dirs(const std::filesystem::path& executable_directory) {
-    if (!std::filesystem::exists(executable_directory)) throw std::invalid_argument("invalid executable directory");
+dirs::dirs(const std::filesystem::path &executable_directory) {
+  if (!std::filesystem::exists(executable_directory))
+    throw std::invalid_argument("invalid executable directory");
 
-    assets   = executable_directory / "Assets";
-    projects = executable_directory / "Projects";
-    levels   = executable_directory / "Levels";
-    data     = executable_directory / "Data";
-    logs     = executable_directory / "Logs";
+  assets = executable_directory / "Assets";
+  projects = executable_directory / "Projects";
+  levels = executable_directory / "Levels";
+  data = executable_directory / "Data";
+  logs = executable_directory / "Logs";
 
-    if (!exists(assets)) throw std::invalid_argument("assets does not exist");
-    if (!exists(data)) throw std::invalid_argument("data does not exist");
+  if (!exists(assets))
+    throw std::invalid_argument("assets does not exist");
+  if (!exists(data))
+    throw std::invalid_argument("data does not exist");
 
-    if (!exists(projects)) {
-        std::filesystem::create_directory(projects);
-    }
+  if (!exists(projects)) {
+    std::filesystem::create_directory(projects);
+  }
 
-    if (!exists(levels)) {
-        std::filesystem::create_directory(levels);
-    }
+  if (!exists(levels)) {
+    std::filesystem::create_directory(levels);
+  }
 
-    if (!exists(levels)) {
-        std::filesystem::create_directory(logs);
-    }
+  if (!exists(levels)) {
+    std::filesystem::create_directory(logs);
+  }
 
-    shaders = assets / "Shaders";
-    materials = data / "Materials";
-    tiles = data / "Graphics";
-    props = data / "Props";
-    cast = data / "Cast";
+  shaders = assets / "Shaders";
+  materials = data / "Materials";
+  tiles = data / "Graphics";
+  props = data / "Props";
+  cast = data / "Cast";
 
-    if (!exists(shaders))   throw std::invalid_argument("Assets/Shaders does not exist");
-    if (!exists(materials)) throw std::invalid_argument("Data/Materials does not exist");
-    if (!exists(tiles))     throw std::invalid_argument("Data/Graphics does not exist");
-    if (!exists(props))     throw std::invalid_argument("Data/Props does not exist");
-    if (!exists(cast))      throw std::invalid_argument("Data/Cast does not exist");
+  if (!exists(shaders))
+    throw std::invalid_argument("Assets/Shaders does not exist");
+  if (!exists(materials))
+    throw std::invalid_argument("Data/Materials does not exist");
+  if (!exists(tiles))
+    throw std::invalid_argument("Data/Graphics does not exist");
+  if (!exists(props))
+    throw std::invalid_argument("Data/Props does not exist");
+  if (!exists(cast))
+    throw std::invalid_argument("Data/Cast does not exist");
 
-    executable = executable_directory;
+  executable = executable_directory;
 }
 
-spdlog::logger* mr::context::get_logger() const { return logger.get(); }
-void mr::context::set_logger(const std::shared_ptr<spdlog::logger> _logger) { logger = _logger; }
-
-const mr::dirs& mr::context::get_dirs() const { return directories; }
-void mr::context::set_dirs(mr::dirs _dirs) { directories = _dirs; }
-
-Camera2D& mr::context::get_camera() { return camera; }
-void mr::context::set_camera(Camera2D _camera) { camera = _camera; }
-
-mr::Textures& mr::context::get_textures() { return textures; }
-
-mr::context::context() : logger(nullptr), directories(mr::dirs()), textures(mr::Textures(directories)), camera(Camera2D { .target = 1, .zoom = 1.5f }) { }
-mr::context::~context() { }
-
-const RenderTexture2D& mr::Textures::get_main_level_viewport() const { return main_level_viewport; }
-
-void mr::Textures::new_main_level_viewport(int width, int height)
-{
-    if (width < 0 || height < 0) return;
-
-    if (main_level_viewport.id != 0) UnloadRenderTexture(main_level_viewport);
-
-    main_level_viewport = LoadRenderTexture(width, height);
+spdlog::logger *context::get_logger() const { return logger.get(); }
+void context::set_logger(const std::shared_ptr<spdlog::logger> _logger) {
+  logger = _logger;
 }
 
-void mr::Textures::resize_main_level_viewport(int width, int height)
-{
-    if (width < 0 || height < 0) return;
+const dirs *context::get_dirs() const { return directories.get(); }
+void context::set_dirs(std::shared_ptr<dirs> _dirs) { directories = _dirs; }
 
-    auto new_viewport = LoadRenderTexture(width, height);
+Camera2D &context::get_camera() { return camera; }
+void context::set_camera(Camera2D _camera) { camera = _camera; }
 
-    BeginTextureMode(new_viewport);
-    ClearBackground(BLACK);
+textures &context::get_textures() { return textures_; }
 
-    DrawTexture(main_level_viewport.texture, 0, 0, WHITE);
-    EndTextureMode();
+context::context()
+    : logger(nullptr), directories(nullptr), textures_(textures(directories)),
+      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
+context::context(std::shared_ptr<spdlog::logger> logger,
+                 std::shared_ptr<dirs> dirs)
+    : logger(logger), directories(dirs), textures_(textures(directories)),
+      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
+context::~context() {}
 
-    if (main_level_viewport.id != 0) UnloadRenderTexture(main_level_viewport);
-    main_level_viewport = new_viewport;
+void textures::reload_all_textures() {}
+
+const RenderTexture2D &textures::get_main_level_viewport() const noexcept {
+  return main_level_viewport.get();
+}
+void textures::new_main_level_viewport(int width, int height) {
+  if (width < 0 || height < 0)
+    return;
+
+  main_level_viewport = std::move(rendertexture(width, height));
 }
 
-mr::Textures::Textures(const dirs &_dirs)
-{
+void textures::resize_main_level_viewport(int width, int height) {
+  if (width < 0 || height < 0)
+    return;
+
+  auto new_viewport = rendertexture(width, height);
+
+  BeginTextureMode(new_viewport.get());
+  ClearBackground(BLACK);
+
+  DrawTexture(main_level_viewport.get().texture, 0, 0, WHITE);
+  EndTextureMode();
+
+  main_level_viewport = std::move(new_viewport);
 }
 
-mr::Textures::~Textures()
-{
-    if (main_level_viewport.id != 0) UnloadRenderTexture(main_level_viewport);
+textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
+    : directories(directories) {
+  if (preload_textures) {
+  }
 }
+
+textures::~textures() {}
+}; // namespace mr

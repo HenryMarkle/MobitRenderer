@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(MobitRenderer VERSION 0.1.0 LANGUAGES C CXX)
 
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_CXX_STANDARD_REQUIRED 17)
 
@@ -11,7 +10,7 @@ add_subdirectory(libs/MobitParser)
 
 # ImGui library
 file(GLOB IMGUI_SOURCES libs/imgui/*.cpp)
-add_library(imgui STATIC ${IMGUI_SOURCES} libs/imgui/backends/imgui_impl_opengl3.cpp)
+add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PUBLIC libs/imgui libs/imgui/backends)
 
 # rlImGui library
@@ -31,7 +30,8 @@ target_compile_definitions(MobitRenderer PRIVATE
     APP_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
-target_link_libraries(MobitRenderer PRIVATE raylib imgui rlimgui spdlog MobitParser)
+target_link_libraries(MobitRenderer PRIVATE raylib imgui rlimgui spdlog)
+target_link_libraries(MobitRenderer PRIVATE MobitParser)
 
 include(CTest)
 enable_testing()

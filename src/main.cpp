@@ -21,21 +21,22 @@ using std::string;
 int main() {
   // std::cout << "size is " << sizeof(mr::TileCell) << " bytes" << std::endl;
 
-  shared_ptr<mr::context> ctx = std::make_shared<mr::context>();
+  shared_ptr<mr::dirs> directories = std::make_shared<mr::dirs>();
   shared_ptr<logger> logger = nullptr;
 
   // Initializing logging
   //
   try {
     logger = spdlog::basic_logger_mt("main logger",
-                                     ctx->get_dirs().get_logs() / "logs.txt");
+                                     directories->get_logs() / "logs.txt");
   } catch (const spdlog::spdlog_ex &ex) {
     std::cout << "Initializing logger has failed" << std::endl;
     throw ex;
   }
   //
 
-  ctx->set_logger(logger);
+  shared_ptr<mr::context> ctx =
+      std::make_shared<mr::context>(logger, directories);
 
   logger->info("------ starting program");
   logger->info("Mobit Renderer v{}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR,
@@ -67,8 +68,7 @@ int main() {
   ClearBackground(BLACK);
   EndTextureMode();
 
-  auto pe =
-      std::make_unique<mr::ProjectExplorer>(ctx->get_dirs().get_projects());
+  auto pe = std::make_unique<mr::ProjectExplorer>(directories);
 
   logger->info("entering main loop");
 

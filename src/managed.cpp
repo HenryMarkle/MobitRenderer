@@ -34,6 +34,8 @@ rendertexture &rendertexture::operator=(rendertexture &&other) noexcept {
 
   return *this;
 }
+rendertexture::rendertexture()
+    : rt_({.id = 0, .texture = {.id = 0}}), isloaded(false) {}
 rendertexture::rendertexture(rendertexture &&other) noexcept {
   rt_ = other.rt_;
   isloaded = other.isloaded;
@@ -80,6 +82,7 @@ image &image::operator=(image &&other) noexcept {
 
   return *this;
 }
+image::image() : img_({.data = nullptr}), isloaded(false) {}
 image::image(image &&other) noexcept {
   img_ = other.img_;
   isloaded = other.isloaded;
@@ -131,6 +134,7 @@ texture &texture::operator=(texture &&other) noexcept {
 
   return *this;
 }
+texture::texture() : texture_({.id = 0}), isloaded(false) {}
 texture::texture(texture &&other) noexcept {
   texture_ = other.texture_;
   isloaded = other.isloaded;

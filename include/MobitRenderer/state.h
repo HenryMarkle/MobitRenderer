@@ -25,6 +25,7 @@
 #endif
 
 #include <MobitRenderer/level.h>
+#include <MobitRenderer/managed.h>
 
 namespace mr {
 inline std::filesystem::path get_current_dir() {
@@ -78,14 +79,18 @@ public:
   dirs(const std::filesystem::path &);
 };
 
-class Textures {
+class textures {
 private:
-  RenderTexture2D main_level_viewport;
+  std::shared_ptr<dirs> directories;
+
+  rendertexture main_level_viewport;
+
+  void reload_all_textures();
 
 public:
   /// @brief Returns a read-only reference to the main level viewport.
   /// @warning Do not access this while modifying main_level_viewport.
-  const RenderTexture2D &get_main_level_viewport() const;
+  const RenderTexture2D &get_main_level_viewport() const noexcept;
 
   /// @brief Replaces the existing render texture with a new one.
   void new_main_level_viewport(int width, int height);
@@ -93,15 +98,15 @@ public:
   /// @brief Creates a new render texture and draws the old render texture over.
   void resize_main_level_viewport(int width, int height);
 
-  Textures(const dirs &_dirs);
-  ~Textures();
+  textures(std::shared_ptr<dirs>, bool preload_textures = false);
+  ~textures();
 };
 
 class context {
 private:
   std::shared_ptr<spdlog::logger> logger;
-  dirs directories;
-  Textures textures;
+  std::shared_ptr<dirs> directories;
+  textures textures_;
   Camera2D camera;
 
   std::vector<mr::Level> levels;
@@ -111,13 +116,13 @@ public:
   spdlog::logger *get_logger() const;
   void set_logger(const std::shared_ptr<spdlog::logger>);
 
-  const dirs &get_dirs() const;
-  void set_dirs(dirs);
+  const dirs *get_dirs() const;
+  void set_dirs(std::shared_ptr<dirs>);
 
   Camera2D &get_camera();
   void set_camera(Camera2D);
 
-  Textures &get_textures();
+  textures &get_textures();
 
   mr::Level &get_selected_level();
   void add_level(mr::Level &&);
@@ -125,6 +130,7 @@ public:
   void remove_level(size_t);
 
   context();
+  context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);
   ~context();
 };
 }; // namespace mr

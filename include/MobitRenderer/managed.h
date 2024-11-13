@@ -23,7 +23,7 @@ public:
   rendertexture &operator=(rendertexture &&) noexcept;
   rendertexture &operator=(const rendertexture &) = delete;
 
-  rendertexture() = delete;
+  rendertexture();
   rendertexture(const rendertexture &) = delete;
   rendertexture(rendertexture &&) noexcept;
   explicit rendertexture(uint16_t width, uint16_t height);
@@ -47,7 +47,7 @@ public:
   image &operator=(image &&) noexcept;
   image &operator=(const image &) = delete;
 
-  image() = delete;
+  image();
   image(const image &) = delete;
   image(image &&) noexcept;
   explicit image(const std::string &);
@@ -74,7 +74,7 @@ public:
   texture &operator=(texture &&) noexcept;
   texture &operator=(const texture &) = delete;
 
-  texture() = delete;
+  texture();
   texture(const texture &) = delete;
   texture(texture &&) noexcept;
 

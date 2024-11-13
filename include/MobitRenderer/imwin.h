@@ -9,7 +9,9 @@
 
 #include <raylib.h>
 
+#include <MobitRenderer/managed.h>
 #include <MobitRenderer/matrix.h>
+#include <MobitRenderer/state.h>
 
 namespace mr {
 
@@ -29,6 +31,7 @@ private:
 
   std::unique_ptr<Matrix<GeoCell>> level_geo;
 
+  Texture2D file_icon, folder_icon;
   RenderTexture2D preview_rt;
 
   /// Used to as cursors for drawing the project preview.
@@ -40,7 +43,8 @@ private:
   void new_preview(uint16_t width, uint16_t height);
 
 public:
-  /// Draws the window.
+  /// @attention This function must be called after rlImGuiBegin() and before
+  /// rlImGuiEnd().
   void draw() noexcept;
 
   const std::vector<std::string> &get_filters() const;
@@ -52,7 +56,7 @@ public:
   ProjectExplorer();
 
   /// Initializes the explorer and sets the current directory to the given one.
-  ProjectExplorer(const std::string &&dir_or_file);
+  ProjectExplorer(std::shared_ptr<dirs> dirs);
 
   ~ProjectExplorer();
 };
