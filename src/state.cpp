@@ -5,8 +5,10 @@
 
 #include <raylib.h>
 
+#include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
 #include <MobitRenderer/state.h>
+#include <vector>
 
 namespace mr {
 
@@ -125,38 +127,37 @@ dirs::dirs(const std::filesystem::path &executable_directory) {
   executable = executable_directory;
 }
 
-spdlog::logger *context::get_logger() const { return logger.get(); }
-void context::set_logger(const std::shared_ptr<spdlog::logger> _logger) {
-  logger = _logger;
-}
-
-const dirs *context::get_dirs() const { return directories.get(); }
-void context::set_dirs(std::shared_ptr<dirs> _dirs) { directories = _dirs; }
-
 Camera2D &context::get_camera() { return camera; }
 void context::set_camera(Camera2D _camera) { camera = _camera; }
 
-textures &context::get_textures() { return textures_; }
+const std::vector<Level> &context::get_levels() const noexcept {
+  return levels;
+}
 
 context::context()
-    : logger(nullptr), directories(nullptr), textures_(textures(directories)),
+    : logger(nullptr), directories(nullptr),
+      textures_(std::make_shared<textures>(directories)),
       camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs)
-    : logger(logger), directories(dirs), textures_(textures(directories)),
+    : logger(logger), directories(dirs),
+      textures_(std::make_shared<textures>(directories)),
+      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
+context::context(std::shared_ptr<spdlog::logger> logger,
+                 std::shared_ptr<dirs> dirs,
+                 std::shared_ptr<textures> _textures)
+    : logger(logger), directories(dirs), textures_(_textures),
       camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
 context::~context() {}
 
-void textures::reload_all_textures() {}
+void textures::reload_all_textures() {
+  file_icon = texture(directories->get_assets() / "Icons" / "file icon.png");
+  folder_icon =
+      texture(directories->get_assets() / "Icons" / "folder icon.png");
+}
 
 const RenderTexture2D &textures::get_main_level_viewport() const noexcept {
   return main_level_viewport.get();
-}
-void textures::new_main_level_viewport(int width, int height) {
-  if (width < 0 || height < 0)
-    return;
-
-  main_level_viewport = std::move(rendertexture(width, height));
 }
 
 void textures::resize_main_level_viewport(int width, int height) {
@@ -177,6 +178,7 @@ void textures::resize_main_level_viewport(int width, int height) {
 textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
     : directories(directories) {
   if (preload_textures) {
+    reload_all_textures();
   }
 }
 

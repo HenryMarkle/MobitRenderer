@@ -31,7 +31,7 @@ private:
 
   std::unique_ptr<Matrix<GeoCell>> level_geo;
 
-  Texture2D file_icon, folder_icon;
+  std::shared_ptr<textures> textures_;
   RenderTexture2D preview_rt;
 
   /// Used to as cursors for drawing the project preview.
@@ -56,7 +56,8 @@ public:
   ProjectExplorer();
 
   /// Initializes the explorer and sets the current directory to the given one.
-  ProjectExplorer(std::shared_ptr<dirs> dirs);
+  ProjectExplorer(std::shared_ptr<dirs> dirs,
+                  std::shared_ptr<textures> _textures);
 
   ~ProjectExplorer();
 };

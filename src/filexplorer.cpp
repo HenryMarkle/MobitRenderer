@@ -3,6 +3,7 @@
 #include <cstring>
 #include <exception>
 #include <filesystem>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -48,7 +49,7 @@ void ProjectExplorer::go_to(const std::filesystem::path &dir) {
 
       if (!path.has_stem())
         continue;
-      if (!path.has_extension())
+      if (!entry.is_directory() && !path.has_extension())
         continue;
 
       if (!filters.empty()) {
@@ -92,9 +93,6 @@ void ProjectExplorer::go_to(const std::filesystem::path &dir) {
 ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
   auto exec_dir = get_current_dir();
 
-  file_icon = Texture2D{.id = 0};
-  folder_icon = Texture2D{.id = 0};
-
 #ifdef __linux__
   path_max_len = PATH_MAX;
 #endif
@@ -111,15 +109,14 @@ ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
   go_to(exec_dir);
 }
 
-ProjectExplorer::ProjectExplorer(std::shared_ptr<dirs> dirs) {
+ProjectExplorer::ProjectExplorer(std::shared_ptr<dirs> dirs,
+                                 std::shared_ptr<textures> _textures) {
   std::filesystem::path path(dirs->get_projects());
+  textures_ = _textures;
 
   const auto &icons_dir = dirs->get_assets() / "Icons";
   const auto file_icon_path = icons_dir / "file icon.png";
   const auto folder_icon_path = icons_dir / "folder icon.png";
-
-  file_icon = LoadTexture(file_icon_path.c_str());
-  folder_icon = LoadTexture(folder_icon_path.c_str());
 
 #ifdef __linux__
   path_max_len = PATH_MAX;
@@ -154,11 +151,6 @@ ProjectExplorer::~ProjectExplorer() {
   if (preview_rt.id != 0)
     UnloadRenderTexture(preview_rt);
 
-  if (file_icon.id != 0)
-    UnloadTexture(file_icon);
-  if (folder_icon.id != 0)
-    UnloadTexture(folder_icon);
-
   delete[] current_path;
 }
 
@@ -182,12 +174,29 @@ void ProjectExplorer::draw() noexcept {
       if (ImGui::BeginListBox("##entries", ImGui::GetContentRegionAvail())) {
         for (auto n = 0; n < entry_names.size(); n++) {
           const auto &name = entry_names[n];
-          rlImGuiImageRect(
-              &(entry_is_dir[n] ? folder_icon : file_icon), 20, 20,
-              Rectangle{0, 0, (float)file_icon.width, (float)file_icon.height});
+
+          auto *file_icon = textures_->file_icon.get_ptr();
+          auto *folder_icon = textures_->folder_icon.get_ptr();
+
+          rlImGuiImageRect((entry_is_dir[n] ? folder_icon : file_icon), 20, 20,
+                           Rectangle{0, 0, (float)file_icon->width,
+                                     (float)file_icon->height});
           ImGui::SameLine();
-          ImGui::Selectable(name.c_str(), n == selected_entry, 0,
-                            ImVec2(ImGui::GetContentRegionAvail().x, 20));
+          bool is_clicked =
+              ImGui::Selectable(name.c_str(), n == selected_entry, 0,
+                                ImVec2(ImGui::GetContentRegionAvail().x, 20));
+
+          if (is_clicked) {
+            if (n == selected_entry) {
+              if (entry_is_dir[n])
+                go_to(entry_paths[n]);
+              else {
+                // TODO: trigger load level here
+              }
+            } else {
+              selected_entry = n;
+            }
+          }
         }
         ImGui::EndListBox();
       }

@@ -1,3 +1,4 @@
+#include "MobitRenderer/managed.h"
 #include <iostream>
 #include <memory>
 #include <string>
@@ -44,7 +45,7 @@ int main() {
 
   SetTargetFPS(40);
 
-  SetWindowState(FLAG_MSAA_4X_HINT);
+  //  SetWindowState(FLAG_MSAA_4X_HINT);
 
   InitWindow(1200, 800, "Mobit Renderer");
 
@@ -62,13 +63,14 @@ int main() {
 
   logger->info("initializing");
 
-  ctx->get_textures().new_main_level_viewport(72 * 20, 53 * 20);
+  ctx->textures_->main_level_viewport = mr::rendertexture(72 * 20, 53 * 20);
+  ctx->textures_->reload_all_textures();
 
-  BeginTextureMode(ctx->get_textures().get_main_level_viewport());
+  BeginTextureMode(ctx->textures_->get_main_level_viewport());
   ClearBackground(BLACK);
   EndTextureMode();
 
-  auto pe = std::make_unique<mr::ProjectExplorer>(directories);
+  auto pe = std::make_unique<mr::ProjectExplorer>(directories, ctx->textures_);
 
   logger->info("entering main loop");
 
@@ -88,8 +90,7 @@ int main() {
 
     BeginMode2D(ctx->get_camera());
 
-    DrawTexture(ctx->get_textures().get_main_level_viewport().texture, 0, 0,
-                WHITE);
+    DrawTexture(ctx->textures_->main_level_viewport.get().texture, 0, 0, WHITE);
 
     DrawText("Hello", 0, 0, 30, WHITE);
 

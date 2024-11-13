@@ -83,17 +83,15 @@ class textures {
 private:
   std::shared_ptr<dirs> directories;
 
+public:
   rendertexture main_level_viewport;
+  texture file_icon, folder_icon;
 
   void reload_all_textures();
 
-public:
   /// @brief Returns a read-only reference to the main level viewport.
   /// @warning Do not access this while modifying main_level_viewport.
   const RenderTexture2D &get_main_level_viewport() const noexcept;
-
-  /// @brief Replaces the existing render texture with a new one.
-  void new_main_level_viewport(int width, int height);
 
   /// @brief Creates a new render texture and draws the old render texture over.
   void resize_main_level_viewport(int width, int height);
@@ -104,26 +102,19 @@ public:
 
 class context {
 private:
-  std::shared_ptr<spdlog::logger> logger;
-  std::shared_ptr<dirs> directories;
-  textures textures_;
   Camera2D camera;
 
   std::vector<mr::Level> levels;
   uint8_t selected_level;
 
 public:
-  spdlog::logger *get_logger() const;
-  void set_logger(const std::shared_ptr<spdlog::logger>);
-
-  const dirs *get_dirs() const;
-  void set_dirs(std::shared_ptr<dirs>);
-
+  std::shared_ptr<spdlog::logger> logger;
+  std::shared_ptr<dirs> directories;
+  std::shared_ptr<textures> textures_;
   Camera2D &get_camera();
   void set_camera(Camera2D);
 
-  textures &get_textures();
-
+  const std::vector<mr::Level> &get_levels() const noexcept;
   mr::Level &get_selected_level();
   void add_level(mr::Level &&);
   void add_level(mr::Level const &);
@@ -131,6 +122,8 @@ public:
 
   context();
   context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);
+  context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>,
+          std::shared_ptr<textures>);
   ~context();
 };
 }; // namespace mr

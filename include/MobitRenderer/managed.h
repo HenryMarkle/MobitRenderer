@@ -65,6 +65,8 @@ public:
   /// @brief Returns a temprary, read-only rederence to the texture.
   /// @warning Do not copy the returned reference.
   const Texture2D &get() const noexcept;
+  const Texture2D *get_ptr() const noexcept;
+
   bool is_loaded() const noexcept;
   void unload();
 

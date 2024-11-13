@@ -105,6 +105,7 @@ image::image(const char *path) {
 image::~image() { unload(); }
 
 const Texture2D &texture::get() const noexcept { return texture_; }
+const Texture2D *texture::get_ptr() const noexcept { return &texture_; }
 bool texture::is_loaded() const noexcept { return isloaded; }
 void texture::unload() {
   if (!isloaded)
