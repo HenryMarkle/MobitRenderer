@@ -1,4 +1,3 @@
-#include "MobitRenderer/managed.h"
 #include <iostream>
 #include <memory>
 #include <string>
@@ -6,14 +5,15 @@
 #include <imgui.h>
 #include <raylib.h>
 #include <rlImGui.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 
 #include <MobitRenderer/definitions.h>
 #include <MobitRenderer/imwin.h>
+#include <MobitRenderer/managed.h>
 #include <MobitRenderer/matrix.h>
+#include <MobitRenderer/pages.h>
 #include <MobitRenderer/state.h>
-
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/spdlog.h>
 
 using spdlog::logger;
 using std::shared_ptr;
@@ -38,6 +38,8 @@ int main() {
 
   shared_ptr<mr::context> ctx =
       std::make_shared<mr::context>(logger, directories);
+
+  auto pager = std::make_unique<mr::pages::Pager>(ctx, logger);
 
   logger->info("------ starting program");
   logger->info("Mobit Renderer v{}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR,
@@ -75,36 +77,9 @@ int main() {
   logger->info("entering main loop");
 
   while (!WindowShouldClose()) {
-
-    // simple panning
-    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
-      auto delta = GetMouseDelta();
-      auto &camera = ctx->get_camera();
-
-      camera.target.x -= delta.x / camera.zoom;
-      camera.target.y -= delta.y / camera.zoom;
-    }
-
     BeginDrawing();
-    ClearBackground(DARKGRAY);
 
-    BeginMode2D(ctx->get_camera());
-
-    DrawTexture(ctx->textures_->main_level_viewport.get().texture, 0, 0, WHITE);
-
-    DrawText("Hello", 0, 0, 30, WHITE);
-
-    EndMode2D();
-
-    rlImGuiBegin();
-
-    ImGui::DockSpaceOverViewport(ImGui::GetWindowDockID(),
-                                 ImGui::GetMainViewport(),
-                                 ImGuiDockNodeFlags_PassthruCentralNode);
-
-    pe->draw();
-
-    rlImGuiEnd();
+    pager->get_current_page()->draw();
 
     EndDrawing();
   }
