@@ -154,6 +154,8 @@ void textures::reload_all_textures() {
   file_icon = texture(directories->get_assets() / "Icons" / "file icon.png");
   folder_icon =
       texture(directories->get_assets() / "Icons" / "folder icon.png");
+  up_icon = texture(directories->get_assets() / "Icons" / "up icon.png");
+  home_icon = texture(directories->get_assets() / "Icons" / "home icon.png");
 }
 
 const RenderTexture2D &textures::get_main_level_viewport() const noexcept {

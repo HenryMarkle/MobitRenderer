@@ -85,7 +85,7 @@ private:
 
 public:
   rendertexture main_level_viewport;
-  texture file_icon, folder_icon;
+  texture file_icon, folder_icon, up_icon, home_icon;
 
   void reload_all_textures();
 

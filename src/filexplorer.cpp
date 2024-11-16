@@ -80,6 +80,8 @@ void ProjectExplorer::go_to(const std::filesystem::path &dir) {
 
   auto path_source = dir.string();
 
+  memset(current_path, 0, path_max_len);
+
   path_source.copy(current_path, std::min(path_source.length(), path_max_len));
   path_source[std::min(path_source.length(), path_max_len) - 1] = 0;
 
@@ -89,8 +91,30 @@ void ProjectExplorer::go_to(const std::filesystem::path &dir) {
   entry_is_dir = is_dir;
 }
 
+ProjectExplorer::dialogmode ProjectExplorer::get_dialog_mode() const noexcept {
+  return dialog_mode;
+}
+
+void ProjectExplorer::set_dialog_mode(
+    ProjectExplorer::dialogmode mode) noexcept {
+  dialog_mode = mode;
+}
+
+const char *ProjectExplorer::get_current_path() const noexcept {
+  return current_path;
+}
+const std::filesystem::path *
+ProjectExplorer::get_selected_entry() const noexcept {
+  if (entry_paths.empty())
+    return nullptr;
+
+  return &entry_paths[selected_entry];
+}
+
 ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
   auto exec_dir = get_current_dir();
+
+  projects_dir = exec_dir / "Projects";
 
 #ifdef __linux__
   path_max_len = PATH_MAX;
@@ -111,6 +135,9 @@ ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
 ProjectExplorer::ProjectExplorer(std::shared_ptr<dirs> dirs,
                                  std::shared_ptr<textures> _textures) {
   std::filesystem::path path(dirs->get_projects());
+
+  projects_dir = dirs->get_projects();
+
   textures_ = _textures;
 
   const auto &icons_dir = dirs->get_assets() / "Icons";
@@ -153,17 +180,81 @@ ProjectExplorer::~ProjectExplorer() {
   delete[] current_path;
 }
 
-/// @attention This function must be called after rlImGuiBegin() and before
-/// rlImGuiEnd().
-void ProjectExplorer::draw() noexcept {
+bool ProjectExplorer::draw() noexcept {
+  bool dialog_selected = false;
+
   auto opened = ImGui::Begin("Project Explorer");
 
   if (opened) {
+    if (current_path_updated) {
+
+      std::filesystem::path buffer_path(current_path);
+      if (std::filesystem::exists(buffer_path) &&
+          std::filesystem::is_directory(buffer_path)) {
+        go_to(buffer_path);
+      }
+      current_path_updated = false;
+    }
+
+    { // input handling
+
+      if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_DownArrow)) {
+        if (++selected_entry >= entry_paths.size())
+          selected_entry = entry_paths.size() - 1;
+      } else if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_UpArrow)) {
+        if (selected_entry-- == 0)
+          selected_entry = 0;
+      } else if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_LeftArrow)) {
+        go_to(current_dir.parent_path());
+      } else if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_RightArrow)) {
+        if (!entry_paths.empty() && entry_is_dir[selected_entry])
+          go_to(entry_paths[selected_entry]);
+      }
+
+      if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Enter)) {
+        if (!entry_paths.empty()) {
+          if (entry_is_dir[selected_entry]) {
+            if (dialog_mode == folder)
+              dialog_selected = true;
+            else
+              go_to(entry_paths[selected_entry]);
+          } else {
+            if (dialog_mode == file)
+              dialog_selected = true;
+          }
+        }
+      }
+    }
+
+    bool up_clicked = rlImGuiImageButtonSize(
+        "##up", textures_->up_icon.get_ptr(), ImVec2(20, 20));
+
+    if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::Text("Go up a directory");
+      ImGui::EndTooltip();
+    }
+    ImGui::SameLine();
+
+    bool home_clicked = rlImGuiImageButtonSize(
+        "##home", textures_->home_icon.get_ptr(), ImVec2(20, 20));
+    if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::Text("Return to /Projects");
+      ImGui::EndTooltip();
+    }
+    ImGui::SameLine();
+
+    if (up_clicked)
+      go_to(current_dir.parent_path());
+    if (home_clicked)
+      go_to(projects_dir);
+
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    ImGui::InputText("##path", current_path, path_max_len);
+    current_path_updated |=
+        ImGui::InputText("##path", current_path, path_max_len);
 
     if (ImGui::BeginTable("layout", 2, ImGuiTableFlags_Resizable)) {
-
       ImGui::TableSetupColumn("entries_col", ImGuiTableColumnFlags_WidthFixed,
                               300);
 
@@ -190,7 +281,7 @@ void ProjectExplorer::draw() noexcept {
               if (entry_is_dir[n])
                 go_to(entry_paths[n]);
               else {
-                // TODO: trigger load level here
+                dialog_selected = true;
               }
             } else {
               selected_entry = n;
@@ -210,6 +301,8 @@ void ProjectExplorer::draw() noexcept {
   }
 
   ImGui::End();
+
+  return dialog_selected;
 }
 
 const std::vector<std::string> &ProjectExplorer::get_filters() const {

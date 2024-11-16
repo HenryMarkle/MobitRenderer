@@ -17,6 +17,7 @@ namespace mr {
 
 class ProjectExplorer {
 private:
+  std::filesystem::path projects_dir;
   std::filesystem::path current_dir;
 
   std::vector<std::filesystem::path> entry_paths;
@@ -27,6 +28,8 @@ private:
 
   size_t path_max_len;
   char *current_path;
+  bool current_path_updated;
+
   std::vector<std::string> filters;
 
   std::unique_ptr<Matrix<GeoCell>> level_geo;
@@ -42,14 +45,23 @@ private:
   void draw_preview() const noexcept;
   void new_preview(uint16_t width, uint16_t height);
 
+  enum dialogmode : uint8_t { file, folder };
+  dialogmode dialog_mode;
+
 public:
   /// @attention This function must be called after rlImGuiBegin() and before
   /// rlImGuiEnd().
-  void draw() noexcept;
+  bool draw() noexcept;
 
   const std::vector<std::string> &get_filters() const;
   void set_filters(std::vector<std::string> &&filters_);
   void set_filters(std::vector<std::string> filters_);
+
+  dialogmode get_dialog_mode() const noexcept;
+  void set_dialog_mode(dialogmode) noexcept;
+
+  const char *get_current_path() const noexcept;
+  const std::filesystem::path *get_selected_entry() const noexcept;
 
   /// Initializes the explorer with the executable's directory as the current
   /// one.
