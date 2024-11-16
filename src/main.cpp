@@ -79,6 +79,10 @@ int main() {
   while (!WindowShouldClose()) {
     BeginDrawing();
 
+    { // Handle global shortcuts
+    }
+
+    pager->get_current_page()->process();
     pager->get_current_page()->draw();
 
     EndDrawing();

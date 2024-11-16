@@ -1,11 +1,50 @@
 #pragma once
 
-#include "MobitRenderer/definitions.h"
-#include <MobitRenderer/matrix.h>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <string>
+
 #include <raylib.h>
 
+#include <MobitRenderer/definitions.h>
+#include <MobitRenderer/matrix.h>
+
 namespace mr {
+
+namespace debug {
+
+class f3 {
+private:
+  Vector2 cursor;
+  Color text, background;
+  float font_size;
+  Font font;
+  uint8_t margin_v, margin_h;
+
+public:
+  /// @brief Moves the cursor down by one line, by default.
+  void newline(uint32_t lines = 1) noexcept;
+
+  /// @brief Resets cursor position.
+  void reset() noexcept;
+
+  void set_font(Font) noexcept;
+
+  void print(const std::string &str, bool same_line = false) noexcept;
+  void print(int number, bool same_line = false) noexcept;
+  void print(size_t number, bool same_line = false) noexcept;
+  void print(float number, bool same_line = false) noexcept;
+  void print(double number, bool same_line = false) noexcept;
+  void print(bool boolean, bool same_line = false) noexcept;
+  /// @brief Prints a memory address (without derefrencing.)
+  void print(void *ptr, bool same_line = false) noexcept;
+
+  f3(Font font, float font_size, Color text_color, Color background_color);
+  ~f3();
+};
+
+}; // namespace debug
 
 /// @brief Draws a geo cell based on the provided type.
 /// @param type Determines the shape of the cell.
