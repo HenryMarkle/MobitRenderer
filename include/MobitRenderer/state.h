@@ -101,6 +101,13 @@ public:
   ~textures();
 };
 
+class shortcuts {
+private:
+public:
+  shortcuts();
+  ~shortcuts();
+};
+
 class context {
 private:
   Camera2D camera;
