@@ -1,8 +1,10 @@
 #pragma once
 
+#include <any>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <queue>
 #include <string>
 
 #include <raylib.h>
@@ -14,6 +16,11 @@ namespace mr {
 
 namespace debug {
 
+struct f3_queue_data {
+  std::any data;
+  bool same_line;
+};
+
 class f3 {
 private:
   Vector2 cursor;
@@ -21,6 +28,7 @@ private:
   float font_size;
   Font font;
   uint8_t margin_v, margin_h;
+  std::queue<f3_queue_data> queue;
 
 public:
   /// @brief Moves the cursor down by one line, by default.
@@ -31,6 +39,12 @@ public:
 
   void set_font(Font) noexcept;
 
+  void enqueue(std::any, bool same_line = false);
+
+  /// @brief Draws the content of the queue by consuming the queue.
+  void print_queue() noexcept;
+
+  void print(const char *, bool same_line = false) noexcept;
   void print(const std::string &str, bool same_line = false) noexcept;
   void print(int number, bool same_line = false) noexcept;
   void print(size_t number, bool same_line = false) noexcept;

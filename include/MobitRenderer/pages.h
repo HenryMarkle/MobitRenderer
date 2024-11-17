@@ -26,6 +26,9 @@ public:
   /// @brief Draws the content of the page
   virtual void draw() noexcept = 0;
 
+  /// @brief Draws ImGui windows
+  virtual void windows() noexcept = 0;
+
   virtual ~Page() = default;
 };
 
@@ -60,6 +63,7 @@ private:
 public:
   virtual void process() override;
   virtual void draw() noexcept override;
+  virtual void windows() noexcept override;
   Start_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
 };
 

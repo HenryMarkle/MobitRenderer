@@ -19,14 +19,8 @@ Start_Page::Start_Page(std::shared_ptr<context> ctx,
     : Page(ctx, logger), explorer_(ctx->directories, ctx->textures_) {}
 
 void Start_Page::process() {}
-void Start_Page::draw() noexcept {
-  ClearBackground(DARKGRAY);
+void Start_Page::draw() noexcept { ClearBackground(DARKGRAY); }
 
-  rlImGuiBegin();
-
-  explorer_.draw();
-
-  rlImGuiEnd();
-}
+void Start_Page::windows() noexcept { bool clicked = explorer_.draw(); }
 
 }; // namespace mr::pages

@@ -1,14 +1,15 @@
 #include <filesystem>
 #include <memory>
+#include <vector>
 
 #include <spdlog/spdlog.h>
 
 #include <raylib.h>
 
+#include <MobitRenderer/draw.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
 #include <MobitRenderer/state.h>
-#include <vector>
 
 namespace mr {
 
@@ -137,16 +138,25 @@ const std::vector<Level> &context::get_levels() const noexcept {
 context::context()
     : logger(nullptr), directories(nullptr),
       textures_(std::make_shared<textures>(directories)),
+      f3_(std::make_shared<debug::f3>(
+          GetFontDefault(), 20, WHITE,
+          Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs)
     : logger(logger), directories(dirs),
       textures_(std::make_shared<textures>(directories)),
+      f3_(std::make_shared<debug::f3>(
+          GetFontDefault(), 20, WHITE,
+          Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs,
                  std::shared_ptr<textures> _textures)
     : logger(logger), directories(dirs), textures_(_textures),
+      f3_(std::make_shared<debug::f3>(
+          GetFontDefault(), 20, WHITE,
+          Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
 context::~context() {}
 

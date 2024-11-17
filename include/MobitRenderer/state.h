@@ -24,6 +24,7 @@
 #include <windows.h>
 #endif
 
+#include <MobitRenderer/draw.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
 
@@ -111,8 +112,10 @@ public:
   std::shared_ptr<spdlog::logger> logger;
   std::shared_ptr<dirs> directories;
   std::shared_ptr<textures> textures_;
+  std::shared_ptr<debug::f3> f3_;
   Camera2D &get_camera();
   void set_camera(Camera2D);
+  bool f3_enabled;
 
   const std::vector<mr::Level> &get_levels() const noexcept;
   mr::Level &get_selected_level();

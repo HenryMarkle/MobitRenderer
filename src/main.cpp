@@ -80,10 +80,25 @@ int main() {
     BeginDrawing();
 
     { // Handle global shortcuts
+
+      if (IsKeyPressed(KEY_F3)) {
+        ctx->f3_enabled = !ctx->f3_enabled;
+      }
     }
 
     pager->get_current_page()->process();
     pager->get_current_page()->draw();
+
+    rlImGuiBegin();
+    pager->get_current_page()->windows();
+    rlImGuiEnd();
+
+    if (ctx->f3_enabled) {
+      ctx->f3_->print("Hello World");
+
+      ctx->f3_->print_queue();
+      ctx->f3_->reset();
+    }
 
     EndDrawing();
   }
