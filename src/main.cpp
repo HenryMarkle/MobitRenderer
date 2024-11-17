@@ -90,6 +90,10 @@ int main() {
     pager->get_current_page()->draw();
 
     rlImGuiBegin();
+    ImGui::DockSpaceOverViewport(ImGui::GetWindowDockID(),
+                                 ImGui::GetMainViewport(),
+                                 ImGuiDockNodeFlags_PassthruCentralNode);
+
     pager->get_current_page()->windows();
     rlImGuiEnd();
 
