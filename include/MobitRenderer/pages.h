@@ -1,8 +1,10 @@
 #pragma once
 
+#include "MobitRenderer/level.h"
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
+#include <thread>
 #include <vector>
 
 #include <spdlog/logger.h>
@@ -59,6 +61,9 @@ public:
 class Start_Page : public Page {
 private:
   ProjectExplorer explorer_;
+  std::unique_ptr<std::thread> project_load_thread;
+  std::unique_ptr<Level> loaded_level;
+  bool explorer_file_clicked;
 
 public:
   virtual void process() override;
