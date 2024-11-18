@@ -12,21 +12,34 @@
 
 namespace mr::pages {
 
+// TODO: Move this definition to its own, dedicated file.
 Page::Page(std::shared_ptr<context> ctx, std::shared_ptr<spdlog::logger> logger)
     : ctx_(ctx), logger_(logger) {}
 
 Start_Page::Start_Page(std::shared_ptr<context> ctx,
                        std::shared_ptr<spdlog::logger> logger)
     : Page(ctx, logger), explorer_(ctx->directories, ctx->textures_),
-      project_load_thread(nullptr) {}
+      loaded_level(nullptr), project_load_thread(nullptr) {}
 
 void Start_Page::process() {
-  const auto *file = explorer_.get_selected_entry();
-
-  // TODO: load a function in another thread then navigate to the main screen
 
   if (explorer_file_clicked && project_load_thread == nullptr) {
-    project_load_thread = std::make_unique<std::thread>([]() {});
+    const auto *file = explorer_.get_selected_entry();
+
+    loaded_level = nullptr;
+
+    project_load_thread = std::make_unique<std::thread>([this]() {
+      // TODO: Load, read, and parse the file into a
+      // level object here.
+
+      // The marks its termination by setting the loaded_level to a valid
+      // pointer.
+      this->loaded_level = nullptr;
+    });
+  }
+
+  // Project load protocol wait.
+  if (project_load_thread != nullptr) {
   }
 }
 void Start_Page::draw() noexcept { ClearBackground(DARKGRAY); }
