@@ -21,8 +21,8 @@ struct ProjectSaveFileLines {
   std::string effects;
   std::string light_settings;
   std::string terrain_settings;
-  std::string seed_and_buffers;
-  std::string cameras_and_size;
+  std::string seed_and_sizes;
+  std::string cameras;
   std::string water;
   std::string props;
 };
@@ -33,8 +33,8 @@ struct ProjectSaveFileNodes {
   std::unique_ptr<mp::Node> effects;
   std::unique_ptr<mp::Node> light_settings;
   std::unique_ptr<mp::Node> terrain_settings;
-  std::unique_ptr<mp::Node> seed_and_buffers;
-  std::unique_ptr<mp::Node> cameras_and_size;
+  std::unique_ptr<mp::Node> seed_and_sizes;
+  std::unique_ptr<mp::Node> cameras;
   std::unique_ptr<mp::Node> water;
   std::unique_ptr<mp::Node> props;
 };
@@ -48,11 +48,12 @@ parse_project(const std::unique_ptr<ProjectSaveFileLines> &);
 
 void parse_size(const std::unique_ptr<mp::Node> &, uint16_t &, uint16_t &);
 
-void parse_geo_matrix(const std::unique_ptr<mp::Node> &, Matrix<GeoCell> &);
+void deser_geometry(const std::unique_ptr<mp::Node> &, Matrix<GeoCell> &);
 std::unique_ptr<Matrix<TileCell>>
 parse_tile_matrix(const std::unique_ptr<mp::Node> &);
 std::vector<mr::LevelCamera> parse_cameras(const std::unique_ptr<mp::Node> &);
 
+std::unique_ptr<Level> deser_level(const std::filesystem::path &);
 // Init line parsers
 
 std::shared_ptr<TileDef> parse_tiledef(const std::unique_ptr<mp::Node> &);

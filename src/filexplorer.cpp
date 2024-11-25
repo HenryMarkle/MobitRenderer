@@ -104,7 +104,7 @@ const char *ProjectExplorer::get_current_path() const noexcept {
   return current_path;
 }
 const std::filesystem::path *
-ProjectExplorer::get_selected_entry() const noexcept {
+ProjectExplorer::get_selected_entry_ptr() const noexcept {
   if (entry_paths.empty())
     return nullptr;
 

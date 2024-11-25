@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -34,7 +35,8 @@ read_project(const std::filesystem::path &file_path) {
   std::string line;
   int counter = 0;
 
-  while (std::getline(file, line, '\r')) {
+  // TODO: This is limited by memory (Frame buffer cannot be created).
+  while (std::getline(file, line)) {
     switch (counter) {
     case 0:
       lines->geometry = std::move(line);
@@ -52,10 +54,10 @@ read_project(const std::filesystem::path &file_path) {
       lines->terrain_settings = std::move(line);
       break;
     case 5:
-      lines->seed_and_buffers = std::move(line);
+      lines->seed_and_sizes = std::move(line);
       break;
     case 6:
-      lines->cameras_and_size = std::move(line);
+      lines->cameras = std::move(line);
       break;
     case 7:
       lines->water = std::move(line);
@@ -183,6 +185,7 @@ parse_project(const std::unique_ptr<ProjectSaveFileLines> &file_lines) {
 
   nodes->geometry = mp::parse(file_lines->geometry);
   nodes->tiles = mp::parse(file_lines->tiles);
+  nodes->seed_and_sizes = mp::parse(file_lines->seed_and_sizes);
 
   return nodes;
 }
@@ -405,5 +408,61 @@ std::vector<LevelCamera> parse_cameras(const std::unique_ptr<mp::Node> &node) {
   }
 
   return {};
+}
+
+void parse_size(const std::unique_ptr<mp::Node> &line_node, uint16_t &width,
+                uint16_t &height) {
+  auto *props = dynamic_cast<mp::Props *>(line_node.get());
+
+  if (props == nullptr) {
+    throw deserialization_failure("sizes line is not a property list");
+  }
+
+  auto size_node = props->map.at("size").get();
+
+  auto *size_gcall = dynamic_cast<mp::GCall *>(size_node);
+
+  if (size_gcall == nullptr) {
+    throw deserialization_failure("size node is not a global call");
+  }
+
+  if (size_gcall->args.size() < 2) {
+    throw deserialization_failure(
+        "size global call has insufficient arguments (expected at least 2)");
+  }
+
+  auto parsed_width = size_gcall->args[0].get();
+  auto parsed_height = size_gcall->args[1].get();
+
+  auto *width_int = dynamic_cast<mp::Int *>(parsed_width);
+  auto *height_int = dynamic_cast<mp::Int *>(parsed_height);
+
+  if (width_int == nullptr) {
+    throw deserialization_failure(
+        "width was not an integer (arithmetical operators are not allowed)");
+  }
+
+  if (height_int == nullptr) {
+    throw deserialization_failure(
+        "height was not an integer (arithmetical operators are not allowed)");
+  }
+
+  width = width_int->number;
+  height = height_int->number;
+}
+
+std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
+  std::unique_ptr<ProjectSaveFileLines> lines = read_project(path);
+  std::unique_ptr<ProjectSaveFileNodes> nodes = parse_project(lines);
+
+  uint16_t width, height;
+
+  parse_size(nodes->seed_and_sizes, width, height);
+
+  auto level = std::make_unique<Level>(width, height);
+
+  deser_geometry(nodes->geometry, level->get_geo_matrix());
+
+  return level;
 }
 }; // namespace mr

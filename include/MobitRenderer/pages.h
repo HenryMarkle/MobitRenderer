@@ -64,12 +64,16 @@ private:
   std::unique_ptr<std::thread> project_load_thread;
   std::unique_ptr<Level> loaded_level;
   bool explorer_file_clicked;
+  bool project_thread_done;
+  bool loaded_project_was_handled;
 
 public:
   virtual void process() override;
   virtual void draw() noexcept override;
   virtual void windows() noexcept override;
   Start_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+
+  virtual ~Start_Page() override;
 };
 
 }; // namespace mr::pages

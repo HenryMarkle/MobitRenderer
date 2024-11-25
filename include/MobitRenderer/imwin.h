@@ -61,7 +61,7 @@ public:
   void set_dialog_mode(dialogmode) noexcept;
 
   const char *get_current_path() const noexcept;
-  const std::filesystem::path *get_selected_entry() const noexcept;
+  const std::filesystem::path *get_selected_entry_ptr() const noexcept;
 
   /// Initializes the explorer with the executable's directory as the current
   /// one.
