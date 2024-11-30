@@ -1,0 +1,152 @@
+[misc]
+
+splashscreen = true
+f3 = false
+crash_on_esc = false
+blue_screen_of_death = true
+
+# General configurations that affect all screens.
+
+[general]
+
+event_handle_per_frame = 30
+load_per_frame = 20
+
+list_wrap = false
+
+# The whole init won't load if any error occurrs.
+strict_deserialization = false
+
+props = { visible = true, opacity = 255 }
+tiles = { visible = true, opacity = 255 }
+water = { visible = true, opacity = 70 }
+materials = { visible = true, opacity = 255 }
+
+[general.prerendering]
+
+# If 'palette' is enabled, 'tinted' and 'preview' will be ignored.
+
+tiles = { tinted = true, preview = true, palette = false }
+props = { tinted = true, palette = false }
+materials = { palette = false }
+shadows = false
+
+# Per-screen configurations
+
+[page.main]
+[page.geometry]
+
+basic_view = true # The classic RGB level view.
+
+# Requires basic_view to be enabled.
+# opacity: 0 - 255
+# 'inherit' means take the setting from [general].
+props = { inherit = true, visible = true, opacity = 255 }
+tiles = { inherit = true, visible = true, opacity = 255 }
+water = { inherit = true, visible = true, opacity = 70 }
+materials = { visible = true, opacity = 255 }
+
+[page.geometry.basic_view_colors]
+
+layer1 = { r = 255, g = 255, b = 255, a = 255 }
+layer2 = { r = 0, g = 255, b = 0, a = 80 }
+layer3 = { r = 255, g = 0, b = 0, a = 80 }
+water = { r = 0, g = 0, b = 255, a = 70 }
+
+[page.tiles]
+
+props = { inherit = true, visible = true, opacity = 255 }
+tiles = { inherit = true, visible = true, opacity = 255 }
+water = { inherit = true, visible = true, opacity = 70 }
+materials = { visible = true, opacity = 255 }
+
+[page.cameras]
+
+props = { inherit = true, visible = true, opacity = 255 }
+tiles = { inherit = true, visible = true, opacity = 255 }
+water = { inherit = true, visible = true, opacity = 70 }
+materials = { visible = true, opacity = 255 }
+
+[page.light]
+
+props = { inherit = true, visible = true, opacity = 255 }
+tiles = { inherit = true, visible = true, opacity = 255 }
+water = { inherit = true, visible = true, opacity = 70 }
+materials = { visible = true, opacity = 255 }
+
+[page.effects]
+
+props = { inherit = true, visible = true, opacity = 255 }
+tiles = { inherit = true, visible = true, opacity = 255 }
+water = { inherit = true, visible = true, opacity = 70 }
+materials = { visible = true, opacity = 255 }
+
+canvas = { r = 255, g = 0, b = 255, a = 100 }
+effect = { r = 0, g = 255, b = 0, a = 120 }
+
+[page.props]
+
+props = { inherit = true, visible = true, opacity = 255 }
+tiles = { inherit = true, visible = true, opacity = 255 }
+water = { inherit = true, visible = true, opacity = 70 }
+materials = { visible = true, opacity = 255 }
+
+# Paths here are relative to the executable's.
+
+[paths]
+
+logs = "Logs"
+levels = "Levels"
+projects = "Projects"
+imgui = "imgui.ini"
+icon = "icon.png"
+
+[paths.data]
+
+cast = "Data/Cast"
+
+[paths.assets]
+
+shaders = "Assets/Shaders"
+fonts = "Assets/Fonts"
+icons = "Assets/Icons"
+
+[[paths.inits]]
+
+# The default /Data folder.
+# 'path' contains a path relative to the executable's.
+
+materials = { path = "Data/Materials", init = "Init.txt" }
+tiles = { path = "Data/Graphics", init = "Init.txt" }
+props = { path = "Data/Props", init = "Init.txt" }
+
+# You can add more [[paths.init]] to add your custom resources.
+# All of them will be merged at runtime.
+
+# Shortcuts that work across screens.
+
+[shortcuts.global.pages]
+
+# Each number maps to an enum defined in raylib.h
+# 48..57 = KEY_ONE..KEY_NINE
+
+start = { key = 48, ctrl = false, shift = false, alt = false, held = false }
+main = { key = 49, ctrl = false, shift = false, alt = false, held = false }
+geometry = { key = 50, ctrl = false, shift = false, alt = false, held = false }
+tiles = { key = 51, ctrl = false, shift = false, alt = false, held = false }
+cameras = { key = 52, ctrl = false, shift = false, alt = false, held = false }
+light = { key = 53, ctrl = false, shift = false, alt = false, held = false }
+dimensions = { key = 54, ctrl = false, shift = false, alt = false, held = false }
+effects = { key = 55, ctrl = false, shift = false, alt = false, held = false }
+props = { key = 56, ctrl = false, shift = false, alt = false, held = false }
+settings = { key = 57, ctrl = false, shift = false, alt = false, held = false }
+
+# Shortcuts for each editor screen.
+
+[shortcuts.main]
+[shortcuts.geometry]
+[shortcuts.tiles]
+[shortcuts.cameras]
+[shortcuts.light]
+[shortcuts.effects]
+[shortcuts.props]

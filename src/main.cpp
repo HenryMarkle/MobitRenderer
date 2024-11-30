@@ -120,6 +120,9 @@ int main() {
       }
 
       if (!ctx->get_levels().empty()) {
+        if (IsKeyPressed(KEY_ZERO)) {
+        }
+
         if (IsKeyPressed(KEY_ONE)) {
           pager->select_page(1);
         } else if (IsKeyPressed(KEY_TWO)) {
