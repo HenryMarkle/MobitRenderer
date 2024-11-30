@@ -24,7 +24,8 @@ Page::Page(std::shared_ptr<context> ctx, std::shared_ptr<spdlog::logger> logger)
 Start_Page::Start_Page(std::shared_ptr<context> ctx,
                        std::shared_ptr<spdlog::logger> logger)
     : Page(ctx, logger), explorer_(ctx->directories, ctx->textures_),
-      loaded_level(nullptr), project_load_thread(nullptr) {}
+      loaded_level(nullptr), project_load_thread(nullptr),
+      loaded_project_was_handled(true) {}
 
 void Start_Page::process() {
 
@@ -66,6 +67,9 @@ void Start_Page::process() {
       project_load_thread->detach();
       project_load_thread = nullptr;
     }
+
+    ctx_->events.push(context_event{.type = context_event_type::level_loaded,
+                                    .payload = nullptr});
   }
 }
 void Start_Page::draw() noexcept { ClearBackground(DARKGRAY); }

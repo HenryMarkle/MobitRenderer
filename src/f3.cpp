@@ -2,7 +2,6 @@
 #include <any>
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <queue>
 #include <string>
 #include <typeinfo>
@@ -28,6 +27,7 @@ void f3::print(const char *str, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
@@ -49,6 +49,7 @@ void f3::print(const std::string &str, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
@@ -71,6 +72,7 @@ void f3::print(int number, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
@@ -93,6 +95,7 @@ void f3::print(size_t number, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
@@ -115,6 +118,7 @@ void f3::print(float number, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
@@ -137,6 +141,7 @@ void f3::print(double number, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
@@ -159,6 +164,7 @@ void f3::print(bool boolean, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
@@ -181,6 +187,7 @@ void f3::print(void *ptr, bool same_line) noexcept {
       Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
 
   if (!same_line) {
+    cursor.x = 0;
     cursor.y += with_margin.y;
   }
 

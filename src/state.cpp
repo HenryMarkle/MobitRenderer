@@ -1,5 +1,7 @@
+#include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include <spdlog/spdlog.h>
@@ -22,6 +24,7 @@ const std::filesystem::path &dirs::get_data() const { return data; }
 const std::filesystem::path &dirs::get_logs() const { return logs; }
 
 const std::filesystem::path &dirs::get_shaders() const { return shaders; }
+const std::filesystem::path &dirs::get_fonts() const { return fonts; }
 const std::filesystem::path &dirs::get_materials() const { return materials; }
 const std::filesystem::path &dirs::get_tiles() const { return tiles; }
 const std::filesystem::path &dirs::get_props() const { return props; }
@@ -64,6 +67,7 @@ dirs::dirs() {
   }
 
   shaders = assets / "Shaders";
+  fonts = assets / "Fonts";
   materials = data / "Materials";
   tiles = data / "Graphics";
   props = data / "Props";
@@ -71,6 +75,8 @@ dirs::dirs() {
 
   if (!exists(shaders))
     throw std::invalid_argument("Assets/Shaders does not exist");
+  if (!exists(fonts))
+    std::filesystem::create_directory(fonts);
   if (!exists(materials))
     throw std::invalid_argument("Data/Materials does not exist");
   if (!exists(tiles))
@@ -109,6 +115,7 @@ dirs::dirs(const std::filesystem::path &executable_directory) {
   }
 
   shaders = assets / "Shaders";
+  fonts = assets / "Fonts";
   materials = data / "Materials";
   tiles = data / "Graphics";
   props = data / "Props";
@@ -116,6 +123,8 @@ dirs::dirs(const std::filesystem::path &executable_directory) {
 
   if (!exists(shaders))
     throw std::invalid_argument("Assets/Shaders does not exist");
+  if (!exists(fonts))
+    std::filesystem::create_directory(fonts);
   if (!exists(materials))
     throw std::invalid_argument("Data/Materials does not exist");
   if (!exists(tiles))
@@ -131,33 +140,59 @@ dirs::dirs(const std::filesystem::path &executable_directory) {
 Camera2D &context::get_camera() { return camera; }
 void context::set_camera(Camera2D _camera) { camera = _camera; }
 
+uint8_t context::get_level_index() const noexcept { return selected_level; }
 const std::vector<Level> &context::get_levels() const noexcept {
   return levels;
 }
+
+void context::lock_global_shortcuts() noexcept {
+  enable_global_shortcuts = false;
+}
+void context::unlock_global_shortcuts() noexcept {
+  enable_global_shortcuts = true;
+}
+
+const Font *context::get_selected_font() const noexcept {
+  if (selected_font >= fonts.size())
+    return nullptr;
+
+  return &fonts[selected_font];
+}
+void context::select_font(uint8_t index) noexcept {
+  if (index >= fonts.size())
+    return;
+
+  selected_font = index;
+  f3_->set_font(fonts[index]);
+}
+void context::add_font(Font f) noexcept { fonts.push_back(f); }
 
 context::context()
     : logger(nullptr), directories(nullptr),
       textures_(std::make_shared<textures>(directories)),
       f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 20, WHITE,
+          GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
+      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}),
+      enable_global_shortcuts(true) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs)
     : logger(logger), directories(dirs),
       textures_(std::make_shared<textures>(directories)),
       f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 20, WHITE,
+          GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
+      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}),
+      enable_global_shortcuts(true) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs,
                  std::shared_ptr<textures> _textures)
     : logger(logger), directories(dirs), textures_(_textures),
       f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 20, WHITE,
+          GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}) {}
+      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}),
+      enable_global_shortcuts(true) {}
 context::~context() {}
 
 void textures::reload_all_textures() {

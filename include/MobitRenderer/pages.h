@@ -22,7 +22,8 @@ protected:
   Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
 
 public:
-  /// @brief Updates the state of the page
+  /// @brief Updates the state of the page.
+  /// @attention Do not call drawing functions here.
   virtual void process() = 0;
 
   /// @brief Draws the content of the page
@@ -46,6 +47,7 @@ class Pager {
   Page *current_page_ptr, *previous_page_ptr;
 
 public:
+  void push_page(Page *) noexcept;
   uint8_t get_current_page_index() const noexcept;
   uint8_t get_previous_page_index() const noexcept;
 
@@ -53,7 +55,7 @@ public:
   Page *get_previous_page() const noexcept;
   void select_page(uint8_t) noexcept;
 
-  Pager(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+  Pager();
   Pager(std::initializer_list<Page *>);
   ~Pager();
 };
@@ -76,4 +78,14 @@ public:
   virtual ~Start_Page() override;
 };
 
+class Main_Page : public Page {
+private:
+public:
+  virtual void process() override;
+  virtual void draw() noexcept override;
+  virtual void windows() noexcept override;
+  Main_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+
+  virtual ~Main_Page() override;
+};
 }; // namespace mr::pages
