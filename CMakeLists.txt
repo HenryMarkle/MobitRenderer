@@ -19,6 +19,8 @@ add_library(rlimgui STATIC ${RLIMGUI_SOURCES})
 target_include_directories(rlimgui PUBLIC libs/rlimgui)
 target_link_libraries(rlimgui PRIVATE imgui)
 
+include_directories(libs/toml)
+
 # Main files
 file(GLOB MAIN_SOURCES src/*.cpp)               # sources
 include_directories(include)                    # headers
