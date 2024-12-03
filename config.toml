@@ -111,17 +111,20 @@ shaders = "Assets/Shaders"
 fonts = "Assets/Fonts"
 icons = "Assets/Icons"
 
-[[paths.inits]]
+[[paths.inits.materials]]
 
-# The default /Data folder.
-# 'path' contains a path relative to the executable's.
+path = "Data/Materials"
+init = "Init.txt"       # by default "Init.txt"
 
-materials = { path = "Data/Materials", init = "Init.txt" }
-tiles = { path = "Data/Graphics", init = "Init.txt" }
-props = { path = "Data/Props", init = "Init.txt" }
+[[paths.inits.tiles]]
 
-# You can add more [[paths.init]] to add your custom resources.
-# All of them will be merged at runtime.
+path = "Data/Graphics"
+init = "Init.txt"
+
+[[paths.inits.props]]
+
+path = "Data/Props"
+init = "Init.txt"
 
 # Shortcuts that work across screens.
 

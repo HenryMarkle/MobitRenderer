@@ -141,9 +141,22 @@ Camera2D &context::get_camera() { return camera; }
 void context::set_camera(Camera2D _camera) { camera = _camera; }
 
 uint8_t context::get_level_index() const noexcept { return selected_level; }
-const std::vector<Level> &context::get_levels() const noexcept {
+const std::vector<Level *> &context::get_levels() const noexcept {
   return levels;
 }
+void context::add_level(std::unique_ptr<Level> level) {
+  auto *dropped = level.release();
+
+  levels.push_back(dropped);
+}
+void context::add_level(mr::Level *level) { levels.push_back(level); }
+void context::select_level(uint8_t index) {
+  if (index >= levels.size())
+    return;
+  selected_level = index;
+}
+
+mr::Level *context::get_selected_level() { return levels[selected_level]; }
 
 void context::lock_global_shortcuts() noexcept {
   enable_global_shortcuts = false;
@@ -169,7 +182,7 @@ void context::add_font(Font f) noexcept { fonts.push_back(f); }
 
 context::context()
     : logger(nullptr), directories(nullptr),
-      textures_(std::make_shared<textures>(directories)),
+      textures_(std::make_unique<textures>(directories)),
       f3_(std::make_shared<debug::f3>(
           GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
@@ -178,7 +191,7 @@ context::context()
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs)
     : logger(logger), directories(dirs),
-      textures_(std::make_shared<textures>(directories)),
+      textures_(std::make_unique<textures>(directories)),
       f3_(std::make_shared<debug::f3>(
           GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
@@ -186,14 +199,19 @@ context::context(std::shared_ptr<spdlog::logger> logger,
       enable_global_shortcuts(true) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs,
-                 std::shared_ptr<textures> _textures)
-    : logger(logger), directories(dirs), textures_(_textures),
+                 std::unique_ptr<textures> _textures)
+    : logger(logger), directories(dirs), textures_(std::move(_textures)),
       f3_(std::make_shared<debug::f3>(
           GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}),
       enable_global_shortcuts(true) {}
-context::~context() {}
+context::~context() {
+  if (!levels.empty()) {
+    for (auto *level : levels)
+      delete level;
+  }
+}
 
 void textures::reload_all_textures() {
   file_icon = texture(directories->get_assets() / "Icons" / "file icon.png");

@@ -113,7 +113,7 @@ private:
       matrix; // Might change it to a shared pointer (shared_ptr<vector<T>>)
   uint16_t width, height, depth;
 
-  uint64_t index(uint16_t x, uint16_t y, uint16_t z);
+  uint64_t index(uint16_t x, uint16_t y, uint16_t z) const;
 
 public:
   uint16_t get_width() const;
@@ -149,7 +149,7 @@ public:
 };
 
 template <typename T>
-uint64_t Matrix<T>::index(uint16_t x, uint16_t y, uint16_t z) {
+uint64_t Matrix<T>::index(uint16_t x, uint16_t y, uint16_t z) const {
   return x + (y * width) + (z * width * height);
 }
 

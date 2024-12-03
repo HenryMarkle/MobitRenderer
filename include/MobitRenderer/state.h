@@ -122,7 +122,7 @@ class context {
 private:
   Camera2D camera;
 
-  std::vector<mr::Level> levels;
+  std::vector<mr::Level *> levels;
   uint8_t selected_level;
 
   std::vector<Font> fonts;
@@ -131,18 +131,19 @@ private:
 public:
   std::shared_ptr<spdlog::logger> logger;
   std::shared_ptr<dirs> directories;
-  std::shared_ptr<textures> textures_;
+  std::unique_ptr<textures> textures_;
   std::shared_ptr<debug::f3> f3_;
   std::queue<context_event> events;
   Camera2D &get_camera();
   void set_camera(Camera2D);
   bool f3_enabled, enable_global_shortcuts;
 
-  const std::vector<mr::Level> &get_levels() const noexcept;
-  mr::Level &get_selected_level();
+  const std::vector<mr::Level *> &get_levels() const noexcept;
+  mr::Level *get_selected_level();
   uint8_t get_level_index() const noexcept;
-  void add_level(mr::Level &&);
-  void add_level(mr::Level const &);
+  void select_level(uint8_t);
+  void add_level(std::unique_ptr<mr::Level>);
+  void add_level(mr::Level *);
   void remove_level(size_t);
   void lock_global_shortcuts() noexcept;
   void unlock_global_shortcuts() noexcept;
@@ -154,7 +155,7 @@ public:
   context();
   context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);
   context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>,
-          std::shared_ptr<textures>);
+          std::unique_ptr<textures>);
   ~context();
 };
 

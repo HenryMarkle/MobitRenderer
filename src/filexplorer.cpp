@@ -133,7 +133,7 @@ ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
 }
 
 ProjectExplorer::ProjectExplorer(std::shared_ptr<dirs> dirs,
-                                 std::shared_ptr<textures> _textures) {
+                                 textures *_textures) {
   std::filesystem::path path(dirs->get_projects());
 
   projects_dir = dirs->get_projects();
@@ -226,8 +226,14 @@ bool ProjectExplorer::draw() noexcept {
       }
     }
 
-    bool up_clicked = rlImGuiImageButtonSize(
-        "##up", textures_->up_icon.get_ptr(), ImVec2(20, 20));
+    bool up_clicked = false, home_clicked = false;
+
+    if (textures_ == nullptr) {
+      up_clicked = ImGui::Button("Up");
+    } else {
+      up_clicked = rlImGuiImageButtonSize("##up", textures_->up_icon.get_ptr(),
+                                          ImVec2(20, 20));
+    }
 
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
@@ -236,8 +242,13 @@ bool ProjectExplorer::draw() noexcept {
     }
     ImGui::SameLine();
 
-    bool home_clicked = rlImGuiImageButtonSize(
-        "##home", textures_->home_icon.get_ptr(), ImVec2(20, 20));
+    if (textures_ == nullptr) {
+      home_clicked = ImGui::Button("Home");
+    } else {
+      home_clicked = rlImGuiImageButtonSize(
+          "##home", textures_->home_icon.get_ptr(), ImVec2(20, 20));
+    }
+
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
       ImGui::Text("Return to /Projects");

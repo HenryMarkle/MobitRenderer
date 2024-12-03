@@ -89,7 +89,8 @@ int main() {
   ClearBackground(BLACK);
   EndTextureMode();
 
-  auto pe = std::make_unique<mr::ProjectExplorer>(directories, ctx->textures_);
+  auto pe =
+      std::make_unique<mr::ProjectExplorer>(directories, ctx->textures_.get());
 
   logger->info("registering pages");
 
@@ -198,6 +199,9 @@ int main() {
   }
 
   logger->info("exiting loop");
+
+  pager.reset();
+  ctx.reset();
 
   rlImGuiShutdown();
 

@@ -34,7 +34,9 @@ private:
 
   std::unique_ptr<Matrix<GeoCell>> level_geo;
 
-  std::shared_ptr<textures> textures_;
+  /// @warning DO NOT FREE THIS POINTER. It is managed by a unique_ptr and it'll
+  /// be freed automatically.
+  textures *textures_;
   RenderTexture2D preview_rt;
 
   /// Used to as cursors for drawing the project preview.
@@ -68,8 +70,7 @@ public:
   ProjectExplorer();
 
   /// Initializes the explorer and sets the current directory to the given one.
-  ProjectExplorer(std::shared_ptr<dirs> dirs,
-                  std::shared_ptr<textures> _textures);
+  ProjectExplorer(std::shared_ptr<dirs> dirs, textures *_textures);
 
   ~ProjectExplorer();
 };
