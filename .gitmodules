@@ -1,3 +1,4 @@
 [submodule "libs/MobitParser"]
 	path = libs/MobitParser
 	url = https://github.com/HenryMarkle/MobitParser
+  branch = main
