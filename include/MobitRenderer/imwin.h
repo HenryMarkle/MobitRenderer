@@ -56,7 +56,6 @@ public:
   bool draw() noexcept;
 
   const std::vector<std::string> &get_filters() const;
-  void set_filters(std::vector<std::string> &&filters_);
   void set_filters(std::vector<std::string> filters_);
 
   dialogmode get_dialog_mode() const noexcept;

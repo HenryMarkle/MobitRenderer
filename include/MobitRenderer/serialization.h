@@ -46,6 +46,9 @@ read_project(const std::filesystem::path &);
 std::unique_ptr<ProjectSaveFileNodes>
 parse_project(const std::unique_ptr<ProjectSaveFileLines> &);
 
+std::unique_ptr<ProjectSaveFileNodes>
+parse_project(const std::filesystem::path &);
+
 void parse_size(const std::unique_ptr<mp::Node> &, uint16_t &, uint16_t &);
 
 void deser_geometry(const std::unique_ptr<mp::Node> &, Matrix<GeoCell> &);

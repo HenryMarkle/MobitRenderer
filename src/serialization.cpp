@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <MobitParser/nodes.h>
+#include <MobitParser/tokens.h>
 
 #include <MobitRenderer/exceptions.h>
 #include <MobitRenderer/level.h>
@@ -34,6 +35,8 @@ read_project(const std::filesystem::path &file_path) {
 
   std::string line;
   int counter = 0;
+
+  std::vector<mp::token> tokens;
 
   // TODO: This is limited by memory (Frame buffer cannot be created).
   while (std::getline(file, line)) {
@@ -175,7 +178,56 @@ GeoFeature get_geo_features(const mp::List *list) {
 
   return features;
 }
+std::unique_ptr<ProjectSaveFileNodes>
+parse_project(const std::filesystem::path &file_path) {
+  std::ifstream file(file_path);
 
+  if (!file.is_open()) {
+    std::stringstream ss;
+    ss << "could not open project save file '" << file_path << "'";
+    throw file_read_error();
+  }
+
+  auto nodes = std::make_unique<ProjectSaveFileNodes>();
+
+  int counter = 0;
+
+  std::vector<mp::token> tokens;
+
+  while (mp::tokenize_line(file, tokens)) {
+    switch (counter) {
+    case 0:
+      nodes->geometry = mp::parse(tokens, true);
+      break;
+    case 1:
+      nodes->tiles = mp::parse(tokens, true);
+      break;
+    case 2:
+      break;
+    case 3:
+      break;
+    case 4:
+      break;
+    case 5:
+      nodes->seed_and_sizes = mp::parse(tokens, true);
+      break;
+    case 6:
+      break;
+    case 7:
+      break;
+    case 8:
+      break;
+    }
+
+    if (++counter > 8)
+      break;
+    ;
+  }
+
+  file.close();
+
+  return nodes;
+}
 std::unique_ptr<ProjectSaveFileNodes>
 parse_project(const std::unique_ptr<ProjectSaveFileLines> &file_lines) {
   if (file_lines == nullptr)
@@ -452,8 +504,7 @@ void parse_size(const std::unique_ptr<mp::Node> &line_node, uint16_t &width,
 }
 
 std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
-  std::unique_ptr<ProjectSaveFileLines> lines = read_project(path);
-  std::unique_ptr<ProjectSaveFileNodes> nodes = parse_project(lines);
+  std::unique_ptr<ProjectSaveFileNodes> nodes = parse_project(path);
 
   uint16_t width, height;
 

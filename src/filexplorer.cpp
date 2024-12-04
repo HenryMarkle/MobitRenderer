@@ -51,7 +51,7 @@ void ProjectExplorer::go_to(const std::filesystem::path &dir) {
       if (!entry.is_directory() && !path.has_extension())
         continue;
 
-      if (!filters.empty()) {
+      if (!std::filesystem::is_directory(path) && !filters.empty()) {
         for (auto &filter : filters) {
           if (filter == path.extension())
             goto skip_filters;
@@ -318,12 +318,6 @@ bool ProjectExplorer::draw() noexcept {
 
 const std::vector<std::string> &ProjectExplorer::get_filters() const {
   return filters;
-}
-
-void ProjectExplorer::set_filters(std::vector<std::string> &&filters_) {
-  filters = std::move(filters_);
-
-  go_to(current_dir);
 }
 
 void ProjectExplorer::set_filters(std::vector<std::string> filters_) {

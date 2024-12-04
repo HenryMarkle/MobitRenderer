@@ -165,11 +165,17 @@ void context::unlock_global_shortcuts() noexcept {
   enable_global_shortcuts = true;
 }
 
-const Font *context::get_selected_font() const noexcept {
+const Font *context::get_selected_font_const_ptr() const noexcept {
   if (selected_font >= fonts.size())
     return nullptr;
 
   return &fonts[selected_font];
+}
+Font context::get_selected_font() const noexcept {
+  if (selected_font >= fonts.size())
+    return {.texture = {.id = 0}};
+
+  return fonts[selected_font];
 }
 void context::select_font(uint8_t index) noexcept {
   if (index >= fonts.size())

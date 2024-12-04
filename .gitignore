@@ -5,3 +5,6 @@
 /.cache
 .cahce
 .cache/**
+/out
+/out/
+out/

@@ -25,7 +25,9 @@ Start_Page::Start_Page(std::shared_ptr<context> ctx,
                        std::shared_ptr<spdlog::logger> logger)
     : Page(ctx, logger), explorer_(ctx->directories, ctx->textures_.get()),
       loaded_level(nullptr), project_load_thread(nullptr),
-      loaded_project_was_handled(true) {}
+      loaded_project_was_handled(true), explorer_file_clicked(false) {
+  explorer_.set_filters({".txt"});
+}
 
 void Start_Page::process() {
 
@@ -45,8 +47,7 @@ void Start_Page::process() {
 
       try {
         const std::filesystem::path path_copy = *file;
-        auto parsed_level = deser_level(path_copy);
-        this->loaded_level = nullptr;
+        this->loaded_level = deser_level(path_copy);
       } catch (const deserialization_failure &pf) {
         std::cout << "exception: " << pf.what() << std::endl;
       } catch (const std::exception &e) {
@@ -70,8 +71,23 @@ void Start_Page::process() {
     }
 
     if (loaded_level != nullptr) {
-      std::cout << "Size: " << loaded_level->get_width() << ", "
-                << loaded_level->get_height() << std::endl;
+      std::cout << "HERE\n";
+      auto *level_path = explorer_.get_selected_entry_ptr();
+      auto parent = level_path->parent_path();
+
+      std::stringstream sb;
+      sb << level_path->stem() << ".png";
+
+      auto lightmap_path = parent / sb.str();
+
+      std::cout << "LIGHTMAP: " << lightmap_path << std::endl;
+      if (std::filesystem::exists(lightmap_path)) {
+        auto lightmap = LoadTexture(level_path->c_str());
+
+        loaded_level->load_lightmap(lightmap);
+
+        UnloadTexture(lightmap);
+      }
 
       ctx_->add_level(std::move(loaded_level));
       ctx_->select_level(0);
@@ -87,8 +103,8 @@ void Start_Page::draw() noexcept {
   } else {
     ClearBackground(BLACK);
 
-    DrawTextEx(*ctx_->get_selected_font(), "Please wait..", {.x = 0, .y = 0},
-               30, 0.2f, WHITE);
+    DrawTextEx(ctx_->get_selected_font(), "Please wait..", {.x = 0, .y = 0}, 30,
+               0.2f, WHITE);
   }
 }
 

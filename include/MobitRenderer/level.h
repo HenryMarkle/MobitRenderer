@@ -52,6 +52,7 @@ struct Effect {
 };
 
 /// @brief Stores data of a level project
+/// @attention Resizing and destruction requires OpenGL context.
 class Level {
 private:
   uint16_t width, height;
@@ -73,6 +74,11 @@ public:
   Matrix<GeoCell> &get_geo_matrix();
   Matrix<TileCell> &get_tile_matrix();
   std::vector<Effect> &get_effects();
+
+  /// @note Requires a GL context.
+  void load_lightmap(const Texture2D &);
+  /// @note Requires a GL context.
+  void unload_lightmap();
 
   void begin_lightmap_mode();
   void end_lightmap_mode();
@@ -105,8 +111,6 @@ public:
 
         Matrix<GeoCell> &&geo_matrix, Matrix<TileCell> &&tile_matrix,
         std::vector<Effect> &&ffects, std::vector<LevelCamera> &&cameras,
-
-        Texture2D lightmap,
 
         int8_t water = -1, bool light = true, bool terrain = false,
         bool front_water = false);

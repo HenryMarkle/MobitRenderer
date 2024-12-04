@@ -148,7 +148,8 @@ public:
   void lock_global_shortcuts() noexcept;
   void unlock_global_shortcuts() noexcept;
 
-  const Font *get_selected_font() const noexcept;
+  const Font *get_selected_font_const_ptr() const noexcept;
+  Font get_selected_font() const noexcept;
   void select_font(uint8_t) noexcept;
   void add_font(Font) noexcept;
 
