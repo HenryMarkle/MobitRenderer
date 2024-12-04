@@ -80,7 +80,11 @@ public:
 
 class Main_Page : public Page {
 private:
+  bool should_redraw;
+
 public:
+  void order_redraw() noexcept;
+
   virtual void process() override;
   virtual void draw() noexcept override;
   virtual void windows() noexcept override;

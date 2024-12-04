@@ -26,11 +26,37 @@ file(GLOB MAIN_SOURCES src/*.cpp)               # sources
 include_directories(include)                    # headers
 add_executable(MobitRenderer ${MAIN_SOURCES})
 
+# Define version
+file(READ "${CMAKE_SOURCE_DIR}/version.txt" VERSION_CONTENT)
+string(STRIP "${VERSION_CONTENT}"} VERSION_CONTENT)
+target_compile_definitions(MobitRenderer PRIVATE
+  APP_VERSION="${VERSION_CONTENT}")
+
 target_compile_definitions(MobitRenderer PRIVATE
     APP_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
     APP_VERSION_MINOR=${PROJECT_VERSION_MINOR}
     APP_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
+
+# Embed changelog
+set(CHLG_INPUT_FILE "${CMAKE_SOURCE_DIR}/changelog.txt")
+set(CHLG_OUTPUT_FILE "${CMAKE_BINARY_DIR}/embedded_changelog.h")
+
+file(READ "${CHLG_INPUT_FILE}" CHANGELOG_CONTENT)
+string(REPLACE "\"" "\\\"" CHANGELOG_CONTENT
+  "${CHANGELOG_CONTENT}") # Escape double quotes
+
+string(REPLACE "\n" "\\n\"\n\""
+  CHANGELOG_CONTENT "${CHANGELOG_CONTENT}") # Handle newlines
+
+file(WRITE "${CHLG_OUTPUT_FILE}" "#pragma once\n")
+file(APPEND "${CHLG_OUTPUT_FILE}"
+  "constexpr const char* EMBEDDED_CHANGELOG = R\"(\n")
+file(APPEND "${CHLG_OUTPUT_FILE}" "${CHANGELOG_CONTENT}")
+file(APPEND "${CHLG_OUTPUT_FILE}" "\n)\";\n")
+
+target_include_directories(MobitRenderer PRIVATE "${CMAKE_BINARY_DIR}")
+#
 
 target_link_libraries(MobitRenderer PRIVATE raylib imgui rlimgui spdlog)
 target_link_libraries(MobitRenderer PRIVATE MobitParser)

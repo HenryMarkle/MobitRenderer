@@ -42,9 +42,6 @@ void Start_Page::process() {
     ctx_->logger->info(sb.str());
 
     project_load_thread = std::make_unique<std::thread>([this, file]() {
-      // TODO: Load, read, and parse the file into a
-      // level object here.
-
       try {
         const std::filesystem::path path_copy = *file;
         this->loaded_level = deser_level(path_copy);
@@ -71,24 +68,24 @@ void Start_Page::process() {
     }
 
     if (loaded_level != nullptr) {
-      std::cout << "HERE\n";
       auto *level_path = explorer_.get_selected_entry_ptr();
       auto parent = level_path->parent_path();
 
       std::stringstream sb;
-      sb << level_path->stem() << ".png";
+      sb << level_path->stem().c_str() << ".png";
 
       auto lightmap_path = parent / sb.str();
 
-      std::cout << "LIGHTMAP: " << lightmap_path << std::endl;
       if (std::filesystem::exists(lightmap_path)) {
-        auto lightmap = LoadTexture(level_path->c_str());
+        auto lightmap = LoadTexture(lightmap_path.c_str());
 
         loaded_level->load_lightmap(lightmap);
 
         UnloadTexture(lightmap);
       }
 
+      ctx_->textures_->resize_main_level_viewport(
+          loaded_level->get_width() * 20, loaded_level->get_height() * 20);
       ctx_->add_level(std::move(loaded_level));
       ctx_->select_level(0);
       ctx_->events.push(context_event{.type = context_event_type::level_loaded,

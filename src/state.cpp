@@ -137,6 +137,22 @@ dirs::dirs(const std::filesystem::path &executable_directory) {
   executable = executable_directory;
 }
 
+void shaders::reload_all() {
+  if (_vflip.id != 0)
+    UnloadShader(_vflip);
+  else {
+    auto vflip_path = _shaders_dir / "vflip.frag";
+    _vflip = LoadShader(nullptr, vflip_path.c_str());
+  }
+}
+
+const Shader &shaders::vflip() const noexcept { return _vflip; }
+
+shaders::shaders(std::filesystem::path shaders_dir) : _vflip(Shader{.id = 0}) {
+  _shaders_dir = shaders_dir;
+}
+shaders::~shaders() { UnloadShader(_vflip); }
+
 Camera2D &context::get_camera() { return camera; }
 void context::set_camera(Camera2D _camera) { camera = _camera; }
 
@@ -186,31 +202,28 @@ void context::select_font(uint8_t index) noexcept {
 }
 void context::add_font(Font f) noexcept { fonts.push_back(f); }
 
-context::context()
-    : logger(nullptr), directories(nullptr),
-      textures_(std::make_unique<textures>(directories)),
-      f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 25, WHITE,
-          Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}),
-      enable_global_shortcuts(true) {}
+const shaders &context::get_shaders_const() const noexcept { return _shaders; }
+shaders &context::get_shaders() noexcept { return _shaders; }
+
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs)
     : logger(logger), directories(dirs),
       textures_(std::make_unique<textures>(directories)),
+      _shaders(dirs->get_shaders()),
       f3_(std::make_shared<debug::f3>(
           GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}),
+      camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
       enable_global_shortcuts(true) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs,
                  std::unique_ptr<textures> _textures)
     : logger(logger), directories(dirs), textures_(std::move(_textures)),
+      _shaders(dirs->get_shaders()),
       f3_(std::make_shared<debug::f3>(
           GetFontDefault(), 25, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = 1}, .zoom = 1.5f}),
+      camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
       enable_global_shortcuts(true) {}
 context::~context() {
   if (!levels.empty()) {

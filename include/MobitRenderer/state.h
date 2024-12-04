@@ -83,12 +83,29 @@ public:
   dirs(const std::filesystem::path &);
 };
 
+class shaders {
+private:
+  std::filesystem::path _shaders_dir;
+
+  Shader _vflip;
+
+public:
+  /// @attention Requires OpenGL context.
+  void reload_all();
+
+  const Shader &vflip() const noexcept;
+
+  shaders(std::filesystem::path shaders_dir);
+  ~shaders();
+};
+
 class textures {
 private:
   std::shared_ptr<dirs> directories;
 
 public:
   rendertexture main_level_viewport;
+
   texture file_icon, folder_icon, up_icon, home_icon;
 
   void reload_all_textures();
@@ -128,6 +145,8 @@ private:
   std::vector<Font> fonts;
   uint8_t selected_font;
 
+  shaders _shaders;
+
 public:
   std::shared_ptr<spdlog::logger> logger;
   std::shared_ptr<dirs> directories;
@@ -152,6 +171,9 @@ public:
   Font get_selected_font() const noexcept;
   void select_font(uint8_t) noexcept;
   void add_font(Font) noexcept;
+
+  shaders &get_shaders() noexcept;
+  const shaders &get_shaders_const() const noexcept;
 
   context();
   context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);

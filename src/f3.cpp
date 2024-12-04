@@ -1,4 +1,3 @@
-
 #include <any>
 #include <cstddef>
 #include <cstdint>
@@ -204,13 +203,16 @@ void f3::print(void *ptr, bool same_line) noexcept {
   cursor.x += with_margin.x;
 }
 void f3::enqueue(std::any data, bool same_line) {
-  queue.push(f3_queue_data{data, same_line});
+  queue.push(f3_queue_data{.data = data, .same_line = same_line});
 }
 void f3::print_queue() noexcept {
   while (!queue.empty()) {
     f3_queue_data &element = queue.front();
 
-    if (element.data.type() == typeid(char *)) {
+    if (element.data.type() == typeid(const char *)) {
+      const char *str = std::any_cast<const char *>(element.data);
+      print(str, element.same_line);
+    } else if (element.data.type() == typeid(char *)) {
       char *str = std::any_cast<char *>(element.data);
       print(str, element.same_line);
     } else if (element.data.type() == typeid(std::string)) {
@@ -218,6 +220,9 @@ void f3::print_queue() noexcept {
       print(str, element.same_line);
     } else if (element.data.type() == typeid(int)) {
       int integer = std::any_cast<int>(element.data);
+      print(integer, element.same_line);
+    } else if (element.data.type() == typeid(uint16_t)) {
+      uint16_t integer = std::any_cast<uint16_t>(element.data);
       print(integer, element.same_line);
     } else if (element.data.type() == typeid(size_t)) {
       size_t integer = std::any_cast<size_t>(element.data);

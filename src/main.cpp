@@ -77,6 +77,8 @@ int main() {
 
   logger->info("initializing");
 
+  ctx->get_shaders().reload_all();
+
   auto font_path = ctx->directories->get_fonts() / "Oswald-Regular.ttf";
   auto font = LoadFont(font_path.c_str());
   ctx->add_font(font);
@@ -173,7 +175,7 @@ int main() {
         f3->print("PID ");
         f3->print(pager->get_current_page_index(), true);
 
-        f3->print(" | PPID ", true);
+        f3->print(" PPID ", true);
         f3->print(pager->get_previous_page_index(), true);
 
         f3->print_queue();
