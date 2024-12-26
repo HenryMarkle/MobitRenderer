@@ -211,7 +211,7 @@ context::context(std::shared_ptr<spdlog::logger> logger,
       textures_(std::make_unique<textures>(directories)),
       _shaders(dirs->get_shaders()),
       f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 25, WHITE,
+          GetFontDefault(), 28, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
       enable_global_shortcuts(true) {}
@@ -221,7 +221,7 @@ context::context(std::shared_ptr<spdlog::logger> logger,
     : logger(logger), directories(dirs), textures_(std::move(_textures)),
       _shaders(dirs->get_shaders()),
       f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 25, WHITE,
+          GetFontDefault(), 28, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
       enable_global_shortcuts(true) {}

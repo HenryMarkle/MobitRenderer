@@ -135,6 +135,33 @@ struct context_event {
   std::any payload;
 };
 
+struct SpriteVisiblity {
+  bool inherit, visible;
+  uint8_t opacity;
+
+  SpriteVisiblity(bool inherit = true, bool visible = true,
+                  uint8_t opacity = 255);
+};
+
+struct SpritePrerender {
+  bool tinted, preview, palette;
+};
+
+struct config {
+  bool splashscreen, f3, crash_on_esc, blue_screen_of_death;
+
+  uint16_t event_handle_per_frame, load_per_frame;
+  bool list_wrap, strict_deserialization;
+
+  SpriteVisiblity props_visibility, tiles_visibility, water_visibility,
+      materials_visibility;
+  SpritePrerender tiles_prerender, props_prerender, materials_prerender;
+
+  bool shadows;
+
+  config();
+};
+
 class context {
 private:
   Camera2D camera;

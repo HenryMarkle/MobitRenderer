@@ -1,11 +1,17 @@
+#include "toml++/impl/forward_declarations.hpp"
+#include "toml++/impl/parse_error.hpp"
+#include "toml++/impl/parser.hpp"
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <toml++/toml.hpp>
 
 #include <MobitParser/nodes.h>
 #include <MobitParser/tokens.h>
@@ -14,6 +20,7 @@
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/serialization.h>
+#include <MobitRenderer/state.h>
 
 namespace mr {
 
@@ -515,5 +522,24 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
   deser_geometry(nodes->geometry, level->get_geo_matrix());
 
   return level;
+}
+
+std::shared_ptr<config> load_config(const std::filesystem::path &path) {
+  toml::parse_result parsed;
+
+  try {
+    parsed = toml::parse_file(path.string());
+  } catch (toml::parse_error &pe) {
+    std::cerr << "exception: could not parse config file: " << pe.what() << ": "
+              << pe.description() << std::endl;
+  } catch (std::exception &e) {
+    std::cerr << "exception: could not read config file: " << e.what()
+              << std::endl;
+    return nullptr;
+  }
+
+  auto c = std::make_shared<config>();
+
+  return nullptr;
 }
 }; // namespace mr
