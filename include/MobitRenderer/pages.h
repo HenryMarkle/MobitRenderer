@@ -92,4 +92,19 @@ public:
 
   virtual ~Main_Page() override;
 };
+
+class Geo_Page : public Page {
+private:
+  bool should_redraw;
+
+public:
+  void order_redraw() noexcept;
+
+  virtual void process() override;
+  virtual void draw() noexcept override;
+  virtual void windows() noexcept override;
+  Geo_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+
+  virtual ~Geo_Page() override;
+};
 }; // namespace mr::pages

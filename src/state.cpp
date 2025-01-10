@@ -244,9 +244,8 @@ const RenderTexture2D &textures::get_main_level_viewport() const noexcept {
   return main_level_viewport.get();
 }
 
-void textures::resize_main_level_viewport(int width, int height) {
-  if (width < 0 || height < 0)
-    return;
+void textures::resize_all_level_buffers(int width, int height) {
+  if (width < 0 || height < 0) return;
 
   auto new_viewport = rendertexture(width, height);
 
@@ -257,6 +256,31 @@ void textures::resize_main_level_viewport(int width, int height) {
   EndTextureMode();
 
   main_level_viewport = std::move(new_viewport);
+
+  // geo buffers
+
+  auto new_geo_layer1 = rendertexture(width, height);
+  auto new_geo_layer2 = rendertexture(width, height);
+  auto new_geo_layer3 = rendertexture(width, height);
+
+  BeginTextureMode(new_geo_layer1.get());
+  ClearBackground(WHITE);
+  DrawTexture(geo_layer1.get().texture, 0, 0, WHITE);
+  EndTextureMode();
+
+  BeginTextureMode(new_geo_layer2.get());
+  ClearBackground(WHITE);
+  DrawTexture(geo_layer2.get().texture, 0, 0, WHITE);
+  EndTextureMode();
+
+  BeginTextureMode(new_geo_layer3.get());
+  ClearBackground(WHITE);
+  DrawTexture(geo_layer3.get().texture, 0, 0, WHITE);
+  EndTextureMode();
+
+  geo_layer1 = std::move(new_geo_layer1);
+  geo_layer2 = std::move(new_geo_layer2);
+  geo_layer3 = std::move(new_geo_layer3);
 }
 
 textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
@@ -267,4 +291,29 @@ textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
 }
 
 textures::~textures() {}
+
+SpriteVisiblity::SpriteVisiblity(bool inherit, bool visible, uint8_t opacity) :
+  inherit(inherit), visible(visible), opacity(opacity) {}
+
+SpritePrerender::SpritePrerender(bool tinted, bool preview, bool palette) : tinted(tinted), preview(preview), palette(palette) {}
+
+config::config() : 
+  splashscreen(true), 
+  f3(false), 
+  crash_on_esc(false),
+  blue_screen_of_death(true),
+  event_handle_per_frame(30),
+  load_per_frame(100),
+  list_wrap(true),
+  strict_deserialization(true),
+
+  props_visibility(SpriteVisiblity()),
+  tiles_visibility(SpriteVisiblity()),
+  water_visibility(SpriteVisiblity()),
+  materials_visibility(SpriteVisiblity()),
+  
+  tiles_prerender(SpritePrerender()),
+  props_prerender(SpritePrerender()),
+  materials_prerender(SpritePrerender()),
+  shadows(false) {}
 }; // namespace mr

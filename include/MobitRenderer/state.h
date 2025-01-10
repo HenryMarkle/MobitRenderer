@@ -105,6 +105,7 @@ private:
 
 public:
   rendertexture main_level_viewport;
+  rendertexture geo_layer1, geo_layer2, geo_layer3;
 
   texture file_icon, folder_icon, up_icon, home_icon;
 
@@ -114,8 +115,10 @@ public:
   /// @warning Do not access this while modifying main_level_viewport.
   const RenderTexture2D &get_main_level_viewport() const noexcept;
 
-  /// @brief Creates a new render texture and draws the old render texture over.
-  void resize_main_level_viewport(int width, int height);
+  /// @brief Resizes all texture buffers that are associated with the current level.
+  /// @param width 
+  /// @param height 
+  void resize_all_level_buffers(int width, int height);
 
   textures(std::shared_ptr<dirs>, bool preload_textures = false);
   ~textures();
@@ -145,6 +148,8 @@ struct SpriteVisiblity {
 
 struct SpritePrerender {
   bool tinted, preview, palette;
+
+  SpritePrerender(bool tinted = false, bool preview = true, bool palette = false);
 };
 
 struct config {

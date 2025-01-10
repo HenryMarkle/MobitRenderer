@@ -20,9 +20,18 @@ target_include_directories(rlimgui PUBLIC libs/rlimgui)
 target_link_libraries(rlimgui PRIVATE imgui)
 
 # Main files
-file(GLOB MAIN_SOURCES src/*.cpp)               # sources
 include_directories(include)                    # headers
-add_executable(MobitRenderer ${MAIN_SOURCES})
+
+file(GLOB MAIN_SOURCES src/*.cpp)               # sources
+file(GLOB MAIN_DRAW_SOURCES src/draw/*.cpp)     # sources
+file(GLOB MAIN_PAGE_SOURCES src/pages/*.cpp)    # sources
+
+add_executable(
+  MobitRenderer 
+  ${MAIN_SOURCES} 
+  ${MAIN_DRAW_SOURCES}
+  ${MAIN_PAGE_SOURCES}
+)
 
 # Define version
 file(READ "${CMAKE_SOURCE_DIR}/version.txt" VERSION_CONTENT)

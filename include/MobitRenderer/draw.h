@@ -60,6 +60,17 @@ public:
 
 }; // namespace debug
 
+struct iquad {
+  ivec2 topright, topleft, bottomleft, bottomright;
+};
+
+struct fquad {
+  Vector2 topright, topleft, bottomleft, bottomright;
+};
+
+void draw_texture(const Texture2D &texture, const iquad &quad);
+void draw_texture(const Texture2D *texture, const iquad *quad);
+
 /// @brief Draws a geo cell based on the provided type.
 /// @param type Determines the shape of the cell.
 /// @param x The matrix' X coordinate.
@@ -106,8 +117,7 @@ void draw_mtx_geo_feature(GeoFeature features, int x, int y, float scale,
 void draw_geo_feature(GeoFeature features, int x, int y, float scale,
                       Color color);
 
-/// @brief Draws a tile cell from the top left corner.
-/// @param cell The tile cell.
+/// @brief Draws a tile preview from the top left corner.
 /// @param x The matrix' X coordinates.
 /// @param Y The matrix' Y coordinates.
 /// @param scale The scale of the tile.
@@ -115,11 +125,10 @@ void draw_geo_feature(GeoFeature features, int x, int y, float scale,
 /// @note Scake affects the X and Y coordinates by multiplying them by scale.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_mtx_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
+void draw_mtx_tile_prev(const TileDef *def, int x, int y, float scale,
                    Color color);
 
-/// @brief Draws a tile cell from the origin (x - origin.x, y - origin.y).
-/// @param cell The tile cell.
+/// @brief Draws a tile preview from the origin (x - origin.x, y - origin.y).
 /// @param x The matrix' X coordinates.
 /// @param Y The matrix' Y coordinates.
 /// @param scale The scale of the tile.
@@ -127,28 +136,116 @@ void draw_mtx_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
 /// @note Scake affects the X and Y coordinates by multiplying them by scale.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_mtx_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
+void draw_mtx_tile_prev_from_origin(const TileDef *def, int x, int y,
                                float scale, Color color);
 
-/// @brief Draws a tile cell from the top left corner.
-/// @param cell The tile cell.
+/// @brief Draws a tile preview from the top left corner.
 /// @param x The matrix' X coordinates.
 /// @param Y The matrix' Y coordinates.
 /// @param scale The scale of the tile.
 /// @param color The color of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
+void draw_tile_prev(const TileDef *def, int x, int y, float scale,
                Color color);
 
-/// @brief Draws a tile cell from the origin (x - origin.x, y - origin.y).
-/// @param cell The tile cell.
+/// @brief Draws a tile preview from the origin (x - origin.x, y - origin.y).
 /// @param x The matrix' X coordinates.
 /// @param Y The matrix' Y coordinates.
 /// @param scale The scale of the tile.
 /// @param color The color of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
+void draw_tile_prev_from_origin(const TileDef *def, int x, int y,
                            float scale, Color color);
+
+/// @brief Draws a tile texture from the top left corner.
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @note Scake affects the X and Y coordinates by multiplying them by scale.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_mtx_tile(const TileDef *def, int x, int y, float scale);
+
+/// @brief Draws a tile texture from the origin (x - origin.x, y - origin.y).
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @note Scake affects the X and Y coordinates by multiplying them by scale.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_mtx_tile_from_origin(const TileDef *def, int x, int y, float scale);
+
+/// @brief Draws a tile texture from the top left corner.
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_tile(const TileDef *def, int x, int y, float scale);
+
+/// @brief Draws a tile texture from the origin (x - origin.x, y - origin.y).
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_tile_from_origin(const TileDef *def, int x, int y, float scale);
+
+/// @brief Draws a tile tinted texture from the top left corner.
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @param tint The color of the tile.
+/// @note Scake affects the X and Y coordinates by multiplying them by scale.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_mtx_tile_tinted(const TileDef *def, int x, int y, float scale, Color tint);
+
+/// @brief Draws a tile tinted texture from the origin (x - origin.x, y - origin.y).
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @param tint The color of the tile.
+/// @note Scake affects the X and Y coordinates by multiplying them by scale.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_mtx_tile_from_origin_tinted(const TileDef *def, int x, int y, float scale, Color tint);
+
+/// @brief Draws a tile tinted texture from the top left corner.
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @param tint The color of the tile.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_tile_tinted(const TileDef *def, int x, int y, float scale, Color tint);
+
+/// @brief Draws a tile tinted texture from the origin (x - origin.x, y - origin.y).
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @param tint The color of the tile.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_tile_from_origin_tinted(const TileDef *def, int x, int y, float scale, Color tint);
+
+
+/// @brief Draws an entire layer of a geometry matrix. 
+/// @param matrix A constant reference to the matrix.
+/// @param layer The layer (0 - 2).
+/// @param color The color of the layer to be drawn.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_geo_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Color color);
+
+/// @brief Draws an entire layer of a geometry matrix. 
+/// @param matrix A constant reference to the matrix.
+/// @param layer The layer (0 - 2).
+/// @param color The color of the layer to be drawn.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_geo_layer(Matrix<GeoCell> const* matrix, uint8_t layer, Color color);
+
 }; // namespace mr

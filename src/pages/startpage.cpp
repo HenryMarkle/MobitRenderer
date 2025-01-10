@@ -84,7 +84,7 @@ void Start_Page::process() {
         UnloadTexture(lightmap);
       }
 
-      ctx_->textures_->resize_main_level_viewport(
+      ctx_->textures_->resize_all_level_buffers(
           loaded_level->get_width() * 20, loaded_level->get_height() * 20);
       ctx_->add_level(std::move(loaded_level));
       ctx_->select_level(0);

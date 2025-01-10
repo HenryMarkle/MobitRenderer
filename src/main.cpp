@@ -98,11 +98,13 @@ int main() {
 
   auto *start_page = new mr::pages::Start_Page(ctx, logger);
   auto *main_page = new mr::pages::Main_Page(ctx, logger);
+  auto *geo_page = new mr::pages::Geo_Page(ctx, logger);
 
   auto pager = std::make_unique<mr::pages::Pager>();
 
   pager->push_page(start_page);
   pager->push_page(main_page);
+  pager->push_page(geo_page);
 
   // A page must be selected or a segmentation fault will be thrown.
   pager->select_page(0);

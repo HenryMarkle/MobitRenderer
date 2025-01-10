@@ -1,6 +1,3 @@
-#include "toml++/impl/forward_declarations.hpp"
-#include "toml++/impl/parse_error.hpp"
-#include "toml++/impl/parser.hpp"
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -12,6 +9,9 @@
 #include <vector>
 
 #include <toml++/toml.hpp>
+#include <toml++/impl/forward_declarations.hpp>
+#include <toml++/impl/parse_error.hpp>
+#include <toml++/impl/parser.hpp>
 
 #include <MobitParser/nodes.h>
 #include <MobitParser/tokens.h>
