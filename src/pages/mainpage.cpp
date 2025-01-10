@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <iostream>
 
 #include <raylib.h>
 #include <imgui.h>
@@ -101,7 +102,7 @@ void Main_Page::windows() noexcept {
 
   if (opened) {
     ImGui::MenuItem("Main", nullptr, true, true);
-    ImGui::MenuItem("Geometry", nullptr, false, true);
+    auto goto_geo = ImGui::MenuItem("Geometry", nullptr, false, true);
     ImGui::MenuItem("Tiles", nullptr, false, false);
     ImGui::MenuItem("Cameras", nullptr, false, false);
     ImGui::MenuItem("Light", nullptr, false, false);
@@ -111,6 +112,10 @@ void Main_Page::windows() noexcept {
     ImGui::MenuItem("Settings", nullptr, false, false);
 
     ImGui::EndMainMenuBar();
+
+    if (goto_geo) {
+      ctx_->events.push(context_event{.type=context_event_type::goto_page, .payload=2});
+    }
   }
 }
 

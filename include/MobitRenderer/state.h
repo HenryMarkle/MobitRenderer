@@ -131,7 +131,7 @@ public:
   ~shortcuts();
 };
 
-enum class context_event_type { level_loaded };
+enum class context_event_type { level_loaded, goto_page };
 
 struct context_event {
   context_event_type type;

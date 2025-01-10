@@ -114,6 +114,7 @@ int main() {
   event_handlers handlers = event_handlers();
 
   handlers[mr::context_event_type::level_loaded] = mr::handle_level_loaded;
+  handlers[mr::context_event_type::goto_page] = mr::handle_goto_page;
 
   logger->info("entering main loop");
 

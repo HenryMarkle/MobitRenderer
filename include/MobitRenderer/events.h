@@ -9,5 +9,5 @@
 namespace mr {
 
 void handle_level_loaded(context *, pages::Pager *, const std::any &);
-
+void handle_goto_page(context *, pages::Pager *, const std::any &);
 }; // namespace mr
