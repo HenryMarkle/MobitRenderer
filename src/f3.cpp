@@ -202,9 +202,34 @@ void f3::print(void *ptr, bool same_line) noexcept {
 
   cursor.x += with_margin.x;
 }
+void f3::print(Vector2 vector, bool same_line) noexcept {
+  const char *formatted = TextFormat("<%f, %f>", vector.x, vector.y);
+  auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
+  auto with_margin =
+      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+
+  if (!same_line) {
+    cursor.x = 0;
+    cursor.y += with_margin.y;
+  }
+
+  DrawRectangleRec(Rectangle{.x = cursor.x,
+                             .y = cursor.y,
+                             .width = with_margin.x,
+                             .height = with_margin.y},
+                   background);
+
+  DrawTextEx(font, formatted,
+             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             font_size, 0.3f, WHITE);
+
+  cursor.x += with_margin.x;
+}
+
 void f3::enqueue(std::any data, bool same_line) {
   queue.push(f3_queue_data{.data = data, .same_line = same_line});
 }
+
 void f3::print_queue() noexcept {
   while (!queue.empty()) {
     f3_queue_data &element = queue.front();
@@ -239,6 +264,9 @@ void f3::print_queue() noexcept {
     } else if (element.data.type() == typeid(void *)) {
       void *ptr = std::any_cast<void *>(element.data);
       print(ptr, element.same_line);
+    } else if (element.data.type() == typeid(Vector2)) {
+      Vector2 v = std::any_cast<Vector2>(element.data);
+      print(v, element.same_line);
     }
 
     queue.pop();

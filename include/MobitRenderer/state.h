@@ -31,6 +31,7 @@
 #include <MobitRenderer/managed.h>
 
 namespace mr {
+
 inline std::filesystem::path get_current_dir() {
   std::filesystem::path this_dir;
 
@@ -130,8 +131,8 @@ public:
   const RenderTexture2D &get_main_level_viewport() const noexcept;
 
   /// @brief Resizes all texture buffers that are associated with the current level.
-  /// @param width 
-  /// @param height 
+  /// @param width Level width in pixels.
+  /// @param height Level height in pixels.
   void resize_all_level_buffers(int width, int height);
 
   textures(std::shared_ptr<dirs>, bool preload_textures = false);
@@ -173,7 +174,7 @@ struct config {
   bool list_wrap, strict_deserialization;
 
   SpriteVisiblity props_visibility, tiles_visibility, water_visibility,
-      materials_visibility;
+      materials_visibility, grid;
   SpritePrerender tiles_prerender, props_prerender, materials_prerender;
 
   bool shadows;
@@ -192,6 +193,8 @@ private:
   uint8_t selected_font;
 
   shaders _shaders;
+
+  config _config;
 
 public:
   std::shared_ptr<spdlog::logger> logger;
@@ -222,7 +225,13 @@ public:
   shaders &get_shaders() noexcept;
   const shaders &get_shaders_const() const noexcept;
 
-  context();
+  const config &get_config_const() const noexcept;
+  config &get_config() noexcept;
+  const config *get_config_const_ptr() const noexcept;
+  config *get_config_ptr() noexcept;
+  void set_config(config) noexcept;
+
+  context() = delete;
   context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);
   context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>,
           std::unique_ptr<textures>);

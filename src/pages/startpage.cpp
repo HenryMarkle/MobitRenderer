@@ -85,11 +85,12 @@ void Start_Page::process() {
       }
 
       ctx_->textures_->resize_all_level_buffers(
-          loaded_level->get_width() * 20, loaded_level->get_height() * 20);
+        loaded_level->get_width()  * 20, 
+        loaded_level->get_height() * 20
+      );
       ctx_->add_level(std::move(loaded_level));
       ctx_->select_level(0);
-      ctx_->events.push(context_event{.type = context_event_type::level_loaded,
-                                      .payload = nullptr});
+      ctx_->events.push(context_event{.type = context_event_type::level_loaded, .payload = nullptr});
     }
   }
 }
@@ -100,7 +101,7 @@ void Start_Page::draw() noexcept {
   } else {
     ClearBackground(BLACK);
 
-    DrawTextEx(ctx_->get_selected_font(), "Please wait..", {.x = 0, .y = 0}, 30,
+    DrawTextEx(ctx_->get_selected_font(), "Please wait..", {.x = 0, .y = 30}, 30,
                0.2f, WHITE);
   }
 }

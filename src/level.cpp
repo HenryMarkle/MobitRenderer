@@ -6,8 +6,11 @@
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/matrix.h>
 
-uint16_t mr::Level::get_width() const { return width; }
-uint16_t mr::Level::get_height() const { return height; }
+mr::levelsize mr::Level::get_width() const noexcept { return width; }
+mr::levelsize mr::Level::get_height() const noexcept { return height; }
+
+mr::levelpixelsize mr::Level::get_pixel_width() const noexcept { return pxwidth; }
+mr::levelpixelsize mr::Level::get_pixel_height() const noexcept { return pxheight; }
 
 mr::Matrix<mr::GeoCell> &mr::Level::get_geo_matrix() { return geo_matrix; }
 mr::Matrix<mr::TileCell> &mr::Level::get_tile_matrix() { return tile_matrix; }
@@ -54,6 +57,9 @@ void mr::Level::resize(int16_t left, int16_t top, int16_t right,
 
   width = width + left + right;
   height = height + top + bottom;
+  
+  pxwidth = width * 20;
+  pxheight = height * 20;
 
   // Resize matrices
 
@@ -81,7 +87,7 @@ void mr::Level::resize(int16_t left, int16_t top, int16_t right,
 }
 
 mr::Level::Level(uint16_t width, uint16_t height)
-    : width(width), height(height), geo_matrix(width, height),
+    : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), geo_matrix(width, height),
       tile_matrix(width, height), water(-1), front_water(false), light(true),
       terrain(true), lightmap(RenderTexture2D{.id = 0}) {}
 
@@ -93,7 +99,7 @@ mr::Level::Level(uint16_t width, uint16_t height,
                  std::vector<mr::LevelCamera> &&cameras,
 
                  int8_t water, bool light, bool terrain, bool front_water)
-    : width(width), height(height), water(water), front_water(front_water),
+    : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), water(water), front_water(front_water),
       light(light), terrain(terrain), tile_matrix(std::move(tile_matrix)),
       geo_matrix(std::move(geo_matrix)), lightmap(RenderTexture2D{.id = 0}) {}
 

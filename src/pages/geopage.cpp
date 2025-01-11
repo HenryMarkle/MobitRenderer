@@ -1,6 +1,7 @@
 #include <cstdint>
 
 #include <raylib.h>
+#include <raymath.h>
 #include <imgui.h>
 
 #include <MobitRenderer/draw.h>
@@ -10,12 +11,58 @@
 namespace mr::pages {
 
 void Geo_Page::process() {
+  auto wheel = GetMouseWheelMove();
+  if (wheel != 0) {
+
+    if (!zoomed_out || wheel >= 0) {
+      auto &camera = ctx_->get_camera();
+      auto mouseWorldPosition = GetScreenToWorld2D(GetMousePosition(), ctx_->get_camera());
+      
+      camera.offset = GetMousePosition();
+      camera.target = mouseWorldPosition;
+      camera.zoom += wheel * 0.125f;
+      if (camera.zoom < 0.125f) camera.zoom = 0.125f;
+    }
+
+    auto level = ctx_->get_selected_level();
+
+    zoomed_out = (
+      GetScreenWidth() - 80 > (level->get_pixel_width() * ctx_->get_camera().zoom) && 
+      GetScreenHeight() - 80 > (level->get_pixel_height() * ctx_->get_camera().zoom)
+    );
+  }
+
+  auto level = ctx_->get_selected_level();
+
+  if (!zoomed_out && IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+    auto delta = GetMouseDelta();
+    auto &camera = ctx_->get_camera();
+
+    delta = Vector2Scale(delta, -1.0f / camera.zoom);
+    
+    camera.target.x += delta.x;
+    camera.target.y += delta.y;
+  }
+
   auto f3 = ctx_->f3_;
+  auto camera = ctx_->get_camera();
 
   f3->enqueue("W ");
   f3->enqueue(ctx_->get_selected_level()->get_width(), true);
   f3->enqueue(" H ", true);
   f3->enqueue(ctx_->get_selected_level()->get_height(), true);
+
+  f3->enqueue("Zoom ");
+  f3->enqueue(ctx_->get_camera().zoom, true);
+
+  f3->enqueue("Target ");
+  f3->enqueue(ctx_->get_camera().target, true);
+
+  f3->enqueue("Offset ");
+  f3->enqueue(ctx_->get_camera().offset, true);
+
+  f3->enqueue("Zoomed Out ");
+  f3->enqueue(zoomed_out, true);
 
   f3->enqueue("Layer Pointer: Global");
   f3->enqueue("L ");
@@ -121,12 +168,25 @@ void Geo_Page::draw() noexcept {
 
   BeginMode2D(ctx_->get_camera());
 
+
   auto level = ctx_->get_selected_level();
   auto &mtx = level->get_const_geo_matrix();
   auto width = mtx.get_width(), height = mtx.get_height();
 
+  if (zoomed_out) {
+      ctx_->get_camera().target = Vector2{0, 0};
+      ctx_->get_camera().offset.x = (GetScreenWidth() - (float)level->get_pixel_width()* ctx_->get_camera().zoom)/2.0f;
+      ctx_->get_camera().offset.y = (GetScreenHeight() - (float)level->get_pixel_height()* ctx_->get_camera().zoom)/2.0f;
+  }
+
   DrawRectangle(0, 0, width * 20, height * 20, GRAY);
   DrawTexture(ctx_->textures_->get_main_level_viewport().texture, 0, 0, WHITE);
+
+  if (ctx_->get_config_const().grid.visible) {
+    mr::draw_nested_grid(72, 43, Color{130, 130, 130, 200});
+  }
+
+  mr::draw_double_frame(level->get_pixel_width(), level->get_pixel_height());
 
   EndMode2D();
 }
@@ -136,9 +196,14 @@ void Geo_Page::order_level_redraw() noexcept {
   should_redraw = true;
 }
 
-Geo_Page::Geo_Page(std::shared_ptr<context> ctx,
-                     std::shared_ptr<spdlog::logger> logger
-                ) : Page(ctx, logger), should_redraw1(true), should_redraw2(true), should_redraw3(true) {}
+Geo_Page::Geo_Page(
+  std::shared_ptr<context> ctx, 
+  std::shared_ptr<spdlog::logger> logger
+) : Page(ctx, logger), 
+  should_redraw1(true), 
+  should_redraw2(true), 
+  should_redraw3(true),
+  zoomed_out(false) {}
 
 Geo_Page::~Geo_Page() {}
 };

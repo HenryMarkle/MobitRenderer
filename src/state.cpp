@@ -264,28 +264,42 @@ void context::add_font(Font f) noexcept { fonts.push_back(f); }
 const shaders &context::get_shaders_const() const noexcept { return _shaders; }
 shaders &context::get_shaders() noexcept { return _shaders; }
 
+const config &context::get_config_const() const noexcept {
+  return _config;
+}
+config &context::get_config() noexcept {
+  return _config;
+}
+const config *context::get_config_const_ptr() const noexcept {
+  return &_config;
+}
+config *context::get_config_ptr() noexcept {
+  return &_config;
+}
+void context::set_config(config c) noexcept {
+  _config = c;
+}
+
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs)
-    : logger(logger), directories(dirs),
+    : logger(logger), 
+      directories(dirs),
       textures_(std::make_unique<textures>(directories)),
       _shaders(dirs->get_shaders()),
-      f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 28, WHITE,
-          Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
+      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}
-context::context(std::shared_ptr<spdlog::logger> logger,
-                 std::shared_ptr<dirs> dirs,
-                 std::unique_ptr<textures> _textures)
-    : logger(logger), directories(dirs), textures_(std::move(_textures)),
+context::context(std::shared_ptr<spdlog::logger> logger, std::shared_ptr<dirs> dirs, std::unique_ptr<textures> _textures)
+    : logger(logger), 
+      directories(dirs), 
+      textures_(std::move(_textures)),
       _shaders(dirs->get_shaders()),
-      f3_(std::make_shared<debug::f3>(
-          GetFontDefault(), 28, WHITE,
-          Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
+      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}
+
 context::~context() {
   if (!levels.empty()) {
     for (auto *level : levels)
@@ -380,6 +394,7 @@ config::config() :
   tiles_visibility(SpriteVisiblity()),
   water_visibility(SpriteVisiblity()),
   materials_visibility(SpriteVisiblity()),
+  grid(SpriteVisiblity()),
   
   tiles_prerender(SpritePrerender()),
   props_prerender(SpritePrerender()),

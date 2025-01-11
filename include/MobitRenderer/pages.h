@@ -102,7 +102,13 @@ public:
 
 class Geo_Page : public Page {
 private:
-  bool should_redraw, should_redraw1, should_redraw2, should_redraw3;
+  bool 
+    should_redraw, 
+    should_redraw1, 
+    should_redraw2, 
+    should_redraw3;
+
+  bool zoomed_out;
 
 public:
   virtual void process() override;

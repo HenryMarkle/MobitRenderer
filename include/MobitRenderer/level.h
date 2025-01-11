@@ -9,6 +9,10 @@
 #include <MobitRenderer/matrix.h>
 
 namespace mr {
+
+typedef uint16_t levelsize;
+typedef uint32_t levelpixelsize;
+
 struct LevelCamera {
   Vector2 position;
 
@@ -55,7 +59,8 @@ struct Effect {
 /// @attention Resizing and destruction requires OpenGL context.
 class Level {
 private:
-  uint16_t width, height;
+  levelsize width, height;
+  levelpixelsize pxwidth, pxheight;
 
   Matrix<GeoCell> geo_matrix;
   Matrix<TileCell> tile_matrix;
@@ -68,8 +73,15 @@ public:
   bool light, terrain, front_water;
   std::vector<LevelCamera> cameras;
 
-  uint16_t get_width() const;
-  uint16_t get_height() const;
+  /// @return Retrieves the level width in units of 20 px^2.
+  levelsize get_width() const noexcept;
+  /// @return Retrieves the level height in units of 20 px^2.
+  levelsize get_height() const noexcept;
+
+  /// @return Retrieves the level width in pixels.
+  levelpixelsize get_pixel_width() const noexcept;
+  /// @return Retrieves the level height in pixels.
+  levelpixelsize get_pixel_height() const noexcept;
 
   Matrix<GeoCell> &get_geo_matrix();
   Matrix<TileCell> &get_tile_matrix();

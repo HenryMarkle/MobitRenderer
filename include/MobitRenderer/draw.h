@@ -11,6 +11,7 @@
 
 #include <MobitRenderer/definitions.h>
 #include <MobitRenderer/matrix.h>
+#include <MobitRenderer/level.h>
 
 namespace mr {
 
@@ -53,6 +54,7 @@ public:
   void print(bool boolean, bool same_line = false) noexcept;
   /// @brief Prints a memory address (without derefrencing.)
   void print(void *ptr, bool same_line = false) noexcept;
+  void print(Vector2, bool same_line = false) noexcept;
 
   f3(Font font, float font_size, Color text_color, Color background_color);
   ~f3();
@@ -70,6 +72,12 @@ struct fquad {
 
 void draw_texture(const Texture2D &texture, const iquad &quad);
 void draw_texture(const Texture2D *texture, const iquad *quad);
+
+void draw_grid(levelsize width, levelsize height, Color color = GRAY, int scale = 20, int thickness = 1) noexcept;
+void draw_nested_grid(levelsize width, levelsize height, Color color, int scale = 20, int thickness = 1) noexcept;
+
+void draw_frame(levelpixelsize width, levelpixelsize height, Color color = WHITE) noexcept;
+void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept;
 
 /// @brief Draws a geo cell based on the provided type.
 /// @param type Determines the shape of the cell.

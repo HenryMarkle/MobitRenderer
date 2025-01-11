@@ -17,10 +17,11 @@ list_wrap = false
 # The whole init won't load if any error occurrs.
 strict_deserialization = false
 
-props = { visible = true, opacity = 255 }
-tiles = { visible = true, opacity = 255 }
-water = { visible = true, opacity = 70 }
+props =     { visible = true, opacity = 255 }
+tiles =     { visible = true, opacity = 255 }
+water =     { visible = true, opacity =  70 }
 materials = { visible = true, opacity = 255 }
+grid =      { visible = true, opacity = 255 }
 
 [general.prerendering]
 
