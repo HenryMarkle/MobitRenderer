@@ -16,6 +16,10 @@ void Geo_Page::process() {
   f3->enqueue(ctx_->get_selected_level()->get_width(), true);
   f3->enqueue(" H ", true);
   f3->enqueue(ctx_->get_selected_level()->get_height(), true);
+
+  f3->enqueue("Layer Pointer: Global");
+  f3->enqueue("L ");
+  f3->enqueue((int)ctx_->level_layer_, true);
 }
 void Geo_Page::draw() noexcept {
   if (should_redraw1) {

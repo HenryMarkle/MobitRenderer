@@ -202,6 +202,7 @@ public:
   Camera2D &get_camera();
   void set_camera(Camera2D);
   bool f3_enabled, enable_global_shortcuts;
+  uint8_t level_layer_; // 0, 1, 2
 
   const std::vector<mr::Level *> &get_levels() const noexcept;
   mr::Level *get_selected_level();

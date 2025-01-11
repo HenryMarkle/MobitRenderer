@@ -273,7 +273,8 @@ context::context(std::shared_ptr<spdlog::logger> logger,
           GetFontDefault(), 28, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
-      enable_global_shortcuts(true) {}
+      enable_global_shortcuts(true),
+      level_layer_(0) {}
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs,
                  std::unique_ptr<textures> _textures)
@@ -283,7 +284,8 @@ context::context(std::shared_ptr<spdlog::logger> logger,
           GetFontDefault(), 28, WHITE,
           Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
       camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
-      enable_global_shortcuts(true) {}
+      enable_global_shortcuts(true),
+      level_layer_(0) {}
 context::~context() {
   if (!levels.empty()) {
     for (auto *level : levels)
