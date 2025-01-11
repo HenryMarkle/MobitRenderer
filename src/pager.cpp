@@ -24,6 +24,8 @@ void Pager::select_page(uint8_t index) noexcept {
   current_page = index;
   previous_page_ptr = current_page_ptr;
   current_page_ptr = pages[index];
+
+  current_page_ptr->order_level_redraw();
 }
 
 Pager::Pager() : current_page(-1), previous_page(-1) {}

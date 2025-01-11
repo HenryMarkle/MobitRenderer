@@ -83,18 +83,32 @@ public:
   dirs(const std::filesystem::path &);
 };
 
+/// @note Requires shaders to be loaded.
 class shaders {
 private:
   std::filesystem::path _shaders_dir;
 
   Shader _vflip;
+  Shader _white_remover;
+  Shader _white_remover_apply_color;
 
 public:
+  /// @attention Requires OpenGL context.
+  void unload_all();
   /// @attention Requires OpenGL context.
   void reload_all();
 
   const Shader &vflip() const noexcept;
+  const Shader &white_remover() const noexcept;
+  const Shader &white_remover_apply_color() const noexcept;
 
+  shaders &operator=(shaders const&);
+  shaders &operator=(shaders &&) noexcept;
+
+  shaders(shaders const&);
+  shaders(shaders &&) noexcept;
+
+  shaders() = delete;
   shaders(std::filesystem::path shaders_dir);
   ~shaders();
 };

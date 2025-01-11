@@ -164,6 +164,30 @@ int main() {
                                      ImGuiDockNodeFlags_PassthruCentralNode);
 
         pager->get_current_page()->windows();
+        auto current_page = pager->get_current_page_index();
+
+        auto menubarOpened = ImGui::BeginMainMenuBar();
+
+        if (current_page != 0 && menubarOpened) {
+          auto goto_main = ImGui::MenuItem("Main", nullptr, current_page == 1, true);
+          auto goto_geo = ImGui::MenuItem("Geometry", nullptr, current_page == 2, true);
+          ImGui::MenuItem("Tiles", nullptr, current_page == 3, false);
+          ImGui::MenuItem("Cameras", nullptr, current_page == 4, false);
+          ImGui::MenuItem("Light", nullptr, current_page == 5, false);
+          ImGui::MenuItem("Dimensions", nullptr, current_page == 6, false);
+          ImGui::MenuItem("Effects", nullptr, current_page == 7, false);
+          ImGui::MenuItem("Props", nullptr, current_page == 8, false);
+          ImGui::MenuItem("Settings", nullptr, current_page == 9, false);
+
+          if (goto_main) {
+            ctx->events.push(mr::context_event{.type=mr::context_event_type::goto_page, .payload=1});
+            
+          } else if (goto_geo) {
+            ctx->events.push(mr::context_event{.type=mr::context_event_type::goto_page, .payload=2});
+          }
+        }
+
+        ImGui::EndMainMenuBar();
       }
       rlImGuiEnd();
 

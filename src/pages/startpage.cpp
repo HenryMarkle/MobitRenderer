@@ -111,6 +111,8 @@ void Start_Page::windows() noexcept {
   }
 }
 
+void Start_Page::order_level_redraw() noexcept {}
+
 Start_Page::~Start_Page() {
   if (project_load_thread != nullptr && !project_thread_done) {
     project_load_thread->detach();

@@ -32,6 +32,9 @@ public:
   /// @brief Draws ImGui windows
   virtual void windows() noexcept = 0;
 
+  /// @brief Propagates texture buffer refreshing.
+  virtual void order_level_redraw() noexcept = 0;
+
   virtual ~Page() = default;
 };
 
@@ -73,6 +76,8 @@ public:
   virtual void process() override;
   virtual void draw() noexcept override;
   virtual void windows() noexcept override;
+  virtual void order_level_redraw() noexcept override;
+
   Start_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
 
   virtual ~Start_Page() override;
@@ -88,6 +93,8 @@ public:
   virtual void process() override;
   virtual void draw() noexcept override;
   virtual void windows() noexcept override;
+  virtual void order_level_redraw() noexcept override;
+
   Main_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
 
   virtual ~Main_Page() override;
@@ -95,14 +102,14 @@ public:
 
 class Geo_Page : public Page {
 private:
-  bool should_redraw;
+  bool should_redraw, should_redraw1, should_redraw2, should_redraw3;
 
 public:
-  void order_redraw() noexcept;
-
   virtual void process() override;
   virtual void draw() noexcept override;
   virtual void windows() noexcept override;
+  virtual void order_level_redraw() noexcept override;
+
   Geo_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
 
   virtual ~Geo_Page() override;

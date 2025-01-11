@@ -12,6 +12,7 @@
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
 #include <MobitRenderer/state.h>
+#include <MobitRenderer/utils.h>
 
 namespace mr {
 
@@ -137,21 +138,79 @@ dirs::dirs(const std::filesystem::path &executable_directory) {
   executable = executable_directory;
 }
 
+void shaders::unload_all() {
+  mr::utils::unload_shader(_vflip);
+  mr::utils::unload_shader(_white_remover);
+  mr::utils::unload_shader(_white_remover_apply_color);
+}
+
 void shaders::reload_all() {
-  if (_vflip.id != 0)
-    UnloadShader(_vflip);
-  else {
-    auto vflip_path = _shaders_dir / "vflip.frag";
-    _vflip = LoadShader(nullptr, vflip_path.c_str());
-  }
+  unload_all();
+
+  auto vflip_path = _shaders_dir / "vflip.frag";
+  _vflip = LoadShader(nullptr, vflip_path.c_str());
+
+  auto white_remover_path = _shaders_dir / "white_remover.frag";
+  _white_remover = LoadShader(nullptr, white_remover_path.c_str());
+
+  auto white_remover_apply_color_path = _shaders_dir / "white_remover_apply_color.frag";
+  _white_remover_apply_color = LoadShader(nullptr, white_remover_apply_color_path.c_str());
 }
 
 const Shader &shaders::vflip() const noexcept { return _vflip; }
+const Shader &shaders::white_remover() const noexcept { return _white_remover; }
+const Shader &shaders::white_remover_apply_color() const noexcept { return _white_remover_apply_color; }
 
-shaders::shaders(std::filesystem::path shaders_dir) : _vflip(Shader{.id = 0}) {
-  _shaders_dir = shaders_dir;
+shaders &shaders::operator=(shaders const&other) {
+  if (&other == this) return *this;
+
+  _shaders_dir = other._shaders_dir;
+
+  _vflip = Shader{.id=0};
+  _white_remover = Shader{.id=0};
+  _white_remover_apply_color = Shader{.id=0};
+
+  reload_all();
+
+  return *this;
 }
-shaders::~shaders() { UnloadShader(_vflip); }
+
+shaders &shaders::operator=(shaders &&other) noexcept {
+  if (&other == this) return *this;
+
+  _shaders_dir = other._shaders_dir;
+
+  _vflip = other._vflip;
+  _white_remover = other._white_remover;
+  _white_remover_apply_color = other._white_remover_apply_color;
+
+  other._vflip = Shader{.id=0};
+  other._white_remover = Shader{.id=0};
+  other._white_remover_apply_color = Shader{.id=0};
+
+  return *this;
+}
+
+shaders::shaders(shaders const&other) 
+  : _shaders_dir(other._shaders_dir), _vflip(Shader{.id=0}), _white_remover(Shader{.id=0}), _white_remover_apply_color(Shader{.id=0}) {
+    reload_all();
+}
+
+shaders::shaders(shaders &&other) noexcept : _shaders_dir(other._shaders_dir), _vflip(other._vflip), _white_remover(other._white_remover), _white_remover_apply_color(other._white_remover_apply_color) {
+  other._vflip = Shader{.id = 0};
+  other._white_remover = Shader{.id = 0};
+  other._white_remover_apply_color = Shader{.id=0};
+}
+
+shaders::shaders(std::filesystem::path shaders_dir) : 
+  _shaders_dir(shaders_dir), 
+  _vflip(Shader{.id = 0}), 
+  _white_remover(Shader{.id = 0}),
+  _white_remover_apply_color(Shader{.id=0}) { }
+
+shaders::~shaders() { 
+  unload_all();
+}
 
 Camera2D &context::get_camera() { return camera; }
 void context::set_camera(Camera2D _camera) { camera = _camera; }
@@ -249,11 +308,13 @@ void textures::resize_all_level_buffers(int width, int height) {
 
   auto new_viewport = rendertexture(width, height);
 
-  BeginTextureMode(new_viewport.get());
-  ClearBackground(BLACK);
+  if (main_level_viewport.is_loaded()) {
+    BeginTextureMode(new_viewport.get());
+    ClearBackground(BLACK);
 
-  DrawTexture(main_level_viewport.get().texture, 0, 0, WHITE);
-  EndTextureMode();
+    DrawTexture(main_level_viewport.get().texture, 0, 0, WHITE);
+    EndTextureMode();
+  }
 
   main_level_viewport = std::move(new_viewport);
 
@@ -263,20 +324,26 @@ void textures::resize_all_level_buffers(int width, int height) {
   auto new_geo_layer2 = rendertexture(width, height);
   auto new_geo_layer3 = rendertexture(width, height);
 
-  BeginTextureMode(new_geo_layer1.get());
-  ClearBackground(WHITE);
-  DrawTexture(geo_layer1.get().texture, 0, 0, WHITE);
-  EndTextureMode();
+  if (geo_layer1.is_loaded()) {
+    BeginTextureMode(new_geo_layer1.get());
+    ClearBackground(WHITE);
+    DrawTexture(geo_layer1.get().texture, 0, 0, WHITE);
+    EndTextureMode();
+  }
 
-  BeginTextureMode(new_geo_layer2.get());
-  ClearBackground(WHITE);
-  DrawTexture(geo_layer2.get().texture, 0, 0, WHITE);
-  EndTextureMode();
+  if (geo_layer2.is_loaded()) {
+    BeginTextureMode(new_geo_layer2.get());
+    ClearBackground(WHITE);
+    DrawTexture(geo_layer2.get().texture, 0, 0, WHITE);
+    EndTextureMode();
+  }
 
-  BeginTextureMode(new_geo_layer3.get());
-  ClearBackground(WHITE);
-  DrawTexture(geo_layer3.get().texture, 0, 0, WHITE);
-  EndTextureMode();
+  if (geo_layer3.is_loaded()) {
+    BeginTextureMode(new_geo_layer3.get());
+    ClearBackground(WHITE);
+    DrawTexture(geo_layer3.get().texture, 0, 0, WHITE);
+    EndTextureMode();
+  }
 
   geo_layer1 = std::move(new_geo_layer1);
   geo_layer2 = std::move(new_geo_layer2);

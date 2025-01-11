@@ -98,25 +98,29 @@ void Main_Page::draw() noexcept {
 }
 
 void Main_Page::windows() noexcept {
-  auto opened = ImGui::BeginMainMenuBar();
+  // auto opened = ImGui::BeginMainMenuBar();
 
-  if (opened) {
-    ImGui::MenuItem("Main", nullptr, true, true);
-    auto goto_geo = ImGui::MenuItem("Geometry", nullptr, false, true);
-    ImGui::MenuItem("Tiles", nullptr, false, false);
-    ImGui::MenuItem("Cameras", nullptr, false, false);
-    ImGui::MenuItem("Light", nullptr, false, false);
-    ImGui::MenuItem("Dimensions", nullptr, false, false);
-    ImGui::MenuItem("Effects", nullptr, false, false);
-    ImGui::MenuItem("Props", nullptr, false, false);
-    ImGui::MenuItem("Settings", nullptr, false, false);
+  // if (opened) {
+  //   ImGui::MenuItem("Main", nullptr, true, true);
+  //   auto goto_geo = ImGui::MenuItem("Geometry", nullptr, false, true);
+  //   ImGui::MenuItem("Tiles", nullptr, false, false);
+  //   ImGui::MenuItem("Cameras", nullptr, false, false);
+  //   ImGui::MenuItem("Light", nullptr, false, false);
+  //   ImGui::MenuItem("Dimensions", nullptr, false, false);
+  //   ImGui::MenuItem("Effects", nullptr, false, false);
+  //   ImGui::MenuItem("Props", nullptr, false, false);
+  //   ImGui::MenuItem("Settings", nullptr, false, false);
 
-    ImGui::EndMainMenuBar();
+  //   ImGui::EndMainMenuBar();
 
-    if (goto_geo) {
-      ctx_->events.push(context_event{.type=context_event_type::goto_page, .payload=2});
-    }
-  }
+  //   if (goto_geo) {
+  //     ctx_->events.push(context_event{.type=context_event_type::goto_page, .payload=2});
+  //   }
+  // }
+}
+
+void Main_Page::order_level_redraw() noexcept {
+  should_redraw = true;
 }
 
 Main_Page::Main_Page(std::shared_ptr<context> ctx,
