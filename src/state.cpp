@@ -306,14 +306,8 @@ context::~context() {
 void textures::reload_all_textures() {
   file_icon = texture((directories->get_assets() / "Icons" / "file icon.png").string().c_str());
   folder_icon = texture((directories->get_assets() / "Icons" / "folder icon.png").string().c_str());
-
-  auto up_icon_path = directories->get_assets() / "Icons" / "up icon.png";
-  const char* up_icon_cstr = (const char*)up_icon_path.string().c_str();
-  up_icon = texture();
-
-  auto home_icon_path = directories->get_assets() / "Icons" / "home icon.png";
-  const char* home_icon_cstr = (const char *)home_icon_path.string().c_str();
-  home_icon = texture();
+  up_icon = texture((directories->get_assets() / "Icons" / "up icon.png").string().c_str());
+  home_icon = texture((directories->get_assets() / "Icons" / "home icon.png").string().c_str());
 }
 
 const RenderTexture2D &textures::get_main_level_viewport() const noexcept {
