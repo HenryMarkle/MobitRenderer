@@ -22,13 +22,10 @@
 #include <mach-o/dyld.h>
 #endif
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include <MobitRenderer/draw.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
+#include <MobitRenderer/exceptions.h>
 
 namespace mr {
 

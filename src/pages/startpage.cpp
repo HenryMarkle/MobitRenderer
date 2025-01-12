@@ -1,17 +1,18 @@
-#include "MobitRenderer/exceptions.h"
 #include <exception>
 #include <filesystem>
 #include <memory>
 #include <sstream>
 #include <thread>
 
-#include <imgui.h>
 #include <raylib.h>
+#include <imgui.h>
 #include <rlImGui.h>
+
 #include <spdlog/logger.h>
 
 #include <MobitRenderer/imwin.h>
 #include <MobitRenderer/pages.h>
+#include <MobitRenderer/exceptions.h>
 #include <MobitRenderer/serialization.h>
 #include <MobitRenderer/state.h>
 
@@ -77,7 +78,8 @@ void Start_Page::process() {
       auto lightmap_path = parent / sb.str();
 
       if (std::filesystem::exists(lightmap_path)) {
-        auto lightmap = LoadTexture(lightmap_path.c_str());
+        const char * lightmap_path_ctr = (const char*)lightmap_path.c_str();
+        auto lightmap = LoadTexture(lightmap_path_ctr);
 
         loaded_level->load_lightmap(lightmap);
 
@@ -90,7 +92,7 @@ void Start_Page::process() {
       );
       ctx_->add_level(std::move(loaded_level));
       ctx_->select_level(0);
-      ctx_->events.push(context_event{.type = context_event_type::level_loaded, .payload = nullptr});
+      ctx_->events.push(context_event{context_event_type::level_loaded, nullptr});
     }
   }
 }
@@ -101,8 +103,7 @@ void Start_Page::draw() noexcept {
   } else {
     ClearBackground(BLACK);
 
-    DrawTextEx(ctx_->get_selected_font(), "Please wait..", {.x = 0, .y = 30}, 30,
-               0.2f, WHITE);
+    DrawTextEx(ctx_->get_selected_font(), "Please wait..", Vector2{0, 30}, 30,0.2f, WHITE);
   }
 }
 

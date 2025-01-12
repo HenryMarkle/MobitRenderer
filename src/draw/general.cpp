@@ -1,5 +1,4 @@
 #include <cstdint>
-
 #include <raylib.h>
 
 #include <MobitRenderer/level.h>

@@ -1,3 +1,7 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -13,6 +17,7 @@
 #include <MobitRenderer/managed.h>
 #include <MobitRenderer/state.h>
 #include <MobitRenderer/utils.h>
+#include <MobitRenderer/io.h>
 
 namespace mr {
 
@@ -32,17 +37,8 @@ const std::filesystem::path &dirs::get_props() const { return props; }
 const std::filesystem::path &dirs::get_cast() const { return cast; }
 
 dirs::dirs() {
-#ifdef __linux__
-  {
-    char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
 
-    if (count == -1)
-      throw "could not retrieve executable's path";
-    result[count] = '\0';
-    executable = std::filesystem::absolute(result).parent_path();
-  }
-#endif
+  executable = mr::get_executable_dir();
 
   assets = executable / "Assets";
   projects = executable / "Projects";
@@ -148,13 +144,13 @@ void shaders::reload_all() {
   unload_all();
 
   auto vflip_path = _shaders_dir / "vflip.frag";
-  _vflip = LoadShader(nullptr, vflip_path.c_str());
+  _vflip = LoadShader(nullptr, vflip_path.string().c_str());
 
   auto white_remover_path = _shaders_dir / "white_remover.frag";
-  _white_remover = LoadShader(nullptr, white_remover_path.c_str());
+  _white_remover = LoadShader(nullptr, white_remover_path.string().c_str());
 
   auto white_remover_apply_color_path = _shaders_dir / "white_remover_apply_color.frag";
-  _white_remover_apply_color = LoadShader(nullptr, white_remover_apply_color_path.c_str());
+  _white_remover_apply_color = LoadShader(nullptr, white_remover_apply_color_path.string().c_str());
 }
 
 const Shader &shaders::vflip() const noexcept { return _vflip; }
@@ -166,9 +162,9 @@ shaders &shaders::operator=(shaders const&other) {
 
   _shaders_dir = other._shaders_dir;
 
-  _vflip = Shader{.id=0};
-  _white_remover = Shader{.id=0};
-  _white_remover_apply_color = Shader{.id=0};
+  _vflip = Shader{0};
+  _white_remover = Shader{0};
+  _white_remover_apply_color = Shader{0};
 
   reload_all();
 
@@ -184,29 +180,29 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _white_remover = other._white_remover;
   _white_remover_apply_color = other._white_remover_apply_color;
 
-  other._vflip = Shader{.id=0};
-  other._white_remover = Shader{.id=0};
-  other._white_remover_apply_color = Shader{.id=0};
+  other._vflip = Shader{0};
+  other._white_remover = Shader{0};
+  other._white_remover_apply_color = Shader{0};
 
   return *this;
 }
 
 shaders::shaders(shaders const&other) 
-  : _shaders_dir(other._shaders_dir), _vflip(Shader{.id=0}), _white_remover(Shader{.id=0}), _white_remover_apply_color(Shader{.id=0}) {
+  : _shaders_dir(other._shaders_dir), _vflip(Shader{0}), _white_remover(Shader{0}), _white_remover_apply_color(Shader{0}) {
     reload_all();
 }
 
 shaders::shaders(shaders &&other) noexcept : _shaders_dir(other._shaders_dir), _vflip(other._vflip), _white_remover(other._white_remover), _white_remover_apply_color(other._white_remover_apply_color) {
-  other._vflip = Shader{.id = 0};
-  other._white_remover = Shader{.id = 0};
-  other._white_remover_apply_color = Shader{.id=0};
+  other._vflip = Shader{0};
+  other._white_remover = Shader{0};
+  other._white_remover_apply_color = Shader{0};
 }
 
 shaders::shaders(std::filesystem::path shaders_dir) : 
   _shaders_dir(shaders_dir), 
-  _vflip(Shader{.id = 0}), 
-  _white_remover(Shader{.id = 0}),
-  _white_remover_apply_color(Shader{.id=0}) { }
+  _vflip(Shader{0}), 
+  _white_remover(Shader{0}),
+  _white_remover_apply_color(Shader{0}) { }
 
 shaders::~shaders() { 
   unload_all();
@@ -248,7 +244,7 @@ const Font *context::get_selected_font_const_ptr() const noexcept {
 }
 Font context::get_selected_font() const noexcept {
   if (selected_font >= fonts.size())
-    return {.texture = {.id = 0}};
+    return {{0}};
 
   return fonts[selected_font];
 }
@@ -286,8 +282,8 @@ context::context(std::shared_ptr<spdlog::logger> logger,
       directories(dirs),
       textures_(std::make_unique<textures>(directories)),
       _shaders(dirs->get_shaders()),
-      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
+      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
+      camera(Camera2D{Vector2{1, -40}, 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}
 context::context(std::shared_ptr<spdlog::logger> logger, std::shared_ptr<dirs> dirs, std::unique_ptr<textures> _textures)
@@ -295,8 +291,8 @@ context::context(std::shared_ptr<spdlog::logger> logger, std::shared_ptr<dirs> d
       directories(dirs), 
       textures_(std::move(_textures)),
       _shaders(dirs->get_shaders()),
-      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{.r = GRAY.r, .g = GRAY.g, .b = GRAY.b, .a = 120})),
-      camera(Camera2D{.target = Vector2{.x = 1, .y = -40}, .zoom = 0.5f}),
+      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
+      camera(Camera2D{Vector2{1, -40}, 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}
 
@@ -308,11 +304,16 @@ context::~context() {
 }
 
 void textures::reload_all_textures() {
-  file_icon = texture(directories->get_assets() / "Icons" / "file icon.png");
-  folder_icon =
-      texture(directories->get_assets() / "Icons" / "folder icon.png");
-  up_icon = texture(directories->get_assets() / "Icons" / "up icon.png");
-  home_icon = texture(directories->get_assets() / "Icons" / "home icon.png");
+  file_icon = texture((directories->get_assets() / "Icons" / "file icon.png").string().c_str());
+  folder_icon = texture((directories->get_assets() / "Icons" / "folder icon.png").string().c_str());
+
+  auto up_icon_path = directories->get_assets() / "Icons" / "up icon.png";
+  const char* up_icon_cstr = (const char*)up_icon_path.string().c_str();
+  up_icon = texture();
+
+  auto home_icon_path = directories->get_assets() / "Icons" / "home icon.png";
+  const char* home_icon_cstr = (const char *)home_icon_path.string().c_str();
+  home_icon = texture();
 }
 
 const RenderTexture2D &textures::get_main_level_viewport() const noexcept {

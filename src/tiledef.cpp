@@ -1,8 +1,13 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <string>
+
+#include <raylib.h>
 
 #include <MobitRenderer/definitions.h>
 
-#include <raylib.h>
 
 // To be used in unordered maps and sets
 namespace std {
@@ -113,7 +118,7 @@ TileDef::TileDef(std::string name, TileDefType type, uint8_t width,
       rnd(rnd), tags(tags), specs(specs), specs2(specs2), specs3(specs3),
       repeat(repeat), texture(Texture2D{}) {
 
-  head_offset = mr::ivec2{.x = (int)(width / 2), .y = (int)(height / 2)};
+  head_offset = mr::ivec2{(int)(width / 2), (int)(height / 2)};
 }
 
 TileDef::~TileDef() {

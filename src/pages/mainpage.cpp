@@ -1,5 +1,11 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <cstdint>
 #include <iostream>
+
+#define MIN(a, b) a > b ? b : a
 
 #include <raylib.h>
 #include <imgui.h>
@@ -8,8 +14,7 @@
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/pages.h>
 
-#define MIN(a, b) a > b ? b : a
-#define SRCR(texture) Rectangle{0, 0, (float)texture.width, (float)texture.height}
+
 
 namespace mr::pages {
 
@@ -31,7 +36,7 @@ void Main_Page::draw() noexcept {
   if (should_redraw) {
     BeginTextureMode(ctx_->textures_->get_main_level_viewport());
 
-    ClearBackground(Color{.r = 240, .g = 240, .b = 240, .a = 255});
+    ClearBackground(Color{240, 240, 240, 255});
 
     auto *level = ctx_->get_selected_level();
     auto &gmatrix = level->get_geo_matrix();
@@ -44,9 +49,9 @@ void Main_Page::draw() noexcept {
 
         mr::draw_mtx_geo_type(cell1.type, x, y, 20, BLACK);
         mr::draw_mtx_geo_type(cell2.type, x, y, 20,
-                              Color{.r = 0, .g = 255, .b = 0, .a = 80});
+                              Color{ 0, 255, 0, 80});
         mr::draw_mtx_geo_type(cell3.type, x, y, 20,
-                              Color{.r = 255, .g = 0, .b = 0, .a = 80});
+                              Color{ 255, 0, 0, 80});
       }
     }
 
@@ -70,7 +75,7 @@ void Main_Page::draw() noexcept {
 
   DrawTexturePro(
     texture, 
-    SRCR(texture), 
+    Rectangle{0, 0, (float)texture.width, (float)texture.height}, 
     Rectangle{
       bspacex/2.0f, 
       bspacey/2.0f, 

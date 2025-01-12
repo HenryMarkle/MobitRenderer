@@ -9,15 +9,15 @@ void mr::draw_mtx_geo_type(GeoType type, int x, int y, float scale,
   case mr::GeoType::solid: {
     DrawRectangleRec(
         Rectangle{
-            .x = x * scale, .y = y * scale, .width = scale, .height = scale},
+            x * scale, y * scale, scale, scale},
         color);
   } break;
 
   case mr::GeoType::platform: {
-    DrawRectangleRec(Rectangle{.x = x * scale,
-                               .y = y * scale,
-                               .width = scale,
-                               .height = scale / 2.0f},
+    DrawRectangleRec(Rectangle{x * scale,
+                               y * scale,
+                               scale,
+                               scale / 2.0f},
                      color);
   } break;
 
@@ -28,8 +28,8 @@ void mr::draw_mtx_geo_type(GeoType type, int x, int y, float scale,
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{.x = tx, .y = ty}, Vector2{.x = tsx, .y = tsy},
-                 Vector2{.x = tx, .y = tsy}, color);
+    DrawTriangle(Vector2{tx, ty}, Vector2{tsx, tsy},
+                 Vector2{tx, tsy}, color);
   } break;
 
   case mr::GeoType::slope_nw: {
@@ -39,8 +39,8 @@ void mr::draw_mtx_geo_type(GeoType type, int x, int y, float scale,
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{.x = tsx, .y = ty}, Vector2{.x = tsx, .y = tsy},
-                 Vector2{.x = tx, .y = tsy}, color);
+    DrawTriangle(Vector2{tsx, ty}, Vector2{tsx, tsy},
+                 Vector2{tx, tsy}, color);
   } break;
 
   case mr::GeoType::slope_es: {
@@ -50,8 +50,8 @@ void mr::draw_mtx_geo_type(GeoType type, int x, int y, float scale,
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{.x = tx, .y = ty}, Vector2{.x = tsx, .y = ty},
-                 Vector2{.x = tx, .y = tsy}, color);
+    DrawTriangle(Vector2{tx, ty}, Vector2{tsx, ty},
+                 Vector2{tx, tsy}, color);
   } break;
 
   case mr::GeoType::slope_sw: {
@@ -61,8 +61,8 @@ void mr::draw_mtx_geo_type(GeoType type, int x, int y, float scale,
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{.x = tx, .y = ty}, Vector2{.x = tsx, .y = ty},
-                 Vector2{.x = tsx, .y = tsy}, color);
+    DrawTriangle(Vector2{tx, ty}, Vector2{tsx, ty},
+                 Vector2{tsx, tsy}, color);
   } break;
 
   case mr::GeoType::air:

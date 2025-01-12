@@ -1,3 +1,7 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -414,14 +418,14 @@ void deser_geometry(const std::unique_ptr<mp::Node> &node,
       }
 
       matrix.set_noexcept(x, y, 0,
-                          GeoCell{.type = get_geo_type(geo1->number),
-                                  .features = get_geo_features(features1)});
+                          GeoCell{get_geo_type(geo1->number),
+                                  get_geo_features(features1)});
       matrix.set_noexcept(x, y, 1,
-                          GeoCell{.type = get_geo_type(geo2->number),
-                                  .features = get_geo_features(features2)});
+                          GeoCell{get_geo_type(geo2->number),
+                                  get_geo_features(features2)});
       matrix.set_noexcept(x, y, 2,
-                          GeoCell{.type = get_geo_type(geo3->number),
-                                  .features = get_geo_features(features3)});
+                          GeoCell{get_geo_type(geo3->number),
+                                  get_geo_features(features3)});
     }
   }
 }

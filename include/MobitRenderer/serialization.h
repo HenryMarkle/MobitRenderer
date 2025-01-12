@@ -11,7 +11,6 @@
 #include <MobitRenderer/definitions.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/matrix.h>
-
 #include <MobitParser/nodes.h>
 
 namespace mr {

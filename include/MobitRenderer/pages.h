@@ -1,6 +1,5 @@
 #pragma once
 
-#include "MobitRenderer/level.h"
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
@@ -11,6 +10,7 @@
 
 #include <MobitRenderer/imwin.h>
 #include <MobitRenderer/state.h>
+#include <MobitRenderer/level.h>
 
 namespace mr::pages {
 

@@ -1,10 +1,27 @@
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.15.0)
 project(MobitRenderer VERSION 0.1.0 LANGUAGES C CXX)
 
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_CXX_STANDARD_REQUIRED 17)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
-add_subdirectory(libs/raylib)
+# Copy assets
+set(PROJECT_SOURCE_ASSETS "${CMAKE_SOURCE_DIR}/assets")
+set(PROJECT_BINARY_ASSETS "${CMAKE_BINARY_DIR}/Assets")
+
+file(COPY ${PROJECT_SOURCE_ASSETS} DESTINATION ${PROJECT_BINARY_ASSETS})
+
+add_custom_target(copy_assets
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${PROJECT_SOURCE_ASSETS} ${PROJECT_BINARY_ASSETS}
+  COMMENT "Copying assets to build directory under the name 'Assets'"
+)
+#
+
+if(NOT(WIN32))
+  add_subdirectory(libs/raylib)
+endif()
 add_subdirectory(libs/spdlog)
 add_subdirectory(libs/MobitParser)
 
@@ -19,6 +36,12 @@ add_library(rlimgui STATIC ${RLIMGUI_SOURCES})
 target_include_directories(rlimgui PUBLIC libs/rlimgui)
 target_link_libraries(rlimgui PRIVATE imgui)
 
+# raylib
+if (WIN32)
+  include_directories(libs/raylib_mingw/include)
+  link_directories(libs/raylib_mingw/lib)
+endif()
+
 # Main files
 include_directories(include)                    # headers
 
@@ -26,8 +49,16 @@ file(GLOB MAIN_SOURCES src/*.cpp)               # sources
 file(GLOB MAIN_DRAW_SOURCES src/draw/*.cpp)     # sources
 file(GLOB MAIN_PAGE_SOURCES src/pages/*.cpp)    # sources
 
+if(WIN32)
+file(GLOB PLATFORM_IMPL_SOURCES src/platform/windows/*.cpp)
+elseif(Linux)
+file(GLOB PLATFORM_IMPL_SOURCES src/platform/linux/*.cpp)
+else(APPLE)
+endif()
+
 add_executable(
   MobitRenderer 
+  ${PLATFORM_IMPL_SOURCES}
   ${MAIN_SOURCES} 
   ${MAIN_DRAW_SOURCES}
   ${MAIN_PAGE_SOURCES}
@@ -68,8 +99,13 @@ target_include_directories(MobitRenderer PRIVATE "${CMAKE_BINARY_DIR}")
 # TOML
 target_include_directories(MobitRenderer PRIVATE libs/tomlplusplus/include)
 
-target_link_libraries(MobitRenderer PRIVATE raylib imgui rlimgui spdlog)
+target_link_libraries(MobitRenderer PRIVATE ${CMAKE_SOURCE_DIR}/libs/raylib_mingw/lib/libraylib.a)
+target_link_libraries(MobitRenderer PRIVATE imgui rlimgui spdlog)
 target_link_libraries(MobitRenderer PRIVATE MobitParser)
+
+if(WIN32)
+  target_link_libraries(MobitRenderer PRIVATE gdi32 winmm)
+endif()
 
 include(CTest)
 enable_testing()

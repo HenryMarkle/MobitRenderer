@@ -1,3 +1,7 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <string>
 
 #include <MobitRenderer/definitions.h>

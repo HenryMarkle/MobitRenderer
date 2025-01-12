@@ -1,3 +1,7 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <memory>
 
 #include <raylib.h>
@@ -91,17 +95,17 @@ void draw_mtx_tile_prev(const TileDef *def, int x, int y,
 
   DrawTexturePro(
       def->get_texture(),
-      Rectangle{.x = 0,
-                .y = 0,
-                .width = (float)texture.width,
-                .height = offset},
+      Rectangle{0,
+                0,
+                (float)texture.width,
+                offset},
       Rectangle{
-          .x = x * scale, 
-          .y = y * scale, 
-          .width = width, 
-          .height = height
+          x * scale, 
+          y * scale, 
+          width, 
+          height
         },
-      Vector2{.x = 0, .y = 0}, 0, color);
+      Vector2{ 0, 0 }, 0, color);
 }
 
 void draw_mtx_tile_prev_from_origin(const TileDef *def, int x,
@@ -118,15 +122,15 @@ void draw_mtx_tile_prev_from_origin(const TileDef *def, int x,
   ivec2 offset = def->get_head_offset();
 
   DrawTexturePro(def->get_texture(),
-                 Rectangle{.x = 0,
-                           .y = 0,
-                           .width = (float)texture.width,
-                           .height = (float)texture.height},
-                 Rectangle{.x = (x - offset.x) * scale,
-                           .y = (y - offset.y) * scale,
-                           .width = width,
-                           .height = height},
-                 Vector2{.x = 0, .y = 0}, 0, color);
+                 Rectangle{0,
+                          0,
+                          (float)texture.width,
+                          (float)texture.height},
+                 Rectangle{(x - offset.x) * scale,
+                          (y - offset.y) * scale,
+                          width,
+                          height},
+                 Vector2{0, 0}, 0, color);
 }
 
 void draw_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
@@ -143,12 +147,12 @@ void draw_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
 
   DrawTexturePro(
       def->get_texture(),
-      Rectangle{.x = 0,
-                .y = 0,
-                .width = (float)texture.width,
-                .height = (float)texture.height},
-      Rectangle{.x = (float)x, .y = (float)y, .width = width, .height = height},
-      Vector2{.x = 0, .y = 0}, 0, color);
+      Rectangle{0,
+                0,
+                (float)texture.width,
+                (float)texture.height},
+      Rectangle{(float)x, (float)y, width, height},
+      Vector2{0, 0}, 0, color);
 }
 
 void draw_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
@@ -165,14 +169,14 @@ void draw_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
   ivec2 offset = def->get_head_offset();
 
   DrawTexturePro(def->get_texture(),
-                 Rectangle{.x = 0,
-                           .y = 0,
-                           .width = (float)texture.width,
-                           .height = (float)texture.height},
-                 Rectangle{.x = (float)(x - offset.x),
-                           .y = (float)(y - offset.y),
-                           .width = width,
-                           .height = height},
-                 Vector2{.x = 0, .y = 0}, 0, color);
+                 Rectangle{0,
+                          0,
+                          (float)texture.width,
+                          (float)texture.height},
+                 Rectangle{(float)(x - offset.x),
+                           (float)(y - offset.y),
+                           width,
+                           height},
+                 Vector2{0, 0}, 0, color);
 }
 };

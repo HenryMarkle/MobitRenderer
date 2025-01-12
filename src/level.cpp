@@ -1,3 +1,7 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <cstdint>
 #include <vector>
 
@@ -89,7 +93,7 @@ void mr::Level::resize(int16_t left, int16_t top, int16_t right,
 mr::Level::Level(uint16_t width, uint16_t height)
     : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), geo_matrix(width, height),
       tile_matrix(width, height), water(-1), front_water(false), light(true),
-      terrain(true), lightmap(RenderTexture2D{.id = 0}) {}
+      terrain(true), lightmap(RenderTexture2D{0}) {}
 
 mr::Level::Level(uint16_t width, uint16_t height,
 
@@ -101,7 +105,7 @@ mr::Level::Level(uint16_t width, uint16_t height,
                  int8_t water, bool light, bool terrain, bool front_water)
     : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), water(water), front_water(front_water),
       light(light), terrain(terrain), tile_matrix(std::move(tile_matrix)),
-      geo_matrix(std::move(geo_matrix)), lightmap(RenderTexture2D{.id = 0}) {}
+      geo_matrix(std::move(geo_matrix)), lightmap(RenderTexture2D{0}) {}
 
 mr::Level::~Level() {
   if (lightmap.id != 0)

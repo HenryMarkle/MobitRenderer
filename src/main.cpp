@@ -1,12 +1,16 @@
-#include "MobitRenderer/events.h"
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <iostream>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
-#include <imgui.h>
 #include <raylib.h>
+#include <imgui.h>
 #include <rlImGui.h>
+
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
@@ -16,6 +20,7 @@
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/pages.h>
 #include <MobitRenderer/state.h>
+#include <MobitRenderer/events.h>
 
 #define STRINGIFY_DEFINED(x) #x
 #define TO_STRING_DEFINED(x) STRINGIFY_DEFINED(x)
@@ -42,8 +47,13 @@ int main() {
   // Initializing logging
   //
   try {
+    #ifdef _WIN32
     logger = spdlog::basic_logger_mt("main logger",
-                                     directories->get_logs() / "logs.txt");
+                                     (directories->get_logs() / "logs.txt").string());
+    #else
+    logger = spdlog::basic_logger_mt("main logger",
+                                     (directories->get_logs() / "logs.txt"));
+    #endif
   } catch (const spdlog::spdlog_ex &ex) {
     std::cout << "Initializing logger has failed" << std::endl;
     throw ex;
@@ -80,7 +90,7 @@ int main() {
   ctx->get_shaders().reload_all();
 
   auto font_path = ctx->directories->get_fonts() / "Oswald-Regular.ttf";
-  auto font = LoadFont(font_path.c_str());
+  auto font = LoadFont(font_path.string().c_str());
   ctx->add_font(font);
   ctx->select_font(0);
 
@@ -180,10 +190,10 @@ int main() {
           ImGui::MenuItem("Settings", nullptr, current_page == 9, false);
 
           if (goto_main) {
-            ctx->events.push(mr::context_event{.type=mr::context_event_type::goto_page, .payload=1});
+            ctx->events.push(mr::context_event{mr::context_event_type::goto_page, 1});
             
           } else if (goto_geo) {
-            ctx->events.push(mr::context_event{.type=mr::context_event_type::goto_page, .payload=2});
+            ctx->events.push(mr::context_event{mr::context_event_type::goto_page, 2});
           }
         }
 

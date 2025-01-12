@@ -7,20 +7,25 @@
 #include <string>
 #include <vector>
 
-#include <imgui.h>
+#define LoadImage RayLoadImage
+#define Rectangle RayRectangle
+#define ShowCursor RaylibShowCursor
+#define CloseWindow RayCloseWindow
+#define DrawText RayDrawText
+#define DrawTextEx RayDrawTextEx
 #include <raylib.h>
+#include <imgui.h>
 #include <rlImGui.h>
+#undef Rectangle
+#undef ShowCursor
+#undef CloseWindow
+#undef LoadImage
+#undef LoadImageA
+#undef DrawTextA
 
 #include <MobitRenderer/imwin.h>
 #include <MobitRenderer/state.h>
-
-#ifdef __linux__
-#include <limits.h>
-#endif
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include <MobitRenderer/io.h>
 
 namespace mr {
 
@@ -63,7 +68,7 @@ void ProjectExplorer::go_to(const std::filesystem::path &dir) {
     skip_filters:
 
       paths.push_back(path);
-      names.push_back(path.stem());
+      names.push_back(path.stem().string());
       is_dir.push_back(entry.is_directory());
     }
   } catch (const std::filesystem::filesystem_error &e) {
@@ -116,18 +121,12 @@ ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
 
   projects_dir = exec_dir / "Projects";
 
-#ifdef __linux__
-  path_max_len = PATH_MAX;
-#endif
-
-#ifdef _WIN32
-  path_max_len = MAX_PATH;
-#endif
+  path_max_len = mr::get_path_max_len();
 
   current_path = new char[path_max_len];
   memset(current_path, 0, path_max_len);
 
-  preview_rt = {.id = 0};
+  preview_rt = {0};
 
   go_to(exec_dir);
 }
@@ -144,18 +143,12 @@ ProjectExplorer::ProjectExplorer(std::shared_ptr<dirs> dirs,
   const auto file_icon_path = icons_dir / "file icon.png";
   const auto folder_icon_path = icons_dir / "folder icon.png";
 
-#ifdef __linux__
-  path_max_len = PATH_MAX;
-#endif
-
-#ifdef _WIN32
-  path_max_len = MAX_PATH;
-#endif
+  path_max_len = mr::get_path_max_len();
 
   current_path = new char[path_max_len];
   memset(current_path, 0, path_max_len);
 
-  preview_rt = {.id = 0};
+  preview_rt = {0};
 
   if (std::filesystem::is_directory(path))
     go_to(path);
@@ -279,8 +272,7 @@ bool ProjectExplorer::draw() noexcept {
           auto *file_icon = textures_->file_icon.get_ptr();
           auto *folder_icon = textures_->folder_icon.get_ptr();
 
-          rlImGuiImageRect((entry_is_dir[n] ? folder_icon : file_icon), 20, 20,
-                           Rectangle{0, 0, (float)file_icon->width,
+          rlImGuiImageRect((entry_is_dir[n] ? folder_icon : file_icon), 20, 20, RayRectangle{0, 0, (float)file_icon->width,
                                      (float)file_icon->height});
           ImGui::SameLine();
           bool is_clicked =

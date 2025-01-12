@@ -1,3 +1,7 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <any>
 #include <cstddef>
 #include <cstdint>
@@ -23,21 +27,21 @@ void f3::set_font(Font font) noexcept { this->font = font; }
 void f3::print(const char *str, bool same_line) noexcept {
   auto measured = MeasureTextEx(font, str, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                             cursor.y,
+                             with_margin.x,
+                             with_margin.y},
                    background);
 
   DrawTextEx(font, str,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, WHITE);
 
   cursor.x += with_margin.x;
@@ -45,21 +49,21 @@ void f3::print(const char *str, bool same_line) noexcept {
 void f3::print(const std::string &str, bool same_line) noexcept {
   auto measured = MeasureTextEx(font, str.c_str(), font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                             cursor.y,
+                             with_margin.x,
+                             with_margin.y},
                    background);
 
   DrawTextEx(font, str.c_str(),
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, ORANGE);
 
   cursor.x += with_margin.x;
@@ -68,21 +72,21 @@ void f3::print(int number, bool same_line) noexcept {
   const char *formatted = TextFormat("%d", number);
   auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                             cursor.y,
+                             with_margin.x,
+                             with_margin.y},
                    background);
 
   DrawTextEx(font, formatted,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, SKYBLUE);
 
   cursor.x += with_margin.x;
@@ -91,21 +95,21 @@ void f3::print(size_t number, bool same_line) noexcept {
   const char *formatted = TextFormat("%ld", number);
   auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                             cursor.y,
+                             with_margin.x,
+                             with_margin.y},
                    background);
 
   DrawTextEx(font, formatted,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, SKYBLUE);
 
   cursor.x += with_margin.x;
@@ -114,21 +118,21 @@ void f3::print(float number, bool same_line) noexcept {
   const char *formatted = TextFormat("%f", number);
   auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                            cursor.y,
+                            with_margin.x,
+                            with_margin.y},
                    background);
 
   DrawTextEx(font, formatted,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, SKYBLUE);
 
   cursor.x += with_margin.x;
@@ -137,21 +141,21 @@ void f3::print(double number, bool same_line) noexcept {
   const char *formatted = TextFormat("%lf", number);
   auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                            cursor.y,
+                            with_margin.x,
+                            with_margin.y},
                    background);
 
   DrawTextEx(font, formatted,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, SKYBLUE);
 
   cursor.x += with_margin.x;
@@ -160,21 +164,21 @@ void f3::print(bool boolean, bool same_line) noexcept {
   const char *formatted = boolean ? "True" : "False";
   auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                            cursor.y,
+                            with_margin.x,
+                            with_margin.y},
                    background);
 
   DrawTextEx(font, formatted,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, boolean ? LIME : RED);
 
   cursor.x += with_margin.x;
@@ -183,21 +187,21 @@ void f3::print(void *ptr, bool same_line) noexcept {
   const char *formatted = TextFormat("%p", ptr);
   auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                             cursor.y,
+                             with_margin.x,
+                             with_margin.y},
                    background);
 
   DrawTextEx(font, formatted,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, MAGENTA);
 
   cursor.x += with_margin.x;
@@ -206,28 +210,28 @@ void f3::print(Vector2 vector, bool same_line) noexcept {
   const char *formatted = TextFormat("<%f, %f>", vector.x, vector.y);
   auto measured = MeasureTextEx(font, formatted, font_size, 0.3f);
   auto with_margin =
-      Vector2{.x = measured.x + 2 * margin_v, .y = measured.y + 2 * margin_h};
+      Vector2{measured.x + 2 * margin_v, measured.y + 2 * margin_h};
 
   if (!same_line) {
     cursor.x = 0;
     cursor.y += with_margin.y;
   }
 
-  DrawRectangleRec(Rectangle{.x = cursor.x,
-                             .y = cursor.y,
-                             .width = with_margin.x,
-                             .height = with_margin.y},
+  DrawRectangleRec(Rectangle{cursor.x,
+                             cursor.y,
+                             with_margin.x,
+                             with_margin.y},
                    background);
 
   DrawTextEx(font, formatted,
-             Vector2{.x = cursor.x + margin_v, .y = cursor.y + margin_h},
+             Vector2{cursor.x + margin_v, cursor.y + margin_h},
              font_size, 0.3f, WHITE);
 
   cursor.x += with_margin.x;
 }
 
 void f3::enqueue(std::any data, bool same_line) {
-  queue.push(f3_queue_data{.data = data, .same_line = same_line});
+  queue.push(f3_queue_data{data, same_line});
 }
 
 void f3::print_queue() noexcept {

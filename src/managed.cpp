@@ -1,3 +1,7 @@
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <cstdint>
 #include <string>
 
@@ -17,7 +21,7 @@ RenderTexture2D rendertexture::release() {
   isloaded = false;
 
   auto rt = rt_;
-  rt_ = RenderTexture2D{.id = 0, .texture = {.id = 0}};
+  rt_ = RenderTexture2D{0, {0}};
   return rt;
 }
 rendertexture &rendertexture::operator=(rendertexture &&other) noexcept {
@@ -29,18 +33,18 @@ rendertexture &rendertexture::operator=(rendertexture &&other) noexcept {
   rt_ = other.rt_;
   isloaded = other.isloaded;
 
-  other.rt_ = RenderTexture2D{.id = 0};
+  other.rt_ = RenderTexture2D{0};
   other.isloaded = false;
 
   return *this;
 }
 rendertexture::rendertexture()
-    : rt_({.id = 0, .texture = {.id = 0}}), isloaded(false) {}
+    : rt_({0, {0}}), isloaded(false) {}
 rendertexture::rendertexture(rendertexture &&other) noexcept {
   rt_ = other.rt_;
   isloaded = other.isloaded;
 
-  other.rt_ = RenderTexture2D{.id = 0};
+  other.rt_ = RenderTexture2D{0};
   other.isloaded = false;
 }
 rendertexture::rendertexture(uint16_t width, uint16_t height) {
@@ -59,7 +63,7 @@ void image::unload() {
 }
 Image image::release() noexcept {
   auto img = img_;
-  img_ = Image{.data = nullptr, .width = 0, .height = 0};
+  img_ = Image{nullptr, 0, 0};
 
   isloaded = false;
   return img;
@@ -74,23 +78,23 @@ image &image::operator=(image &&other) noexcept {
   isloaded = other.isloaded;
 
   other.img_ = Image{
-      .data = nullptr,
-      .width = 0,
-      .height = 0,
+      nullptr,
+      0,
+      0,
   };
   other.isloaded = false;
 
   return *this;
 }
-image::image() : img_({.data = nullptr}), isloaded(false) {}
+image::image() : img_({nullptr}), isloaded(false) {}
 image::image(image &&other) noexcept {
   img_ = other.img_;
   isloaded = other.isloaded;
 
   other.img_ = Image{
-      .data = nullptr,
-      .width = 0,
-      .height = 0,
+      nullptr,
+      0,
+      0,
   };
   other.isloaded = false;
 }
@@ -116,7 +120,7 @@ void texture::unload() {
 }
 Texture2D texture::release() noexcept {
   auto texture = texture_;
-  texture_ = Texture2D{.id = 0};
+  texture_ = Texture2D{0};
 
   isloaded = false;
   return texture;
@@ -130,17 +134,17 @@ texture &texture::operator=(texture &&other) noexcept {
   texture_ = other.texture_;
   isloaded = other.isloaded;
 
-  other.texture_ = Texture2D{.id = 0};
+  other.texture_ = Texture2D{0};
   other.isloaded = false;
 
   return *this;
 }
-texture::texture() : texture_({.id = 0}), isloaded(false) {}
+texture::texture() : texture_({0}), isloaded(false) {}
 texture::texture(texture &&other) noexcept {
   texture_ = other.texture_;
   isloaded = other.isloaded;
 
-  other.texture_ = Texture2D{.id = 0};
+  other.texture_ = Texture2D{0};
   other.isloaded = false;
 }
 texture::texture(const std::string &path) {

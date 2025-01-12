@@ -1,5 +1,9 @@
-#include <MobitRenderer/exceptions.h>
+#if defined(_WIN32) || defined(_WIN64)
+  #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <string>
+#include <MobitRenderer/exceptions.h>
 
 namespace mr {
 // file_read_error::file_read_error(const std::string& message) :
