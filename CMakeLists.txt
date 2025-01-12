@@ -64,6 +64,12 @@ add_executable(
   ${MAIN_PAGE_SOURCES}
 )
 
+if(WIN32)
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set_target_properties(MobitRenderer PROPERTIES WIN32_EXECUTABLE YES)
+  endif()
+endif()
+
 # Define version
 file(READ "${CMAKE_SOURCE_DIR}/version.txt" VERSION_CONTENT)
 string(STRIP "${VERSION_CONTENT}" VERSION_CONTENT)
