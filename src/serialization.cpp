@@ -208,10 +208,22 @@ parse_project(const std::filesystem::path &file_path) {
   while (mp::tokenize_line(file, tokens)) {
     switch (counter) {
     case 0:
-      nodes->geometry = mp::parse(tokens, true);
+      try {
+        nodes->geometry = mp::parse(tokens, true);
+      } catch (std::exception &e) {
+        std::string msg = "failed to parse geometry: ";
+        msg.append(e.what());
+        throw parse_failure(msg);
+      }
       break;
     case 1:
-      nodes->tiles = mp::parse(tokens, true);
+      try {
+        nodes->tiles = mp::parse(tokens, true);
+      } catch (std::exception &e) {
+        std::string msg = "failed to parse tiles: ";
+        msg.append(e.what());
+        throw parse_failure(msg);
+      }
       break;
     case 2:
       break;
@@ -220,7 +232,13 @@ parse_project(const std::filesystem::path &file_path) {
     case 4:
       break;
     case 5:
-      nodes->seed_and_sizes = mp::parse(tokens, true);
+      try {
+        nodes->seed_and_sizes = mp::parse(tokens, true);
+      } catch (std::exception &e) {
+        std::string msg = "failed to parse seed and sizes: ";
+        msg.append(e.what());
+        throw parse_failure(msg);
+      }
       break;
     case 6:
       break;
