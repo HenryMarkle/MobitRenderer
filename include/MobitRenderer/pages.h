@@ -104,9 +104,12 @@ class Geo_Page : public Page {
 private:
   bool 
     should_redraw, 
-    should_redraw1, 
-    should_redraw2, 
-    should_redraw3;
+    should_redraw1,
+    should_redraw2,
+    should_redraw3,
+    should_redraw_feature1,
+    should_redraw_feature2,
+    should_redraw_feature3;
 
 public:
   virtual void process() override;

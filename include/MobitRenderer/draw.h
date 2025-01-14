@@ -80,7 +80,7 @@ void draw_frame(levelpixelsize width, levelpixelsize height, Color color = WHITE
 void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept;
 
 /// @brief Draws a geo cell based on the provided type.
-/// @param type Determines the shape of the cell.
+/// @param cell Determines the shape of the cell.
 /// @param x The matrix' X coordinate.
 /// @param y The matrix' Y coordinate.
 /// @param scale The size of the cell.
@@ -89,41 +89,79 @@ void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept;
 /// * scale, y * scale).
 /// @attention This function must be called in a drawing context (after
 /// BeginDrawing() and before EndDrawing()).
-void draw_mtx_geo_type(GeoType type, int x, int y, float scale, Color color);
+void draw_mtx_geo_type(GeoCell cell, int x, int y, float scale, Color color);
 
 /// @brief Draws a geo cell based on the provided type.
-/// @param type Determines the shape of the cell.
+/// @param cell Determines the shape of the cell.
 /// @param x The screen's X coordinate.
 /// @param y The screen's Y coordinate.
 /// @param scale The size of the cell.
 /// @param color The color of the cell.
 /// @attention This function must be called in a drawing context (after
 /// BeginDrawing() and before EndDrawing()).
-void draw_geo_type(GeoType type, int x, int y, float scale, Color color);
+void draw_geo_type(GeoCell cell, int x, int y, float scale, Color color);
 
 /// @brief Draws a geo cell feature.
-/// @param features The cell's features
+/// @param cell The cell's features
 /// @param x The matrix' X coordinate.
 /// @param y The matrix' Y coordinate.
 /// @param scale The size of the cell.
-/// @param color The color of the cell.
+/// @param color The color of the poles.
 /// @note Scale affects the X and Y coordinates by multiplying them by scale (x
 /// * scale, y * scale).
 /// @attention This function must be called in a drawing context (after
 /// BeginDrawing() and before EndDrawing()).
-void draw_mtx_geo_feature(GeoFeature features, int x, int y, float scale,
+void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
                           Color color);
 
 /// @brief Draws a geo cell feature.
-/// @param features The cell's features
+/// @param cell The cell's features
 /// @param x The screen's X coordinate.
 /// @param y The screen's Y coordinate.
 /// @param scale The size of the cell.
-/// @param color The color of the cell.
+/// @param color The color of the poles.
 /// @attention This function must be called in a drawing context (after
 /// BeginDrawing() and before EndDrawing()).
-void draw_geo_feature(GeoFeature features, int x, int y, float scale,
+void draw_geo_features(GeoCell cell, int x, int y, float scale,
                       Color color);
+
+/// @brief Draws a geo cell poles.
+/// @param cell The cell's features
+/// @param x The matrix' X coordinate.
+/// @param y The matrix' Y coordinate.
+/// @param scale The size of the cell.
+/// @param color The color of the poles.
+/// @note Scale affects the X and Y coordinates by multiplying them by scale (x
+/// * scale, y * scale).
+/// @attention This function must be called in a drawing context (after
+/// BeginDrawing() and before EndDrawing()).
+void draw_mtx_geo_poles(GeoCell cell, int x, int y, float scale,
+                          Color color);
+
+/// @brief Draws a geo cell poles.
+/// @param cell The cell's features
+/// @param x The screen's X coordinate.
+/// @param y The screen's Y coordinate.
+/// @param scale The size of the cell.
+/// @param color The color of the poles.
+/// @attention This function must be called in a drawing context (after
+/// BeginDrawing() and before EndDrawing()).
+void draw_geo_poles(GeoCell cell, int x, int y, float scale,
+                      Color color);
+
+/// @brief Draws the shortcuts of the entrances of the geometry matrix. 
+/// @param matrix The geonetry matrix.
+/// @param x The matrix' X coordinate of the entrance cell.
+/// @param y The matrix' Y coordinate of the entrance cell.
+/// @param scale The scale of the geo cells.
+/// @param color The color.
+void draw_mtx_shortcut_entrances(
+  Matrix<GeoCell> const &matrix,
+  uint16_t x,
+  uint16_t y,
+  float scale, 
+  Color color
+);
 
 /// @brief Draws a tile preview from the top left corner.
 /// @param x The matrix' X coordinates.
