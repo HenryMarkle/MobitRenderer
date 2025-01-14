@@ -117,7 +117,16 @@ private:
 
 public:
   rendertexture main_level_viewport;
-  rendertexture geo_layer1, geo_layer2, geo_layer3;
+
+  rendertexture 
+    geo_layer1, 
+    geo_layer2, 
+    geo_layer3;
+
+  rendertexture 
+    feature_layer1, 
+    feature_layer2, 
+    feature_layer3;
 
   texture file_icon, folder_icon, up_icon, home_icon;
 

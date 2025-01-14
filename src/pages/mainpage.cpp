@@ -47,10 +47,10 @@ void Main_Page::draw() noexcept {
         auto cell2 = gmatrix.get_copy(x, y, 1);
         auto cell3 = gmatrix.get_copy(x, y, 2);
 
-        mr::draw_mtx_geo_type(cell1.type, x, y, 20, BLACK);
-        mr::draw_mtx_geo_type(cell2.type, x, y, 20,
+        mr::draw_mtx_geo_type(cell1, x, y, 20, BLACK);
+        mr::draw_mtx_geo_type(cell2, x, y, 20,
                               Color{ 0, 255, 0, 80});
-        mr::draw_mtx_geo_type(cell3.type, x, y, 20,
+        mr::draw_mtx_geo_type(cell3, x, y, 20,
                               Color{ 255, 0, 0, 80});
       }
     }
@@ -87,41 +87,12 @@ void Main_Page::draw() noexcept {
     WHITE
   );
 
-  // auto quad = iquad{
-  //   ivec2{GetScreenWidth(), 0}, 
-  //   ivec2{0, 0}, 
-  //   ivec2{0, GetScreenHeight()},
-  //   ivec2{GetScreenWidth(), GetScreenHeight()},
-  // };
-
-  // draw_texture(
-  //   &texture, 
-  //   &quad
-  // );
 
   EndShaderMode();
 }
 
 void Main_Page::windows() noexcept {
-  // auto opened = ImGui::BeginMainMenuBar();
-
-  // if (opened) {
-  //   ImGui::MenuItem("Main", nullptr, true, true);
-  //   auto goto_geo = ImGui::MenuItem("Geometry", nullptr, false, true);
-  //   ImGui::MenuItem("Tiles", nullptr, false, false);
-  //   ImGui::MenuItem("Cameras", nullptr, false, false);
-  //   ImGui::MenuItem("Light", nullptr, false, false);
-  //   ImGui::MenuItem("Dimensions", nullptr, false, false);
-  //   ImGui::MenuItem("Effects", nullptr, false, false);
-  //   ImGui::MenuItem("Props", nullptr, false, false);
-  //   ImGui::MenuItem("Settings", nullptr, false, false);
-
-  //   ImGui::EndMainMenuBar();
-
-  //   if (goto_geo) {
-  //     ctx_->events.push(context_event{.type=context_event_type::goto_page, .payload=2});
-  //   }
-  // }
+  
 }
 
 void Main_Page::order_level_redraw() noexcept {

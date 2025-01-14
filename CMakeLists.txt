@@ -38,7 +38,7 @@ file(GLOB MAIN_PAGE_SOURCES src/pages/*.cpp)    # sources
 
 if(WIN32)
 file(GLOB PLATFORM_IMPL_SOURCES src/platform/windows/*.cpp)
-elseif(Linux)
+elseif(LINUX)
 file(GLOB PLATFORM_IMPL_SOURCES src/platform/linux/*.cpp)
 else(APPLE)
 endif()
@@ -70,8 +70,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 
   add_custom_target(copy_data ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${PROJECT_SOURCE_Data}/Data
-        ${PROJECT_BINARY_Data}/Data
+        ${PROJECT_SOURCE_Data}
+        ${PROJECT_BINARY_Data}
     COMMENT "Copying Data folder to binary directory"
   )
   #
@@ -126,7 +126,11 @@ target_include_directories(MobitRenderer PRIVATE "${CMAKE_BINARY_DIR}")
 # TOML
 target_include_directories(MobitRenderer PRIVATE libs/tomlplusplus/include)
 
-target_link_libraries(MobitRenderer PRIVATE ${CMAKE_SOURCE_DIR}/libs/raylib_mingw/lib/libraylib.a)
+if(WIN32)
+  target_link_libraries(MobitRenderer PRIVATE ${CMAKE_SOURCE_DIR}/libs/raylib_mingw/lib/libraylib.a)
+else()
+  target_link_libraries(MobitRenderer PRIVATE raylib)
+endif()
 target_link_libraries(MobitRenderer PRIVATE imgui rlimgui spdlog)
 target_link_libraries(MobitRenderer PRIVATE MobitParser)
 

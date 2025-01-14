@@ -50,19 +50,35 @@ inline GeoFeature operator|(GeoFeature lhs, GeoFeature rhs) {
                                  static_cast<uint8_t>(rhs));
 }
 
+inline GeoFeature operator|(GeoFeature lhs, uint16_t rhs) {
+  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) | rhs);
+}
+
+
 inline GeoFeature operator&(GeoFeature lhs, GeoFeature rhs) {
   return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) &
                                  static_cast<uint8_t>(rhs));
 }
+
+inline GeoFeature operator&(GeoFeature lhs, uint16_t rhs) {
+  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) & rhs);
+}
+
 
 inline GeoFeature operator^(GeoFeature lhs, GeoFeature rhs) {
   return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) ^
                                  static_cast<uint8_t>(rhs));
 }
 
+inline GeoFeature operator^(GeoFeature lhs, uint16_t rhs) {
+  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) ^ rhs);
+}
+
+
 inline GeoFeature operator~(GeoFeature flag) {
   return static_cast<GeoFeature>(~static_cast<uint8_t>(flag));
 }
+
 
 // 4 bytes
 struct GeoCell {
@@ -73,12 +89,9 @@ struct GeoCell {
     return type == GeoType::solid || type == GeoType::glass;
   }
 
-  inline bool has_feature(GeoFeature feature) {
-    return (features & feature) == feature;
-  }
-  inline void switch_feature(GeoFeature feature) {
-    features = features ^ feature;
-  }
+  inline bool has_feature(GeoFeature feature) const { return (features & feature) == feature; }
+  inline bool has_feature(uint16_t feature) const { return static_cast<uint16_t>(features & feature) == feature; }
+  inline void switch_feature(GeoFeature feature) { features = features ^ feature; }
   inline void enable(GeoFeature feature) { features = features | feature; }
   inline void disable(GeoFeature feature) { features = features & ~feature; }
   inline void clear_features() { features = GeoFeature::none; }

@@ -7,6 +7,8 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
+#include <limits.h>
+#include <unistd.h>
 
 namespace mr {
 

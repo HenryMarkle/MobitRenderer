@@ -42,7 +42,7 @@ dirs::dirs() {
 
   #ifdef IS_DEBUG_BUILD
   data = executable / ".." / ".." / "Data";
-  assets = executable / ".." / ".." / "Assets";
+  assets = executable / ".." / ".." / "assets";
   #else
   data = executable / "Data";
   assets = executable / "Assets";
@@ -289,7 +289,7 @@ context::context(std::shared_ptr<spdlog::logger> logger,
       textures_(std::make_unique<textures>(directories)),
       _shaders(dirs->get_shaders()),
       f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
-      camera(Camera2D{Vector2{1, -40}, 0.5f}),
+      camera(Camera2D{Vector2{1, 40}, Vector2{0, 0}, 0, 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}
 context::context(std::shared_ptr<spdlog::logger> logger, std::shared_ptr<dirs> dirs, std::unique_ptr<textures> _textures)
@@ -298,7 +298,7 @@ context::context(std::shared_ptr<spdlog::logger> logger, std::shared_ptr<dirs> d
       textures_(std::move(_textures)),
       _shaders(dirs->get_shaders()),
       f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
-      camera(Camera2D{Vector2{1, -40}, 0.5f}),
+      camera(Camera2D{Vector2{1, 40}, Vector2{0, 0}, 0, 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}
 
@@ -365,6 +365,37 @@ void textures::resize_all_level_buffers(int width, int height) {
   geo_layer1 = std::move(new_geo_layer1);
   geo_layer2 = std::move(new_geo_layer2);
   geo_layer3 = std::move(new_geo_layer3);
+
+  // feature buffers
+
+  auto new_feature_layer1 = rendertexture(width, height);
+  auto new_feature_layer2 = rendertexture(width, height);
+  auto new_feature_layer3 = rendertexture(width, height);
+
+  if (feature_layer1.is_loaded()) {
+    BeginTextureMode(feature_layer1.get());
+    ClearBackground(WHITE);
+    DrawTexture(feature_layer1.get().texture, 0, 0, WHITE);
+    EndTextureMode();
+  }
+
+  if (feature_layer2.is_loaded()) {
+    BeginTextureMode(feature_layer2.get());
+    ClearBackground(WHITE);
+    DrawTexture(feature_layer2.get().texture, 0, 0, WHITE);
+    EndTextureMode();
+  }
+
+  if (feature_layer3.is_loaded()) {
+    BeginTextureMode(new_feature_layer3.get());
+    ClearBackground(WHITE);
+    DrawTexture(feature_layer3.get().texture, 0, 0, WHITE);
+    EndTextureMode();
+  }
+
+  feature_layer1 = std::move(new_feature_layer1);
+  feature_layer2 = std::move(new_feature_layer2);
+  feature_layer3 = std::move(new_feature_layer3);
 }
 
 textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
