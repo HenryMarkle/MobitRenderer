@@ -40,10 +40,16 @@ dirs::dirs() {
 
   executable = mr::get_executable_dir();
 
+  #ifdef IS_DEBUG_BUILD
+  data = executable / ".." / ".." / "Data";
+  assets = executable / ".." / ".." / "Assets";
+  #else
+  data = executable / "Data";
   assets = executable / "Assets";
+  #endif
+
   projects = executable / "Projects";
   levels = executable / "Levels";
-  data = executable / "Data";
   logs = executable / "Logs";
 
   if (!exists(assets))

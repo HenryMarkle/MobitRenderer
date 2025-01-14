@@ -21,7 +21,7 @@
             "cacheVariables": {
               "CMAKE_C_COMPILER": "C:/w64devkit/bin/gcc.exe",
               "CMAKE_CXX_COMPILER": "C:/w64devkit/bin/g++.exe",
-              "CMAKE_BUILD_TYPE": "Release",
+              "CMAKE_BUILD_TYPE": "Debug",
               "CMAKE_MAKE_PROGRAM": "C:/w64devkit/bin/make.exe"
             }
         }

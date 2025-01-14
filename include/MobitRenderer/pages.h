@@ -108,8 +108,6 @@ private:
     should_redraw2, 
     should_redraw3;
 
-  bool zoomed_out;
-
 public:
   virtual void process() override;
   virtual void draw() noexcept override;

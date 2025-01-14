@@ -8,9 +8,13 @@ Clone the repository
 git clone https://github.com/HenryMarkle/MobitRenderer.git --recursive
 ```
 
-## Windows
+## Building
 
-To compile for windows, move the '/build' directory and run the command
+Follow the steps depending on your operating system
+
+### Windows
+
+To compile for windows, move the `/build` directory and run the command
 
 ```bash
 cmake .. -G "MinGW Makefiles"
@@ -27,10 +31,14 @@ Then run the command
 mingw32-make
 ```
 
-## Linux
+### Linux
 
 in the root directory of the project, the command
 
 ```bash
 cmake --build build
 ```
+
+---
+
+The output should be in `/build/bin`

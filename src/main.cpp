@@ -205,6 +205,12 @@ int main() {
         auto *f3 = ctx->f3_.get();
 
         f3->print(PROJECT_VERSION);
+        
+        #ifdef IS_DEBUG_BUILD
+          f3->print(" Debug", true);
+        #else
+          f3->print(" Release", true);
+        #endif
 
         f3->print("FPS ");
         f3->print(GetFPS(), true);

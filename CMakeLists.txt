@@ -6,19 +6,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
-# Copy assets
-set(PROJECT_SOURCE_ASSETS "${CMAKE_SOURCE_DIR}/assets")
-set(PROJECT_BINARY_ASSETS "${CMAKE_BINARY_DIR}/Assets")
-
-file(COPY ${PROJECT_SOURCE_ASSETS} DESTINATION ${PROJECT_BINARY_ASSETS})
-
-add_custom_target(copy_assets
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${PROJECT_SOURCE_ASSETS} ${PROJECT_BINARY_ASSETS}
-  COMMENT "Copying assets to build directory under the name 'Assets'"
-)
-#
-
 if(NOT(WIN32))
   add_subdirectory(libs/raylib)
 endif()
@@ -64,10 +51,44 @@ add_executable(
   ${MAIN_PAGE_SOURCES}
 )
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  # Copy assets
+  set(PROJECT_SOURCE_ASSETS "${CMAKE_SOURCE_DIR}/assets")
+  set(PROJECT_BINARY_ASSETS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Assets")
+
+  add_custom_target(copy_assets ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_ASSETS}
+        ${PROJECT_BINARY_ASSETS}
+    COMMENT "Copying assets folder to binary directory as 'Assets'"
+  )
+  #
+
+  # Copy data
+  set(PROJECT_SOURCE_Data "${CMAKE_SOURCE_DIR}/Data")
+  set(PROJECT_BINARY_Data "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data")
+
+  add_custom_target(copy_data ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_Data}/Data
+        ${PROJECT_BINARY_Data}/Data
+    COMMENT "Copying Data folder to binary directory"
+  )
+  #
+
+  add_dependencies(MobitRenderer copy_assets copy_data)
+endif()
+
 if(WIN32)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_target_properties(MobitRenderer PROPERTIES WIN32_EXECUTABLE YES)
   endif()
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=1)
+else()
+  target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=0)
 endif()
 
 # Define version

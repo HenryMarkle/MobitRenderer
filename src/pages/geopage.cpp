@@ -18,7 +18,7 @@ void Geo_Page::process() {
   auto wheel = GetMouseWheelMove();
   if (wheel != 0) {
 
-    if (!zoomed_out || wheel >= 0) {
+    if (wheel >= 0) {
       auto &camera = ctx_->get_camera();
       auto mouseWorldPosition = GetScreenToWorld2D(GetMousePosition(), ctx_->get_camera());
       
@@ -29,16 +29,11 @@ void Geo_Page::process() {
     }
 
     auto level = ctx_->get_selected_level();
-
-    zoomed_out = (
-      GetScreenWidth() - 80 > (level->get_pixel_width() * ctx_->get_camera().zoom) && 
-      GetScreenHeight() - 80 > (level->get_pixel_height() * ctx_->get_camera().zoom)
-    );
   }
 
   auto level = ctx_->get_selected_level();
 
-  if (!zoomed_out && IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+  if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
     auto delta = GetMouseDelta();
     auto &camera = ctx_->get_camera();
 
@@ -64,9 +59,6 @@ void Geo_Page::process() {
 
   f3->enqueue("Offset ");
   f3->enqueue(ctx_->get_camera().offset, true);
-
-  f3->enqueue("Zoomed Out ");
-  f3->enqueue(zoomed_out, true);
 
   f3->enqueue("Layer Pointer: Global");
   f3->enqueue("L ");
@@ -172,16 +164,9 @@ void Geo_Page::draw() noexcept {
 
   BeginMode2D(ctx_->get_camera());
 
-
   auto level = ctx_->get_selected_level();
   auto &mtx = level->get_const_geo_matrix();
   auto width = mtx.get_width(), height = mtx.get_height();
-
-  if (zoomed_out) {
-      ctx_->get_camera().target = Vector2{0, 0};
-      ctx_->get_camera().offset.x = (GetScreenWidth() - (float)level->get_pixel_width()* ctx_->get_camera().zoom)/2.0f;
-      ctx_->get_camera().offset.y = (GetScreenHeight() - (float)level->get_pixel_height()* ctx_->get_camera().zoom)/2.0f;
-  }
 
   DrawRectangle(0, 0, width * 20, height * 20, GRAY);
   DrawTexture(ctx_->textures_->get_main_level_viewport().texture, 0, 0, WHITE);
@@ -206,8 +191,7 @@ Geo_Page::Geo_Page(
 ) : Page(ctx, logger), 
   should_redraw1(true), 
   should_redraw2(true), 
-  should_redraw3(true),
-  zoomed_out(false) {}
+  should_redraw3(true) {}
 
 Geo_Page::~Geo_Page() {}
 };
