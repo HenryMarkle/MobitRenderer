@@ -12,48 +12,13 @@
 
 #include <raylib.h>
 
-#ifdef __linux__
-#include <limits.h>
-#include <unistd.h>
-#endif
-
-#ifdef __APPLE__
-#include <limits.h>
-#include <mach-o/dyld.h>
-#endif
-
 #include <MobitRenderer/draw.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
 #include <MobitRenderer/exceptions.h>
+#include <MobitRenderer/atlas.h>
 
 namespace mr {
-
-inline std::filesystem::path get_current_dir() {
-  std::filesystem::path this_dir;
-
-#ifdef __linux__
-  {
-    char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-
-    if (count == -1)
-      throw "could not retrieve executable's path";
-    result[count] = '\0';
-    this_dir = std::filesystem::absolute(result).parent_path();
-  }
-#endif
-
-#ifdef __APPLE__
-  throw mr::unsupported();
-#endif
-
-#ifdef _WIN32
-  throw mr::unsupported();
-#endif
-
-  return this_dir;
-}
 
 class dirs {
 private:
@@ -129,6 +94,8 @@ public:
     feature_layer3;
 
   texture file_icon, folder_icon, up_icon, home_icon;
+
+  GE_Textures geometry_editor;
 
   void reload_all_textures();
 
@@ -206,7 +173,7 @@ public:
   std::shared_ptr<spdlog::logger> logger;
   std::shared_ptr<dirs> directories;
   std::unique_ptr<textures> textures_;
-  std::shared_ptr<debug::f3> f3_;
+  std::shared_ptr<mr::debug::f3> f3_;
   std::queue<context_event> events;
   Camera2D &get_camera();
   void set_camera(Camera2D);

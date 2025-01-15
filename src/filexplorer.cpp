@@ -117,7 +117,7 @@ ProjectExplorer::get_selected_entry_ptr() const noexcept {
 }
 
 ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
-  auto exec_dir = get_current_dir();
+  auto exec_dir = get_executable_dir();
 
   projects_dir = exec_dir / "Projects";
 

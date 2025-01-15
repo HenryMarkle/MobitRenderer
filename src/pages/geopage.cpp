@@ -156,7 +156,7 @@ void Geo_Page::draw() noexcept {
       for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
         auto cell1 = gmatrix.get_copy(x, y, 0);
 
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK);
+        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx_->textures_->geometry_editor);
       }
     }
 
@@ -178,7 +178,7 @@ void Geo_Page::draw() noexcept {
       for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
         auto cell1 = gmatrix.get_copy(x, y, 1);
 
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK);
+        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx_->textures_->geometry_editor);
       }
     }
 
@@ -200,13 +200,13 @@ void Geo_Page::draw() noexcept {
       for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
         auto cell1 = gmatrix.get_copy(x, y, 2);
 
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK);
+        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx_->textures_->geometry_editor);
       }
     }
 
     EndTextureMode();
   
-    should_redraw_feature2 = false;
+    should_redraw_feature3 = false;
     should_redraw = true;
   }
 
@@ -281,6 +281,9 @@ Geo_Page::Geo_Page(
   should_redraw1(true), 
   should_redraw2(true), 
   should_redraw3(true),
+  should_redraw_feature1(true),
+  should_redraw_feature2(true),
+  should_redraw_feature3(true),
   should_redraw(true) {}
 
 Geo_Page::~Geo_Page() {}

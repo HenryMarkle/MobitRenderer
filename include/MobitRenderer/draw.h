@@ -12,6 +12,7 @@
 #include <MobitRenderer/definitions.h>
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/level.h>
+#include <MobitRenderer/atlas.h>
 
 namespace mr {
 
@@ -107,12 +108,12 @@ void draw_geo_type(GeoCell cell, int x, int y, float scale, Color color);
 /// @param y The matrix' Y coordinate.
 /// @param scale The size of the cell.
 /// @param color The color of the poles.
+/// @param atlas Holds all textures for rendering features.
 /// @note Scale affects the X and Y coordinates by multiplying them by scale (x
 /// * scale, y * scale).
 /// @attention This function must be called in a drawing context (after
 /// BeginDrawing() and before EndDrawing()).
-void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
-                          Color color);
+void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale, Color color, const GE_Textures &atlas);
 
 /// @brief Draws a geo cell feature.
 /// @param cell The cell's features
@@ -120,10 +121,11 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
 /// @param y The screen's Y coordinate.
 /// @param scale The size of the cell.
 /// @param color The color of the poles.
+/// @param atlas Holds all textures for rendering features.
 /// @attention This function must be called in a drawing context (after
 /// BeginDrawing() and before EndDrawing()).
 void draw_geo_features(GeoCell cell, int x, int y, float scale,
-                      Color color);
+                      Color color, const GE_Textures &atlas);
 
 /// @brief Draws a geo cell poles.
 /// @param cell The cell's features
@@ -135,8 +137,7 @@ void draw_geo_features(GeoCell cell, int x, int y, float scale,
 /// * scale, y * scale).
 /// @attention This function must be called in a drawing context (after
 /// BeginDrawing() and before EndDrawing()).
-void draw_mtx_geo_poles(GeoCell cell, int x, int y, float scale,
-                          Color color);
+void draw_mtx_geo_poles(GeoCell cell, int x, int y, float scale, Color color);
 
 /// @brief Draws a geo cell poles.
 /// @param cell The cell's features

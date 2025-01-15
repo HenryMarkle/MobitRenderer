@@ -1,5 +1,6 @@
 #include <raylib.h>
 
+#include <MobitRenderer/atlas.h>
 #include <MobitRenderer/draw.h>
 #include <MobitRenderer/matrix.h>
 
@@ -171,7 +172,9 @@ void draw_mtx_geo_type(GeoCell cell, int x, int y, float scale,
 }
 
 void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
-  Color color) {
+  Color color, const GE_Textures &atlas) {
+  
+  Rectangle target = { x * scale, y * scale, scale, scale };
   
   if (cell.has_feature(GeoFeature::shortcut_path)) {
     const float hole_thick_ratio = 4 * scale/20;
@@ -185,6 +188,134 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
       color
     );
   }
+
+  Texture2D texture;
+
+
+
+  if (cell.has_feature(GeoFeature::bathive)) {
+    texture = atlas.bathive().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::forbid_fly_chains)) {
+    texture = atlas.forbid().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::worm_grass)) {
+    texture = atlas.wormgrass().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::place_rock)) {
+    texture = atlas.rock().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::place_spear)) {
+    texture = atlas.spear().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::waterfall)) {
+    texture = atlas.waterfall().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+
+  if (cell.has_feature(GeoFeature::room_entrance)) {
+    texture = atlas.passage().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::garbage_worm_hole)) {
+    texture = atlas.garbageworm().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::scavenger_hole)) {
+    texture = atlas.scav().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::dragon_den)) {
+    texture = atlas.den().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+  if (cell.has_feature(GeoFeature::wack_a_mole_hole)) {
+    texture = atlas.wack().get();
+    DrawTexturePro(
+      texture,
+      Rectangle{0, 0, (float)texture.width, (float)texture.height},
+      target,
+      {0, 0},
+      0,
+      color
+    );
+  }
+
 }
 
 void draw_mtx_geo_poles(

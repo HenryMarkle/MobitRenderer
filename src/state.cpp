@@ -12,6 +12,7 @@
 
 #include <raylib.h>
 
+#include <MobitRenderer/atlas.h>
 #include <MobitRenderer/draw.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
@@ -47,6 +48,9 @@ dirs::dirs() {
   data = executable / "Data";
   assets = executable / "Assets";
   #endif
+
+  // data = executable / "Data";
+  // assets = executable / "Assets";
 
   projects = executable / "Projects";
   levels = executable / "Levels";
@@ -314,6 +318,8 @@ void textures::reload_all_textures() {
   folder_icon = texture((directories->get_assets() / "Icons" / "folder icon.png").string().c_str());
   up_icon = texture((directories->get_assets() / "Icons" / "up icon.png").string().c_str());
   home_icon = texture((directories->get_assets() / "Icons" / "home icon.png").string().c_str());
+
+  geometry_editor.reload();
 }
 
 const RenderTexture2D &textures::get_main_level_viewport() const noexcept {
@@ -341,26 +347,26 @@ void textures::resize_all_level_buffers(int width, int height) {
   auto new_geo_layer2 = rendertexture(width, height);
   auto new_geo_layer3 = rendertexture(width, height);
 
+  BeginTextureMode(new_geo_layer1.get());
+  ClearBackground(WHITE);
   if (geo_layer1.is_loaded()) {
-    BeginTextureMode(new_geo_layer1.get());
-    ClearBackground(WHITE);
     DrawTexture(geo_layer1.get().texture, 0, 0, WHITE);
-    EndTextureMode();
   }
+  EndTextureMode();
 
+  BeginTextureMode(new_geo_layer2.get());
+  ClearBackground(WHITE);
   if (geo_layer2.is_loaded()) {
-    BeginTextureMode(new_geo_layer2.get());
-    ClearBackground(WHITE);
     DrawTexture(geo_layer2.get().texture, 0, 0, WHITE);
-    EndTextureMode();
   }
+  EndTextureMode();
 
+  BeginTextureMode(new_geo_layer3.get());
+  ClearBackground(WHITE);
   if (geo_layer3.is_loaded()) {
-    BeginTextureMode(new_geo_layer3.get());
-    ClearBackground(WHITE);
     DrawTexture(geo_layer3.get().texture, 0, 0, WHITE);
-    EndTextureMode();
   }
+  EndTextureMode();
 
   geo_layer1 = std::move(new_geo_layer1);
   geo_layer2 = std::move(new_geo_layer2);
@@ -372,26 +378,26 @@ void textures::resize_all_level_buffers(int width, int height) {
   auto new_feature_layer2 = rendertexture(width, height);
   auto new_feature_layer3 = rendertexture(width, height);
 
+  BeginTextureMode(feature_layer1.get());
+  ClearBackground(WHITE);
   if (feature_layer1.is_loaded()) {
-    BeginTextureMode(feature_layer1.get());
-    ClearBackground(WHITE);
     DrawTexture(feature_layer1.get().texture, 0, 0, WHITE);
-    EndTextureMode();
   }
+  EndTextureMode();
 
+  BeginTextureMode(feature_layer2.get());
+  ClearBackground(WHITE);
   if (feature_layer2.is_loaded()) {
-    BeginTextureMode(feature_layer2.get());
-    ClearBackground(WHITE);
     DrawTexture(feature_layer2.get().texture, 0, 0, WHITE);
-    EndTextureMode();
   }
+  EndTextureMode();
 
+  BeginTextureMode(new_feature_layer3.get());
+  ClearBackground(WHITE);
   if (feature_layer3.is_loaded()) {
-    BeginTextureMode(new_feature_layer3.get());
-    ClearBackground(WHITE);
     DrawTexture(feature_layer3.get().texture, 0, 0, WHITE);
-    EndTextureMode();
   }
+  EndTextureMode();
 
   feature_layer1 = std::move(new_feature_layer1);
   feature_layer2 = std::move(new_feature_layer2);
@@ -399,7 +405,8 @@ void textures::resize_all_level_buffers(int width, int height) {
 }
 
 textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
-    : directories(directories) {
+    : directories(directories), 
+    geometry_editor(directories.get()->get_assets()) {
   if (preload_textures) {
     reload_all_textures();
   }

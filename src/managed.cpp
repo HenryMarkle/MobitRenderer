@@ -147,25 +147,25 @@ texture::texture(texture &&other) noexcept {
   other.texture_ = Texture2D{0};
   other.isloaded = false;
 }
-texture::texture(const std::string &path) {
+texture::texture(const std::string &path) : texture_({0}), isloaded(false) {
   texture_ = LoadTexture(path.c_str());
-  isloaded = true;
+  isloaded = texture_.id != 0;
 }
-texture::texture(const char *path) {
+texture::texture(const char *path) : texture_({0}), isloaded(false) {
   texture_ = LoadTexture(path);
-  isloaded = true;
+  isloaded = texture_.id != 0;
 }
-texture::texture(const Image *image) {
+texture::texture(const Image *image) : texture_({0}), isloaded(false) {
   texture_ = LoadTextureFromImage(*image);
-  isloaded = true;
+  isloaded = texture_.id != 0;
 }
-texture::texture(const Image &image) {
+texture::texture(const Image &image) : texture_({0}), isloaded(false) {
   texture_ = LoadTextureFromImage(image);
-  isloaded = true;
+  isloaded = texture_.id != 0;
 }
-texture::texture(const image &image) {
+texture::texture(const image &image) : texture_({0}), isloaded(false) {
   texture_ = LoadTextureFromImage(image.get());
-  isloaded = true;
+  isloaded = texture_.id != 0;
 }
 texture::~texture() { unload(); }
 

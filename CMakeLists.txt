@@ -103,6 +103,11 @@ target_compile_definitions(MobitRenderer PRIVATE
     APP_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
+# Copy imgui.ini
+file(COPY ${CMAKE_SOURCE_DIR}/imgui.ini DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+# Copy config.toml
+file(COPY ${CMAKE_SOURCE_DIR}/config.toml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+
 # Embed changelog
 set(CHLG_INPUT_FILE "${CMAKE_SOURCE_DIR}/changelog.txt")
 set(CHLG_OUTPUT_FILE "${CMAKE_BINARY_DIR}/embedded_changelog.h")
@@ -131,8 +136,8 @@ if(WIN32)
 else()
   target_link_libraries(MobitRenderer PRIVATE raylib)
 endif()
-target_link_libraries(MobitRenderer PRIVATE imgui rlimgui spdlog)
-target_link_libraries(MobitRenderer PRIVATE MobitParser)
+
+target_link_libraries(MobitRenderer PRIVATE MobitParser imgui rlimgui spdlog)
 
 if(WIN32)
   target_link_libraries(MobitRenderer PRIVATE gdi32 winmm)
