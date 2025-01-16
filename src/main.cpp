@@ -236,6 +236,7 @@ int main() {
         }
 
         pager->current_f3();
+        f3->reset();
       }
     }
     EndDrawing();

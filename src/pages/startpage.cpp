@@ -41,6 +41,7 @@ void Start_Page::process() {
       try {
         const std::filesystem::path path_copy = *file;
         this->loaded_level = deser_level(path_copy);
+        this->loaded_level->set_path(*file);
       } catch (const deserialization_failure &pf) {
         std::cout << "exception: " << pf.what() << std::endl;
       } catch (const std::exception &e) {

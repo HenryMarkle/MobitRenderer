@@ -237,7 +237,11 @@ void context::select_level(uint8_t index) {
   selected_level = index;
 }
 
-mr::Level *context::get_selected_level() { return levels[selected_level]; }
+mr::Level *context::get_selected_level() { 
+  if (levels.size() == 0) return nullptr;
+  
+  return levels[selected_level]; 
+}
 
 void context::lock_global_shortcuts() noexcept {
   enable_global_shortcuts = false;
