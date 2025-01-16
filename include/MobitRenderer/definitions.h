@@ -30,6 +30,7 @@ enum TileDefType : uint8_t {
 class TileDef {
 private:
   const std::string name;
+  std::string category;
   const TileDefType type;
   const uint8_t width, height, buffer;
   const int8_t rnd;
@@ -44,8 +45,11 @@ private:
   Texture2D texture;
 
 public:
-  const std::string &get_name() const;
-  TileDefType get_type() const;
+  const std::string &get_name() const noexcept;
+  TileDefType get_type() const noexcept;
+
+  const std::string &get_category() const noexcept;
+  void set_category(std::string) noexcept;
 
   int get_width() const;
   int get_height() const;

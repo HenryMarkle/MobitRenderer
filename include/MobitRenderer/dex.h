@@ -20,7 +20,7 @@ std::map<std::string, std::shared_ptr<TileDef>> _tiles;
 
 /// @brief An array of tile categories, in the 
 /// order they were registered.
-std::vector<std::string> _categories;
+std::vector<TileDefCategory> _categories;
 
 /// @brief An array of tiles ordered by registering 
 /// and grouped by associated category orderer.
@@ -42,7 +42,7 @@ const std::map<std::string, std::shared_ptr<TileDef>> &tiles() const noexcept;
 
 /// @brief An array of tile categories, in the 
 /// order they were registered.
-const std::vector<std::string> &categories() const noexcept;
+const std::vector<TileDefCategory> &categories() const noexcept;
 
 /// @brief An array of tiles ordered by registering 
 /// and grouped by associated category orderer.

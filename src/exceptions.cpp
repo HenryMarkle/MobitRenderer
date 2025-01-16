@@ -20,6 +20,9 @@ const char *deserialization_failure::what() const noexcept {
   return msg_.c_str();
 }
 
+dex_error::dex_error(const std::string &msg) : msg_(msg) {}
+const char *dex_error::what() const noexcept { return msg_.c_str(); }
+
 malformed_geometry::malformed_geometry(const std::string &msg)
     : deserialization_failure(msg) {}
 }; // namespace mr

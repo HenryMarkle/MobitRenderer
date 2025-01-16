@@ -16,9 +16,12 @@ template <> struct hash<mr::TileDef> {
 }; // namespace std
 
 namespace mr {
-const std::string &TileDef::get_name() const { return name; }
+const std::string &TileDef::get_name() const noexcept { return name; }
 
-TileDefType TileDef::get_type() const { return type; }
+TileDefType TileDef::get_type() const noexcept { return type; }
+
+const std::string &TileDef::get_category() const noexcept { return category; }
+void TileDef::set_category(std::string _category) noexcept { category = _category; }
 
 int TileDef::get_width() const { return width; }
 int TileDef::get_height() const { return height; }
