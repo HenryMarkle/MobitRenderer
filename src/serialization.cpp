@@ -13,6 +13,8 @@
 #include <vector>
 #include <exception>
 
+#include <raylib.h>
+
 #include <toml++/toml.hpp>
 #include <toml++/impl/forward_declarations.hpp>
 #include <toml++/impl/parse_error.hpp>
@@ -755,35 +757,26 @@ std::shared_ptr<config> load_config(const std::filesystem::path &path) {
   return nullptr;
 }
 
-/// @brief Deserializes an mp::Int node; expects no operators.
 int deser_int(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an Int");
   return int_node->number;
 }
-
-/// @brief Deserializes an mp::Int node; expects no operators.
-/// @returns A casted int to uint8 (unsigned char).
 int8_t deser_int8(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an uint8");
   return (int8_t)int_node->number;
 }
-
-/// @brief Deserializes an mp::Int node; expects no operators.
-/// @returns A casted int to uint8 (unsigned char).
 uint8_t deser_uint8(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an uint8");
   return (uint8_t)int_node->number;
 }
-
 std::string deser_string(const mp::Node *node) {
   const mp::String *str_node = dynamic_cast<const mp::String*>(node);
   if (str_node == nullptr) throw deserialization_failure("node is not a String");
   return str_node->str;
 }
-
 Color deser_color(const mp::Node *node) {
   const mp::GCall *color_gcall_node = dynamic_cast<const mp::GCall*>(node);
   if (color_gcall_node == nullptr)
@@ -824,7 +817,6 @@ Color deser_color(const mp::Node *node) {
 
   return Color{r, g, b, 255};
 }
-
 std::vector<std::string> deser_string_vec(const mp::Node *node) {
   const mp::List *list = dynamic_cast<const mp::List*>(node);
   if (list == nullptr) throw deserialization_failure("node is not a linear list");

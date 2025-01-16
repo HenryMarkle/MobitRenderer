@@ -49,7 +49,7 @@ void TileDef::unload_texture() {
   }
 }
 
-const Texture2D &TileDef::get_texture() const { return texture; }
+const Texture2D &TileDef::get_texture() const noexcept { return texture; }
 
 // TileDef &TileDef::operator=(TileDef &&other) noexcept {
 //   if (this == &other)
