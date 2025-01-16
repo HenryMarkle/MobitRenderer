@@ -99,26 +99,23 @@ struct GeoCell {
 
 //
 
-enum TileType : uint8_t { _default, head, body, material };
+enum class TileType : uint8_t { _default, head, body, material };
 
-// 80 bytes
 struct TileCell {
   TileType type;
 
   std::string und_name;
   uint16_t head_pos_x, head_pos_y, head_pos_z;
 
-  std::shared_ptr<TileDef> tile_def;
-  std::shared_ptr<MaterialDef> material_def;
-};
+  TileDef *tile_def;
+  MaterialDef *material_def;
 
-TileCell create_default_tile();
-TileCell create_head_tile(std::shared_ptr<TileDef> tile);
-TileCell create_body_tile(uint16_t x, uint16_t y, uint16_t z,
-                          std::shared_ptr<TileDef> tile = nullptr);
-TileCell create_material_tile(std::shared_ptr<MaterialDef> material);
-TileCell create_undefined_head_tile(std::string name);
-TileCell create_undefined_material_tile(std::string name);
+  TileCell();
+  TileCell(TileDef *);
+  TileCell(uint16_t x, uint16_t y, uint16_t z, TileDef *tile = nullptr);
+  TileCell(MaterialDef *);
+  TileCell(std::string name, bool material = false);
+};
 
 template <typename T> class Matrix {
 private:

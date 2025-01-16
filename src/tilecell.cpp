@@ -1,87 +1,50 @@
 #include <MobitRenderer/matrix.h>
 
 namespace mr {
-    TileCell create_default_tile() {
-        return TileCell {
-            _default,
-            "",
 
-            0,
-            0,
-            0,
-        
-            nullptr,
-            nullptr
-        };
-    }
-    
-    TileCell create_head_tile(std::shared_ptr<TileDef> tile) {
-        return TileCell {
-            head,
-            "",
+TileCell::TileCell() : 
+    type(TileType::_default), 
+    und_name(""),
+    head_pos_x(0),
+    head_pos_y(0),
+    head_pos_z(0),
+    tile_def(nullptr),
+    material_def(nullptr) {}
 
-            0,
-            0,
-            0,
-        
-            tile,
-            nullptr
-        };
-    }
+TileCell::TileCell(TileDef *tile) : 
+    type(TileType::head), 
+    und_name(""),
+    head_pos_x(0),
+    head_pos_y(0),
+    head_pos_z(0),
+    tile_def(tile),
+    material_def(nullptr) { }
 
-    TileCell create_body_tile(uint16_t x, uint16_t y, uint16_t z, std::shared_ptr<TileDef> tile) {
-        return TileCell {
-            body,
-            "",
+TileCell::TileCell(uint16_t x, uint16_t y, uint16_t z, TileDef *tile) : 
+    type(TileType::body), 
+    und_name(""),
+    head_pos_x(x),
+    head_pos_y(y),
+    head_pos_z(z),
+    tile_def(tile),
+    material_def(nullptr) { }
 
-            x,
-            y,
-            z,
-        
-            tile,
-            nullptr
-        };
-    }
+TileCell::TileCell(MaterialDef *_material) : 
+    type(TileType::material), 
+    und_name(""),
+    head_pos_x(0),
+    head_pos_y(0),
+    head_pos_z(0),
+    tile_def(nullptr),
+    material_def(_material) { }
 
-    TileCell create_material_tile(std::shared_ptr<MaterialDef> _material) {
-        return TileCell {
-            material,
-            "",
+TileCell::TileCell(std::string name, bool material) : 
+    type(material ? TileType::material : TileType::head), 
+    und_name(name),
+    head_pos_x(0),
+    head_pos_y(0),
+    head_pos_z(0),
+    tile_def(nullptr),
+    material_def(nullptr) { }
 
-            0,
-            0,
-            0,
-        
-            nullptr,
-            _material
-        };
-    }
-
-    TileCell create_undefined_head_tile(std::string name) {
-        return TileCell {
-            head,
-            name,
-
-            0,
-            0,
-            0,
-        
-            nullptr,
-            nullptr
-        };
-    }
-
-    TileCell create_undefined_material_tile(std::string name) {
-        return TileCell {
-            material,
-            name,
-
-            0,
-            0,
-            0,
-        
-            nullptr,
-            nullptr
-        };
-    }
 }

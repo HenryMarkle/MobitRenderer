@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <raylib.h>
 
@@ -11,6 +12,11 @@ namespace mr {
 typedef struct IVector2 {
   int x, y;
 } ivec2;
+
+struct TileDefCategory {
+  std::string name;
+  Color color;
+};
 
 enum TileDefType : uint8_t {
   box,
@@ -21,19 +27,19 @@ enum TileDefType : uint8_t {
   voxel_struct_sand_type
 };
 
-// 184 bytes
 class TileDef {
 private:
-  std::string name;
-  TileDefType type;
-  uint8_t width, height, buffer;
-  int8_t rnd;
-  std::vector<int8_t> specs, specs2, specs3;
-  std::vector<uint8_t> repeat;
-  std::vector<std::string> tags;
+  const std::string name;
+  const TileDefType type;
+  const uint8_t width, height, buffer;
+  const int8_t rnd;
+  const std::vector<int8_t> specs, specs2, specs3;
+  const std::vector<uint8_t> repeat;
+  const std::vector<std::string> tags;
+  std::filesystem::path texture_path;
 
   /// Auto-calculated
-  ivec2 head_offset;
+  const ivec2 head_offset;
 
   Texture2D texture;
 
@@ -45,13 +51,8 @@ public:
   int get_height() const;
   int get_buffer() const;
 
-  inline float calculate_width(float scale = 1.0f) const {
-    return (width + (buffer * 2)) * scale;
-  }
-
-  inline float calculate_height(float scale = 1.0f) const {
-    return (height + (buffer * 2)) * scale;
-  }
+  inline int calculate_width(int scale = 1) const { return (width + (buffer * 2)) * scale; }
+  inline int calculate_height(int scale = 1) const { return (height + (buffer * 2)) * scale; }
 
   ivec2 get_head_offset() const;
 
@@ -64,14 +65,19 @@ public:
   const std::vector<std::string> &get_tags() const;
   int get_rnd() const;
 
-  const Texture &get_texture() const;
-  void set_texture(Texture);
+  void set_texture_path(std::filesystem::path) noexcept;
+  const std::filesystem::path &get_texture_path() const noexcept;
 
+  void reload_texture();
+  void unload_texture();
+  
+  const Texture2D &get_texture() const noexcept;
+
+  TileDef &operator=(TileDef &&) noexcept = delete;
   TileDef &operator=(const TileDef &) = delete;
-  TileDef &operator=(TileDef &&);
 
+  TileDef(TileDef &&) noexcept = delete;
   TileDef(const TileDef &) = delete;
-  TileDef(TileDef &&);
 
   TileDef(std::string name, TileDefType type, uint8_t width, uint8_t height,
           uint8_t buffer, int8_t rnd, std::vector<std::string> tags,

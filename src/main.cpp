@@ -39,8 +39,6 @@ typedef std::unordered_map<mr::context_event_type,
     event_handlers;
 
 int main() {
-  // std::cout << "size is " << sizeof(mr::TileCell) << " bytes" << std::endl;
-
   shared_ptr<mr::dirs> directories = std::make_shared<mr::dirs>();
   shared_ptr<logger> logger = nullptr;
 

@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <exception>
 
 #include <toml++/toml.hpp>
 #include <toml++/impl/forward_declarations.hpp>
@@ -28,12 +29,209 @@
 
 namespace mr {
 
-std::shared_ptr<TileDef> parse_tiledef(std::unique_ptr<mp::Node> const &nodes) {
-  return nullptr;
+TileDefCategory deser_tiledef_category(const mp::Node *node) {
+  const mp::List *list = dynamic_cast<const mp::List*>(node);
+  
+  if (list == nullptr) 
+    throw deserialization_failure("category is not a linear list");
+
+  mp::Node *name_node = list->elements[0].get();
+  mp::String *name_string_node = dynamic_cast<mp::String*>(name_node);
+  if (name_string_node == nullptr)
+    throw deserialization_failure("category name is not a string");
+
+  mp::Node *color_node = list->elements[1].get();
+  Color color;
+
+  try {
+    color = deser_color(color_node);
+  } catch (deserialization_failure &e) {
+    std::string msg("invalid category color: ");
+    msg += e.what();
+
+    throw deserialization_failure(msg);
+  }
+
+  return TileDefCategory{name_string_node->str, color};
 }
 
-std::unique_ptr<ProjectSaveFileLines>
-read_project(const std::filesystem::path &file_path) {
+/// @brief Deserializes a tile definition (Init).
+/// @warning Incomplete implementation.
+std::shared_ptr<TileDef> deser_tiledef(const mp::Node *node) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(node);
+  
+  if (props == nullptr) throw deserialization_failure("node is not a property list");
+  
+  std::string name, type;
+  uint8_t width, height, buffer;
+  int8_t rnd;
+  std::vector<int8_t> specs1, specs2, specs3;
+  std::vector<uint8_t> repeat;
+  std::vector<std::string> tags;
+  TileDefType tile_type;
+
+  const auto &dict = props->map;
+
+  // Required
+
+  // nm
+  try {
+    const auto &name_node = dict.at("nm");
+    name = deser_string(name_node.get());
+  } catch (std::out_of_range &e) {
+    throw deserialization_failure("missing required propery: 'nm'");
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'nm': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  // sz
+  try {
+    const auto &size_node = dict.at("sz");
+    int x, y;
+    deser_point(size_node.get(), x, y);
+    width = (uint8_t)x;
+    height = (uint8_t)y;
+  } catch (std::out_of_range &e) {
+    throw deserialization_failure("missing required propery: 'sz'");
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'sz': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  // tp
+  try {
+    const auto &type_node = dict.at("tp");
+    type = deser_string(type_node.get());
+  } catch (std::out_of_range &e) {
+    throw deserialization_failure("missing required propery: 'tp'");
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'tp': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  if (type == "box") {
+    tile_type = TileDefType::box;
+  } 
+  else if (type == "voxelStruct") {
+    tile_type = TileDefType::voxel_struct;
+  } 
+  else if (type == "voxelStructRockType") {
+    tile_type = TileDefType::voxel_struct_rock_type;
+  }
+  else if (type == "voxelStructSandType") {
+    tile_type = TileDefType::voxel_struct_sand_type;
+  }
+  else if (type == "voxelStructRandomDisplaceVertical") {
+    tile_type = TileDefType::voxel_struct_random_displace_vertical;
+  }
+  else if (type == "voxelStructRandomDisplaceHorizontal") {
+    tile_type = TileDefType::voxel_struct_random_displace_horizontal;
+  } else {
+    std::string msg("unknown tile type '");
+    msg += type;
+    msg += "'";
+    throw deserialization_failure(msg);
+  }
+
+  // bfTiles
+  try {
+    const auto &bftl_node = dict.at("bftiles");
+    buffer = deser_uint8(bftl_node.get());
+  } catch (std::out_of_range &e) {
+    throw deserialization_failure("missing required propery: 'bfTiles'");
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'bfTiles': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  // specs
+  try {
+    const auto &spc1_node = dict.at("specs");
+    specs1 = deser_int8_vec(spc1_node.get());
+  } catch (std::out_of_range &e) {
+    throw deserialization_failure("missing required propery: 'specs'");
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'specs': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  // tags
+  try {
+    const auto &tags_node = dict.at("tags");
+    tags = deser_string_vec(tags_node.get());
+  } catch (std::out_of_range &e) {
+    throw deserialization_failure("missing required propery: 'tags'");
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'tags': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  // Optional
+
+  auto spc2_node = dict.find("specs2");
+  if (spc2_node != dict.end()) {
+    try {
+      specs2 = deser_int8_vec(spc2_node->second.get());
+    } catch (deserialization_failure &e) {
+      std::string msg("failed to deserialize property 'specs2': ");
+      msg += e.what();
+      throw deserialization_failure(msg);
+    }
+  }
+
+  auto spc3_node = dict.find("specs3");
+  if (spc3_node != dict.end()) {
+    try {
+      specs3 = deser_int8_vec(spc3_node->second.get());
+    } catch (deserialization_failure &e) {
+      std::string msg("failed to deserialize property 'specs3': ");
+      msg += e.what();
+      throw deserialization_failure(msg);
+    }
+  }
+
+  auto rand_node = dict.find("rnd");
+  if (rand_node != dict.end()) {
+    try {
+      rnd = deser_int8(rand_node->second.get());
+    } catch (deserialization_failure &e) {
+      std::string msg("failed to deserialize property 'rnd': ");
+      msg += e.what();
+      throw deserialization_failure(msg);
+    }
+  }
+
+  auto rept_node = dict.find("repeatl");
+  if (rept_node != dict.end()) {
+    try {
+      repeat = deser_uint8_vec(rept_node->second.get());
+    } catch (deserialization_failure &e) {
+      std::string msg("failed to deserialize property 'repeatL': ");
+      msg += e.what();
+      throw deserialization_failure(msg);
+    }
+  }
+
+  return std::make_shared<TileDef>(
+    std::move(name), 
+    tile_type,
+    width, height, buffer, rnd,
+    std::move(tags),
+    std::move(specs1),
+    std::move(specs2),
+    std::move(specs3),
+    std::move(repeat)
+  );
+}
+
+std::unique_ptr<ProjectSaveFileLines> read_project(const std::filesystem::path &file_path) {
   std::fstream file(file_path);
 
   if (!file.is_open()) {
@@ -189,8 +387,7 @@ GeoFeature get_geo_features(const mp::List *list) {
 
   return features;
 }
-std::unique_ptr<ProjectSaveFileNodes>
-parse_project(const std::filesystem::path &file_path) {
+std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::filesystem::path &file_path) {
   std::ifstream file(file_path);
 
   if (!file.is_open()) {
@@ -257,8 +454,7 @@ parse_project(const std::filesystem::path &file_path) {
 
   return nodes;
 }
-std::unique_ptr<ProjectSaveFileNodes>
-parse_project(const std::unique_ptr<ProjectSaveFileLines> &file_lines) {
+std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::unique_ptr<ProjectSaveFileLines> &file_lines) {
   if (file_lines == nullptr)
     return nullptr;
 
@@ -271,9 +467,8 @@ parse_project(const std::unique_ptr<ProjectSaveFileLines> &file_lines) {
   return nodes;
 }
 
-void deser_geometry(const std::unique_ptr<mp::Node> &node,
-                    Matrix<GeoCell> &matrix) {
-  auto *columns = dynamic_cast<mp::List *>(node.get());
+void deser_geometry_matrix(const mp::Node *node, Matrix<GeoCell> &matrix) {
+  const mp::List *columns = dynamic_cast<const mp::List *>(node);
 
   if (columns == nullptr)
     throw malformed_geometry("malformed geometry (expected a list of columns)");
@@ -448,10 +643,12 @@ void deser_geometry(const std::unique_ptr<mp::Node> &node,
   }
 }
 
-std::vector<LevelCamera> parse_cameras(const std::unique_ptr<mp::Node> &node) {
-  auto *ptr = node.get();
-
-  auto *prop_list = dynamic_cast<mp::Props *>(ptr);
+/// @brief deserializes the cameras with their quads.
+/// @warning Incomplete implemetation.
+/// @param node 
+/// @param cameras 
+void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
+  const mp::Props *prop_list = dynamic_cast<const mp::Props *>(node);
 
   if (prop_list == nullptr)
     throw parse_failure("node is not a property list");
@@ -465,8 +662,6 @@ std::vector<LevelCamera> parse_cameras(const std::unique_ptr<mp::Node> &node) {
 
   if (cameras_list == nullptr)
     throw parse_failure("#cameras is malformed (not a linear list)");
-
-  std::vector<LevelCamera> parsed_cameras;
 
   // four point() are expected
   for (auto &pos_node : cameras_list->elements) {
@@ -487,13 +682,10 @@ std::vector<LevelCamera> parse_cameras(const std::unique_ptr<mp::Node> &node) {
 
     // TODO: complete this
   }
-
-  return {};
 }
 
-void parse_size(const std::unique_ptr<mp::Node> &line_node, uint16_t &width,
-                uint16_t &height) {
-  auto *props = dynamic_cast<mp::Props *>(line_node.get());
+void deser_size(const mp::Node *line_node, uint16_t &width, uint16_t &height) {
+  const mp::Props *props = dynamic_cast<const mp::Props *>(line_node);
 
   if (props == nullptr) {
     throw deserialization_failure("sizes line is not a property list");
@@ -533,15 +725,15 @@ void parse_size(const std::unique_ptr<mp::Node> &line_node, uint16_t &width,
 }
 
 std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
-  std::unique_ptr<ProjectSaveFileNodes> nodes = parse_project(path);
+  std::unique_ptr<ProjectSaveFileNodes> nodes = deser_project(path);
 
   uint16_t width, height;
 
-  parse_size(nodes->seed_and_sizes, width, height);
+  deser_size(nodes->seed_and_sizes.get(), width, height);
 
   auto level = std::make_unique<Level>(width, height);
 
-  deser_geometry(nodes->geometry, level->get_geo_matrix());
+  deser_geometry_matrix(nodes->geometry.get(), level->get_geo_matrix());
 
   return level;
 }
@@ -564,4 +756,166 @@ std::shared_ptr<config> load_config(const std::filesystem::path &path) {
 
   return nullptr;
 }
+
+/// @brief Deserializes an mp::Int node; expects no operators.
+int deser_int(const mp::Node *node) {
+  const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
+  if (int_node == nullptr) throw deserialization_failure("node is not an Int");
+  return int_node->number;
+}
+
+/// @brief Deserializes an mp::Int node; expects no operators.
+/// @returns A casted int to uint8 (unsigned char).
+int8_t deser_int8(const mp::Node *node) {
+  const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
+  if (int_node == nullptr) throw deserialization_failure("node is not an uint8");
+  return (int8_t)int_node->number;
+}
+
+/// @brief Deserializes an mp::Int node; expects no operators.
+/// @returns A casted int to uint8 (unsigned char).
+uint8_t deser_uint8(const mp::Node *node) {
+  const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
+  if (int_node == nullptr) throw deserialization_failure("node is not an uint8");
+  return (uint8_t)int_node->number;
+}
+
+std::string deser_string(const mp::Node *node) {
+  const mp::String *str_node = dynamic_cast<const mp::String*>(node);
+  if (str_node == nullptr) throw deserialization_failure("node is not a String");
+  return str_node->str;
+}
+
+Color deser_color(const mp::Node *node) {
+  const mp::GCall *color_gcall_node = dynamic_cast<const mp::GCall*>(node);
+  if (color_gcall_node == nullptr)
+    throw deserialization_failure("color is not a global call");
+  if (color_gcall_node->name != "color")
+    throw deserialization_failure("color is not a global call named 'color'");
+  if (color_gcall_node->args.size() < 3)
+    throw deserialization_failure("color has insufficient arguments (expected at least 3)");
+
+  uint8_t r, g, b;
+
+  try {
+    r = deser_uint8(color_gcall_node->args[0].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("invalid color argument 1: ");
+    msg.append(e.what());
+
+    throw deserialization_failure(msg);
+  }
+
+  try {
+    g = deser_uint8(color_gcall_node->args[1].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("invalid color argument 2: ");
+    msg.append(e.what());
+  
+    throw deserialization_failure(msg);
+  }
+
+  try {
+    b = deser_uint8(color_gcall_node->args[2].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("invalid color argument 2: ");
+    msg.append(e.what());
+    
+    throw deserialization_failure(msg);
+  }
+
+  return Color{r, g, b, 255};
+}
+
+std::vector<std::string> deser_string_vec(const mp::Node *node) {
+  const mp::List *list = dynamic_cast<const mp::List*>(node);
+  if (list == nullptr) throw deserialization_failure("node is not a linear list");
+
+  std::vector<std::string> strings;
+  strings.reserve(list->elements.size());
+
+  try {
+    for (auto &element : list->elements) {
+      mp::Node *element_node = element.get();
+      mp::String *element_string = dynamic_cast<mp::String*>(element_node);
+      if (element_string == nullptr) throw deserialization_failure("failed to deserialize list element: node is not a string");
+      strings.push_back(element_string->str);
+    }
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize list element: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  return strings;
+}
+std::vector<int8_t> deser_int8_vec (const mp::Node *node) {
+  const mp::List *list = dynamic_cast<const mp::List*>(node);
+  if (list == nullptr) throw deserialization_failure("node is not a linear list");
+
+  std::vector<int8_t> numbers;
+  numbers.reserve(list->elements.size());
+
+  try {
+    for (auto &element : list->elements) {
+      int8_t number = deser_int8(element.get());
+      numbers.push_back(number);
+    }
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize list element: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  return numbers;
+}
+std::vector<uint8_t> deser_uint8_vec (const mp::Node *node) {
+  const mp::List *list = dynamic_cast<const mp::List*>(node);
+  if (list == nullptr) throw deserialization_failure("node is not a linear list");
+
+  std::vector<uint8_t> numbers;
+  numbers.reserve(list->elements.size());
+
+  try {
+    for (auto &element : list->elements) {
+      uint8_t number = deser_uint8(element.get());
+      numbers.push_back(number);
+    }
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize list element: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  return numbers;
+}
+void deser_point(const mp::Node *node, int &x, int &y) {
+  const mp::GCall *gcall_node = dynamic_cast<const mp::GCall*>(node);
+  
+  if (gcall_node == nullptr) throw deserialization_failure("node is not a Global Call");
+  if (gcall_node->name != "point") throw deserialization_failure("global call is not a point");
+  if (gcall_node->args.size() < 2) throw deserialization_failure("point global call has insufficient arguments (expected at least 2)");
+
+  int value_x, value_y;
+
+  try {
+    value_x = deser_int(gcall_node->args[0].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize point argument 1: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  try {
+    value_y = deser_int(gcall_node->args[1].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize point argument 2: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  x = value_x;
+  y = value_y;
+}
+
 }; // namespace mr

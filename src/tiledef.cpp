@@ -1,8 +1,5 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <string>
+#include <filesystem>
 
 #include <raylib.h>
 
@@ -38,92 +35,110 @@ const std::vector<uint8_t> &TileDef::get_repeat() const { return repeat; }
 const std::vector<std::string> &TileDef::get_tags() const { return tags; }
 int TileDef::get_rnd() const { return rnd; }
 
-const Texture &TileDef::get_texture() const { return texture; }
+void TileDef::set_texture_path(std::filesystem::path path) noexcept { texture_path = path; }
+const std::filesystem::path &TileDef::get_texture_path() const noexcept { return texture_path; }
 
-void TileDef::set_texture(Texture t) {
-  if (texture.id != 0)
+void TileDef::reload_texture() {
+  unload_texture();
+  texture = LoadTexture(texture_path.string().c_str());
+}
+void TileDef::unload_texture() {
+  if (texture.id != 0) {
     UnloadTexture(texture);
-
-  texture = t;
+    texture = {0};
+  }
 }
 
-TileDef &TileDef::operator=(TileDef &&other) {
-  if (this == &other)
-    return *this;
-  if (texture.id != 0)
-    UnloadTexture(texture);
+const Texture2D &TileDef::get_texture() const { return texture; }
 
-  name = std::move(other.name);
-  type = other.type;
+// TileDef &TileDef::operator=(TileDef &&other) noexcept {
+//   if (this == &other)
+//     return *this;
+//   if (texture.id != 0)
+//     UnloadTexture(texture);
 
-  width = other.width;
-  height = other.height;
-  buffer = other.buffer;
-  rnd = other.rnd;
+//   name = std::move(other.name);
+//   type = other.type;
 
-  specs = std::move(other.specs);
-  specs2 = std::move(other.specs2);
-  specs3 = std::move(other.specs3);
-  repeat = std::move(other.repeat);
-  tags = std::move(other.tags);
+//   width = other.width;
+//   height = other.height;
+//   buffer = other.buffer;
+//   rnd = other.rnd;
 
-  head_offset = other.head_offset;
+//   specs = std::move(other.specs);
+//   specs2 = std::move(other.specs2);
+//   specs3 = std::move(other.specs3);
+//   repeat = std::move(other.repeat);
+//   tags = std::move(other.tags);
 
-  texture = other.texture;
+//   head_offset = other.head_offset;
 
-  other.texture = Texture2D{};
-  other.width = 0;
-  other.height = 0;
-  other.buffer = 0;
-  other.rnd = 0;
+//   texture = other.texture;
+//   texture_path = std::move(other.texture_path);
 
-  return *this;
-}
+//   other.texture = Texture2D{0};
+//   other.width = 0;
+//   other.height = 0;
+//   other.buffer = 0;
+//   other.rnd = 0;
 
-TileDef::TileDef(TileDef &&other) {
-  if (texture.id != 0)
-    UnloadTexture(texture);
+//   return *this;
+// }
 
-  name = std::move(other.name);
-  type = other.type;
+// TileDef::TileDef(TileDef &&other) noexcept {
+//   if (texture.id != 0)
+//     UnloadTexture(texture);
 
-  width = other.width;
-  height = other.height;
-  buffer = other.buffer;
-  rnd = other.rnd;
+//   name = std::move(other.name);
+//   type = other.type;
 
-  specs = std::move(other.specs);
-  specs2 = std::move(other.specs2);
-  specs3 = std::move(other.specs3);
-  repeat = std::move(other.repeat);
-  tags = std::move(other.tags);
+//   width = other.width;
+//   height = other.height;
+//   buffer = other.buffer;
+//   rnd = other.rnd;
 
-  head_offset = other.head_offset;
+//   specs = std::move(other.specs);
+//   specs2 = std::move(other.specs2);
+//   specs3 = std::move(other.specs3);
+//   repeat = std::move(other.repeat);
+//   tags = std::move(other.tags);
 
-  texture = other.texture;
+//   head_offset = other.head_offset;
 
-  other.texture = Texture2D{};
-  other.width = 0;
-  other.height = 0;
-  other.buffer = 0;
-  other.rnd = 0;
-}
+//   texture = other.texture;
+//   texture_path = std::move(other.texture_path);
 
-TileDef::TileDef(std::string name, TileDefType type, uint8_t width,
-                 uint8_t height, uint8_t buffer, int8_t rnd,
-                 std::vector<std::string> tags, std::vector<int8_t> specs,
-                 std::vector<int8_t> specs2, std::vector<int8_t> specs3,
-                 std::vector<uint8_t> repeat)
-    : name(name), type(type), width(width), height(height), buffer(buffer),
-      rnd(rnd), tags(tags), specs(specs), specs2(specs2), specs3(specs3),
-      repeat(repeat), texture(Texture2D{}) {
+//   other.texture = Texture2D{};
+//   other.width = 0;
+//   other.height = 0;
+//   other.buffer = 0;
+//   other.rnd = 0;
+// }
 
-  head_offset = mr::ivec2{(int)(width / 2), (int)(height / 2)};
-}
+TileDef::TileDef(
+  std::string name, TileDefType type, uint8_t width,
+  uint8_t height, uint8_t buffer, int8_t rnd,
+  std::vector<std::string> tags, std::vector<int8_t> specs,
+  std::vector<int8_t> specs2, std::vector<int8_t> specs3,
+  std::vector<uint8_t> repeat
+  ) : 
+    name(name), 
+    type(type), 
+    width(width), 
+    height(height), 
+    buffer(buffer),
+    rnd(rnd), 
+    tags(tags), 
+    specs(specs), 
+    specs2(specs2), 
+    specs3(specs3),
+    repeat(repeat), 
+    texture_path(""), 
+    texture(Texture2D{0}), 
+    head_offset(mr::ivec2{(int)(width / 2), (int)(height / 2)}) {}
 
 TileDef::~TileDef() {
-  if (texture.id != 0)
-    UnloadTexture(texture);
-  texture = Texture2D{};
+  unload_texture();
 }
+
 }; // namespace mr
