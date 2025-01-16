@@ -60,7 +60,8 @@ const std::map<std::string, Color> &colors() const noexcept;
 /// @attention The path's parent directory must contain the tile textures.
 void register_from(std::filesystem::path const&file);
 
-/// @brief Unloads all textures of tiles.
+/// @brief Unloads all textures of tiles. 
+/// Must be called before CloseWindow().
 void unload_textures();
 
 TileDex &operator=(TileDex &&) noexcept;

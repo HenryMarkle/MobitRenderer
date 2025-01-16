@@ -4,23 +4,63 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
+#include <filesystem>
+#include <exception>
 
 #include <raylib.h>
 
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/matrix.h>
 
-mr::levelsize mr::Level::get_width() const noexcept { return width; }
-mr::levelsize mr::Level::get_height() const noexcept { return height; }
+using std::string;
+using std::filesystem::path;
+using std::filesystem::exists;
 
-mr::levelpixelsize mr::Level::get_pixel_width() const noexcept { return pxwidth; }
-mr::levelpixelsize mr::Level::get_pixel_height() const noexcept { return pxheight; }
+namespace mr {
 
-mr::Matrix<mr::GeoCell> &mr::Level::get_geo_matrix() { return geo_matrix; }
-mr::Matrix<mr::TileCell> &mr::Level::get_tile_matrix() { return tile_matrix; }
-std::vector<mr::Effect> &mr::Level::get_effects() { return effects; }
+const string &Level::get_name() const noexcept { return name; }
+void Level::set_name(string new_name) {
+  name = new_name;
+  path = directory_path / (name + ".txt");
+  lightmap_path = directory_path / (name + ".png");
+}
 
-void mr::Level::load_lightmap(const Texture2D &texture) {
+const path &Level::get_path() const noexcept { return path; }
+void Level::set_path(std::filesystem::path p) {
+  if (!exists(p)) throw std::invalid_argument("directory path does not exist");
+
+  auto parent = p.parent_path();
+
+  name = p.stem().string();
+  
+  path = p;
+  directory_path = parent;
+  lightmap_path = parent / (name + ".png");
+}
+const path &Level::get_directory() const noexcept { return directory_path; }
+
+void Level::set_directory(std::filesystem::path p) {
+  if (!exists(p)) throw std::invalid_argument("directory path does not exist");
+
+  directory_path = p;
+  path = p / (name + ".txt");
+  lightmap_path = p / (name + ".png");
+}
+
+const path &Level::get_lightmap_path() const noexcept { return lightmap_path; }
+
+levelsize Level::get_width() const noexcept { return width; }
+levelsize Level::get_height() const noexcept { return height; }
+
+levelpixelsize Level::get_pixel_width() const noexcept { return pxwidth; }
+levelpixelsize Level::get_pixel_height() const noexcept { return pxheight; }
+
+Matrix<GeoCell> &Level::get_geo_matrix() { return geo_matrix; }
+Matrix<TileCell> &Level::get_tile_matrix() { return tile_matrix; }
+std::vector<Effect> &Level::get_effects() { return effects; }
+
+void Level::load_lightmap(const Texture2D &texture) {
   if (lightmap.id != 0)
     UnloadRenderTexture(lightmap);
 
@@ -31,27 +71,27 @@ void mr::Level::load_lightmap(const Texture2D &texture) {
   DrawTexture(texture, 0, 0, WHITE);
   EndTextureMode();
 }
-void mr::Level::unload_lightmap() {
+void Level::unload_lightmap() {
   if (lightmap.id != 0) {
     UnloadRenderTexture(lightmap);
     lightmap.id = 0;
   }
 }
-void mr::Level::begin_lightmap_mode() { BeginTextureMode(lightmap); }
-void mr::Level::end_lightmap_mode() { EndTextureMode(); }
+void Level::begin_lightmap_mode() { BeginTextureMode(lightmap); }
+void Level::end_lightmap_mode() { EndTextureMode(); }
 
-const mr::Matrix<mr::GeoCell> &mr::Level::get_const_geo_matrix() const {
+const Matrix<GeoCell> &Level::get_const_geo_matrix() const {
   return geo_matrix;
 }
-const mr::Matrix<mr::TileCell> &mr::Level::get_const_tile_matrix() const {
+const Matrix<TileCell> &Level::get_const_tile_matrix() const {
   return tile_matrix;
 }
-const std::vector<mr::Effect> &mr::Level::get_const_effects() const {
+const std::vector<Effect> &Level::get_const_effects() const {
   return effects;
 }
 
-void mr::Level::resize(int16_t left, int16_t top, int16_t right,
-                       int16_t bottom) {
+void Level::resize(int16_t left, int16_t top, int16_t right,
+                      int16_t bottom) {
   if (left == 0 && top == 0 && right == 0 && bottom == 0)
     return;
   if (-left == width || -right == width || -top == height || -bottom == height)
@@ -90,24 +130,27 @@ void mr::Level::resize(int16_t left, int16_t top, int16_t right,
   }
 }
 
-mr::Level::Level(uint16_t width, uint16_t height)
+Level::Level(uint16_t width, uint16_t height)
     : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), geo_matrix(width, height),
       tile_matrix(width, height), water(-1), front_water(false), light(true),
       terrain(true), lightmap(RenderTexture2D{0}) {}
 
-mr::Level::Level(uint16_t width, uint16_t height,
+Level::Level(uint16_t width, uint16_t height,
 
-                 mr::Matrix<mr::GeoCell> &&geo_matrix,
-                 mr::Matrix<mr::TileCell> &&tile_matrix,
-                 std::vector<mr::Effect> &&ffects,
-                 std::vector<mr::LevelCamera> &&cameras,
+                Matrix<GeoCell> &&geo_matrix,
+                Matrix<TileCell> &&tile_matrix,
+                std::vector<Effect> &&ffects,
+                std::vector<LevelCamera> &&cameras,
 
-                 int8_t water, bool light, bool terrain, bool front_water)
+                int8_t water, bool light, bool terrain, bool front_water)
     : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), water(water), front_water(front_water),
       light(light), terrain(terrain), tile_matrix(std::move(tile_matrix)),
       geo_matrix(std::move(geo_matrix)), lightmap(RenderTexture2D{0}) {}
 
-mr::Level::~Level() {
+Level::~Level() {
   if (lightmap.id != 0)
     UnloadRenderTexture(this->lightmap);
 }
+
+};
+

@@ -287,24 +287,16 @@ void context::set_config(config c) noexcept {
 }
 
 context::context(std::shared_ptr<spdlog::logger> logger,
-                 std::shared_ptr<dirs> dirs)
+                 std::shared_ptr<dirs> dirs, textures *_textures)
     : logger(logger), 
       directories(dirs),
-      textures_(std::make_unique<textures>(directories)),
+      textures_(_textures),
       _shaders(dirs->get_shaders()),
       f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
       camera(Camera2D{Vector2{1, 40}, Vector2{0, 0}, 0, 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}
-context::context(std::shared_ptr<spdlog::logger> logger, std::shared_ptr<dirs> dirs, std::unique_ptr<textures> _textures)
-    : logger(logger), 
-      directories(dirs), 
-      textures_(std::move(_textures)),
-      _shaders(dirs->get_shaders()),
-      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
-      camera(Camera2D{Vector2{1, 40}, Vector2{0, 0}, 0, 0.5f}),
-      enable_global_shortcuts(true),
-      level_layer_(0) {}
+
 
 context::~context() {
   if (!levels.empty()) {

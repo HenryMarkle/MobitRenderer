@@ -18,11 +18,8 @@
 
 namespace mr::pages {
 
-// TODO: Move this definition to its own, dedicated file.
-Page::Page(std::shared_ptr<context> ctx) : ctx(ctx) {}
-
-Start_Page::Start_Page(std::shared_ptr<context> ctx)
-    : Page(ctx), explorer_(ctx->directories, ctx->textures_.get()),
+Start_Page::Start_Page(context *ctx)
+    : Page(ctx), explorer_(ctx->directories, ctx->textures_),
       loaded_level(nullptr), project_load_thread(nullptr),
       loaded_project_was_handled(true), explorer_file_clicked(false) {
   explorer_.set_filters({".txt"});

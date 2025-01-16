@@ -66,12 +66,12 @@ int main() {
 
   logger->info("initializing context");
 
-  shared_ptr<mr::context> ctx =
-      std::make_shared<mr::context>(logger, directories);
+  auto *textures = new mr::textures(directories);
+  auto *ctx = new mr::context(logger, directories, textures);
 
   logger->info("importing tiles");
   
-  auto tiledex = std::make_shared<mr::TileDex>();
+  auto *tiledex = new mr::TileDex();
   tiledex->register_from(directories->get_tiles() / "Init.txt");
 
   logger->info("initializing window");
@@ -103,15 +103,17 @@ int main() {
 
   logger->info("initializing main viewport");
 
-  ctx->textures_->main_level_viewport = mr::rendertexture(72 * 20, 53 * 20);
-  ctx->textures_->reload_all_textures();
+  textures->main_level_viewport = mr::rendertexture(72 * 20, 53 * 20);
 
-  BeginTextureMode(ctx->textures_->get_main_level_viewport());
+  BeginTextureMode(textures->get_main_level_viewport());
   ClearBackground(BLACK);
   EndTextureMode();
 
-  auto pe =
-      std::make_unique<mr::ProjectExplorer>(directories, ctx->textures_.get());
+  logger->info("loading textures");
+
+  textures->reload_all_textures();
+
+  auto pe = std::make_unique<mr::ProjectExplorer>(directories, textures);
 
   logger->info("initializing pages");
 
@@ -220,9 +222,21 @@ int main() {
         f3->print(" PPID ", true);
         f3->print(pager->get_previous_index(), true);
 
-        f3->print_queue();
+        auto *current_level = ctx->get_selected_level();
+        
+        if (current_level != nullptr) {
+          f3->print("Project ");
+          f3->print(current_level->get_name(), true);
+
+          f3->print("W ");
+          f3->print(current_level->get_width(), true);
+          
+          f3->print(" H ", true);
+          f3->print(current_level->get_height(), true);
+        }
+
+        pager->current_f3();
       }
-      ctx->f3_->reset();
     }
     EndDrawing();
 
@@ -234,7 +248,7 @@ int main() {
       while (!ctx->events.empty() && handled_events < EVENT_THRESHOLD) {
         auto &event = ctx->events.front();
 
-        handlers[event.type](ctx.get(), pager, event.payload);
+        handlers[event.type](ctx, pager, event.payload);
         ctx->events.pop();
 
         handled_events++;
@@ -245,9 +259,9 @@ int main() {
   logger->info("exiting loop");
 
   delete pager;
-  ctx.reset();
-  tiledex->unload_textures();
-  tiledex.reset();
+  delete ctx;
+  delete tiledex;
+  delete textures;
 
   rlImGuiShutdown();
 

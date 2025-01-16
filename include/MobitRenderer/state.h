@@ -177,7 +177,7 @@ private:
 public:
   std::shared_ptr<spdlog::logger> logger;
   std::shared_ptr<dirs> directories;
-  std::unique_ptr<textures> textures_;
+  textures *textures_;
   std::shared_ptr<mr::debug::f3> f3_;
   std::queue<context_event> events;
   Camera2D &get_camera();
@@ -210,9 +210,7 @@ public:
   void set_config(config) noexcept;
 
   context() = delete;
-  context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);
-  context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>,
-          std::unique_ptr<textures>);
+  context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>, textures*);
   ~context();
 };
 

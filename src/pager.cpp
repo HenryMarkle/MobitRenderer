@@ -94,8 +94,16 @@ void pager::current_windows() noexcept {
     case 3: _tile_page.windows(); break;
   }
 }
+void pager::current_f3() const noexcept {
+  switch (_selected) {
+    case 0: _start_page.f3(); break;
+    case 1: _main_page.f3(); break;
+    case 2: _geo_page.f3(); break;
+    case 3: _tile_page.f3(); break;
+  }
+}
 
-pager::pager(std::shared_ptr<context> ctx) :
+pager::pager(context *ctx) :
   _selected(0),
   _previous(0),
   _start_page(Start_Page(ctx)),

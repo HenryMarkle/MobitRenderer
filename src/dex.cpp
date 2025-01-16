@@ -190,6 +190,8 @@ TileDex::TileDex(TileDex &&other) noexcept {
     _category_tiles = std::move(other._category_tiles);
     _category_colors = std::move(other._category_colors);
 }
-TileDex::~TileDex() {}
+TileDex::~TileDex() {
+    unload_textures();
+}
 
 };

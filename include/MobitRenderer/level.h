@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <raylib.h>
 
@@ -59,6 +60,10 @@ struct Effect {
 /// @attention Resizing and destruction requires OpenGL context.
 class Level {
 private:
+
+  std::string name;
+  std::filesystem::path path, directory_path, lightmap_path;
+
   levelsize width, height;
   levelpixelsize pxwidth, pxheight;
 
@@ -69,9 +74,33 @@ private:
   RenderTexture2D lightmap;
 
 public:
+
   int8_t water;
   bool light, terrain, front_water;
   std::vector<LevelCamera> cameras;
+
+  const std::string &get_name() const noexcept;
+
+  /// @note This will update the path, directory 
+  /// and the path of the lightmap.
+  void set_name(std::string);
+
+  /// @brief Gets the file path of the level.
+  const std::filesystem::path &get_path() const noexcept;
+
+  /// @note This will update the name, path, directory 
+  /// and the path of the lightmap.
+  void set_path(std::filesystem::path);
+
+  /// @brief Gets the directory path of the level.
+  const std::filesystem::path &get_directory() const noexcept;
+  
+  /// @note This will update the path, directory 
+  /// and the path of the lightmap.
+  void set_directory(std::filesystem::path);
+
+  /// @brief Gets the file path of the lightmap.
+  const std::filesystem::path &get_lightmap_path() const noexcept;
 
   /// @return Retrieves the level width in units of 20 px^2.
   levelsize get_width() const noexcept;

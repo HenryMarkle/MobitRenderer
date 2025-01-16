@@ -16,23 +16,26 @@ namespace mr::pages {
 
 class Page {
 protected:
-  std::shared_ptr<context> ctx;
+  context *ctx;
 
-  Page(std::shared_ptr<context>);
+  Page(context*);
 
 public:
   /// @brief Updates the state of the page.
   /// @attention Do not call drawing functions here.
-  virtual void process() = 0;
+  virtual void process();
 
   /// @brief Draws the content of the page
-  virtual void draw() noexcept = 0;
+  virtual void draw() noexcept;
 
   /// @brief Draws ImGui windows
-  virtual void windows() noexcept = 0;
+  virtual void windows() noexcept;
+
+  /// @brief Draws debug information
+  virtual void f3() const noexcept;
 
   /// @brief Propagates texture buffer refreshing.
-  virtual void order_level_redraw() noexcept = 0;
+  virtual void order_level_redraw() noexcept;
 
   virtual ~Page() = default;
 };
@@ -77,7 +80,7 @@ public:
   virtual void windows() noexcept override;
   virtual void order_level_redraw() noexcept override;
 
-  Start_Page(std::shared_ptr<context>);
+  Start_Page(context*);
 
   virtual ~Start_Page() override;
 };
@@ -94,7 +97,7 @@ public:
   virtual void windows() noexcept override;
   virtual void order_level_redraw() noexcept override;
 
-  Main_Page(std::shared_ptr<context>);
+  Main_Page(context*);
 
   virtual ~Main_Page() override;
 };
@@ -115,8 +118,9 @@ public:
   virtual void draw() noexcept override;
   virtual void windows() noexcept override;
   virtual void order_level_redraw() noexcept override;
+  virtual void f3() const noexcept;
 
-  Geo_Page(std::shared_ptr<context>);
+  Geo_Page(context*);
 
   virtual ~Geo_Page() override;
 };
@@ -137,8 +141,9 @@ public:
   virtual void draw() noexcept override;
   virtual void windows() noexcept override;
   virtual void order_level_redraw() noexcept override;
+  virtual void f3() const noexcept;
 
-  Tile_Page(std::shared_ptr<context>);
+  Tile_Page(context*);
 
   virtual ~Tile_Page() override;
 };
@@ -163,11 +168,14 @@ int get_previous_index() const noexcept;
 void current_process();
 void current_draw() noexcept;
 void current_windows() noexcept;
+void current_f3() const noexcept;
 
 pager &operator=(pager const&) = delete;
 
-pager(std::shared_ptr<context>);
+pager(context*);
 pager(pager const&) = delete;
 ~pager();
+
 };
+
 }; // namespace mr::pages
