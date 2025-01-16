@@ -55,8 +55,6 @@ TileDefCategory deser_tiledef_category(const mp::Node *node) {
   return TileDefCategory{name_string_node->str, color};
 }
 
-/// @brief Deserializes a tile definition (Init).
-/// @warning Incomplete implementation.
 std::shared_ptr<TileDef> deser_tiledef(const mp::Node *node) {
   const mp::Props *props = dynamic_cast<const mp::Props*>(node);
   
