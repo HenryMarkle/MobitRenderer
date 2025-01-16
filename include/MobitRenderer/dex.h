@@ -58,7 +58,7 @@ const std::map<std::string, Color> &colors() const noexcept;
 /// @brief Registers tiles from a directory.
 /// @param file The path to the Init.txt file.
 /// @attention The path's parent directory must contain the tile textures.
-void register_from_dir(std::filesystem::path const&file);
+void register_from(std::filesystem::path const&file);
 
 /// @brief Unloads all textures of tiles.
 void unload_textures();

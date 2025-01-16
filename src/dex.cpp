@@ -6,6 +6,7 @@
 #include <memory>
 #include <exception>
 #include <filesystem>
+#include <iostream>
 
 #include <MobitParser/exceptions.h>
 #include <MobitParser/tokens.h>
@@ -32,7 +33,7 @@ const std::vector<std::vector<std::shared_ptr<TileDef>>> &TileDex::sorted_tiles(
 const std::map<std::string, std::vector<std::shared_ptr<TileDef>>> &TileDex::category_tiles() const noexcept { return _category_tiles; }
 const std::map<std::string, Color> &TileDex::colors() const noexcept { return _category_colors; }
 
-void TileDex::register_from_dir(path const&file) {
+void TileDex::register_from(path const&file) {
     if (!exists(file)) return;
 
     path init_dir = file.parent_path();
@@ -47,11 +48,13 @@ void TileDex::register_from_dir(path const&file) {
     }
 
     int counter = 0;
-    TileDefCategory current_category = {0};
+    TileDefCategory current_category = {"", Color{0}};
     bool category_parsed = false;
 
     while (init.peek() && init.peek() != EOF) {
         counter++;
+
+        while (init.peek() == '\n') init.get();
 
         // category
         if (init.peek() == '-') {
@@ -71,7 +74,7 @@ void TileDex::register_from_dir(path const&file) {
                 _categories.push_back(category);
                 _category_colors[category.name] = category.color;
                 _category_tiles[category.name] = std::vector<std::shared_ptr<TileDef>>();
-                _sorted_tiles[_categories.size() - 1] = std::vector<std::shared_ptr<TileDef>>();
+                _sorted_tiles.push_back(std::vector<std::shared_ptr<TileDef>>());
 
                 current_category = category;
                 category_parsed = true;
@@ -116,15 +119,17 @@ void TileDex::register_from_dir(path const&file) {
                 auto tiledef = deser_tiledef(def_node.get());
 
                 if (_tiles.find(tiledef->get_name()) != _tiles.end()) {
-                    init.close();
-                    std::ostringstream msg;
-                    msg 
-                        << "duplicate tile definition at line" 
-                        << counter 
-                        << " '" 
-                        << tiledef->get_name() 
-                        << "'";
-                    throw dex_error(msg.str());
+                    continue;
+
+                    // init.close();
+                    // std::ostringstream msg;
+                    // msg 
+                    //     << "duplicate tile definition at line " 
+                    //     << counter 
+                    //     << " '" 
+                    //     << tiledef->get_name() 
+                    //     << "'";
+                    // throw dex_error(msg.str());
                 }
 
                 tiledef->set_texture_path(init_dir / (tiledef->get_name() + ".png"));

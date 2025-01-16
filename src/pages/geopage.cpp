@@ -2,6 +2,7 @@
   #define WIN32_LEAN_AND_MEAN
 #endif
 
+#include <memory>
 #include <cstdint>
 
 #include <raylib.h>
@@ -19,7 +20,7 @@ void Geo_Page::process() {
 
   if (wheel != 0) {
 
-    auto &camera = ctx_->get_camera();
+    auto &camera = ctx->get_camera();
     auto mouseWorldPosition = GetScreenToWorld2D(GetMousePosition(), camera);
     
     camera.offset = GetMousePosition();
@@ -30,7 +31,7 @@ void Geo_Page::process() {
 
   if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
     auto delta = GetMouseDelta();
-    auto &camera = ctx_->get_camera();
+    auto &camera = ctx->get_camera();
 
     delta = Vector2Scale(delta, -1.0f / camera.zoom);
     
@@ -38,25 +39,25 @@ void Geo_Page::process() {
     camera.target.y += delta.y;
   }
 
-  auto f3 = ctx_->f3_;
-  auto camera = ctx_->get_camera();
+  auto f3 = ctx->f3_;
+  auto camera = ctx->get_camera();
 
   f3->enqueue("W ");
-  f3->enqueue(ctx_->get_selected_level()->get_width(), true);
+  f3->enqueue(ctx->get_selected_level()->get_width(), true);
   f3->enqueue(" H ", true);
-  f3->enqueue(ctx_->get_selected_level()->get_height(), true);
+  f3->enqueue(ctx->get_selected_level()->get_height(), true);
 
   f3->enqueue("Zoom ");
-  f3->enqueue(ctx_->get_camera().zoom, true);
+  f3->enqueue(ctx->get_camera().zoom, true);
 
   f3->enqueue("Target ");
-  f3->enqueue(ctx_->get_camera().target, true);
+  f3->enqueue(ctx->get_camera().target, true);
 
   f3->enqueue("Offset ");
-  f3->enqueue(ctx_->get_camera().offset, true);
+  f3->enqueue(ctx->get_camera().offset, true);
 
   {
-    auto mouse = GetScreenToWorld2D(GetMousePosition(), ctx_->get_camera());
+    auto mouse = GetScreenToWorld2D(GetMousePosition(), ctx->get_camera());
     f3->enqueue("Position ");
     f3->enqueue(mouse, true);
 
@@ -68,19 +69,19 @@ void Geo_Page::process() {
   }
 
   f3->enqueue("Grid ");
-  f3->enqueue(ctx_->get_config_const().grid.visible, true);
+  f3->enqueue(ctx->get_config_const().grid.visible, true);
 
   f3->enqueue("Layer Pointer: Global");
   f3->enqueue("L ");
-  f3->enqueue((int)ctx_->level_layer_, true);
+  f3->enqueue((int)ctx->level_layer_, true);
 }
 void Geo_Page::draw() noexcept {
   if (should_redraw1) {
-    BeginTextureMode(ctx_->textures_->geo_layer1.get());
+    BeginTextureMode(ctx->textures_->geo_layer1.get());
 
     ClearBackground(WHITE);
 
-    auto *level = ctx_->get_selected_level();
+    auto *level = ctx->get_selected_level();
     auto &gmatrix = level->get_geo_matrix();
 
     for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
@@ -99,11 +100,11 @@ void Geo_Page::draw() noexcept {
   }
   
   if (should_redraw2) {
-    BeginTextureMode(ctx_->textures_->geo_layer2.get());
+    BeginTextureMode(ctx->textures_->geo_layer2.get());
 
     ClearBackground(WHITE);
 
-    auto *level = ctx_->get_selected_level();
+    auto *level = ctx->get_selected_level();
     auto &gmatrix = level->get_geo_matrix();
 
     for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
@@ -122,11 +123,11 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw3) {
-    BeginTextureMode(ctx_->textures_->geo_layer3.get());
+    BeginTextureMode(ctx->textures_->geo_layer3.get());
 
     ClearBackground(WHITE);
 
-    auto *level = ctx_->get_selected_level();
+    auto *level = ctx->get_selected_level();
     auto &gmatrix = level->get_geo_matrix();
 
     for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
@@ -145,18 +146,18 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw_feature1) {
-    BeginTextureMode(ctx_->textures_->feature_layer1.get());
+    BeginTextureMode(ctx->textures_->feature_layer1.get());
 
     ClearBackground(WHITE);
 
-    auto *level = ctx_->get_selected_level();
+    auto *level = ctx->get_selected_level();
     auto &gmatrix = level->get_geo_matrix();
 
     for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
       for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
         auto cell1 = gmatrix.get_copy(x, y, 0);
 
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx_->textures_->geometry_editor);
+        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx->textures_->geometry_editor);
       }
     }
 
@@ -167,18 +168,18 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw_feature2) {
-    BeginTextureMode(ctx_->textures_->feature_layer2.get());
+    BeginTextureMode(ctx->textures_->feature_layer2.get());
 
     ClearBackground(WHITE);
 
-    auto *level = ctx_->get_selected_level();
+    auto *level = ctx->get_selected_level();
     auto &gmatrix = level->get_geo_matrix();
 
     for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
       for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
         auto cell1 = gmatrix.get_copy(x, y, 1);
 
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx_->textures_->geometry_editor);
+        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx->textures_->geometry_editor);
       }
     }
 
@@ -189,18 +190,18 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw_feature3) {
-    BeginTextureMode(ctx_->textures_->feature_layer3.get());
+    BeginTextureMode(ctx->textures_->feature_layer3.get());
 
     ClearBackground(WHITE);
 
-    auto *level = ctx_->get_selected_level();
+    auto *level = ctx->get_selected_level();
     auto &gmatrix = level->get_geo_matrix();
 
     for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
       for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
         auto cell1 = gmatrix.get_copy(x, y, 2);
 
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx_->textures_->geometry_editor);
+        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx->textures_->geometry_editor);
       }
     }
 
@@ -211,20 +212,20 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw) {
-    BeginTextureMode(ctx_->textures_->get_main_level_viewport());
+    BeginTextureMode(ctx->textures_->get_main_level_viewport());
     {
       ClearBackground(Color{190, 190, 190, 255});
 
-      const auto& shader = ctx_->get_shaders_const().white_remover_apply_color(); 
+      const auto& shader = ctx->get_shaders_const().white_remover_apply_color(); 
       BeginShaderMode(shader);
       {
-        const auto geo3 = ctx_->textures_->geo_layer3.get().texture;
-        const auto geo2 = ctx_->textures_->geo_layer2.get().texture;
-        const auto geo1 = ctx_->textures_->geo_layer1.get().texture;
+        const auto geo3 = ctx->textures_->geo_layer3.get().texture;
+        const auto geo2 = ctx->textures_->geo_layer2.get().texture;
+        const auto geo1 = ctx->textures_->geo_layer1.get().texture;
         
-        const auto feature3 = ctx_->textures_->feature_layer3.get().texture;
-        const auto feature2 = ctx_->textures_->feature_layer2.get().texture;
-        const auto feature1 = ctx_->textures_->feature_layer1.get().texture;
+        const auto feature3 = ctx->textures_->feature_layer3.get().texture;
+        const auto feature2 = ctx->textures_->feature_layer2.get().texture;
+        const auto feature1 = ctx->textures_->feature_layer1.get().texture;
 
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), geo1);
         DrawTexture(geo1, 0, 0, BLACK);
@@ -251,16 +252,16 @@ void Geo_Page::draw() noexcept {
 
   ClearBackground(DARKGRAY);
 
-  BeginMode2D(ctx_->get_camera());
+  BeginMode2D(ctx->get_camera());
 
-  auto level = ctx_->get_selected_level();
+  auto level = ctx->get_selected_level();
   auto &mtx = level->get_const_geo_matrix();
   auto width = mtx.get_width(), height = mtx.get_height();
 
   DrawRectangle(0, 0, width * 20, height * 20, GRAY);
-  DrawTexture(ctx_->textures_->get_main_level_viewport().texture, 0, 0, WHITE);
+  DrawTexture(ctx->textures_->get_main_level_viewport().texture, 0, 0, WHITE);
 
-  if (ctx_->get_config_const().grid.visible) {
+  if (ctx->get_config_const().grid.visible) {
     mr::draw_nested_grid(72, 43, Color{130, 130, 130, 200});
   }
 
@@ -274,10 +275,7 @@ void Geo_Page::order_level_redraw() noexcept {
   should_redraw = true;
 }
 
-Geo_Page::Geo_Page(
-  std::shared_ptr<context> ctx, 
-  std::shared_ptr<spdlog::logger> logger
-) : Page(ctx, logger), 
+Geo_Page::Geo_Page(std::shared_ptr<context> ctx) : Page(ctx), 
   should_redraw1(true), 
   should_redraw2(true), 
   should_redraw3(true),
@@ -287,4 +285,5 @@ Geo_Page::Geo_Page(
   should_redraw(true) {}
 
 Geo_Page::~Geo_Page() {}
+
 };

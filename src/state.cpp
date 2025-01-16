@@ -49,8 +49,8 @@ dirs::dirs() {
   assets = executable / "Assets";
   #endif
 
-  // data = executable / "Data";
-  // assets = executable / "Assets";
+  data = executable / "Data";
+  assets = executable / "Assets";
 
   projects = executable / "Projects";
   levels = executable / "Levels";
@@ -342,66 +342,99 @@ void textures::resize_all_level_buffers(int width, int height) {
   main_level_viewport = std::move(new_viewport);
 
   // geo buffers
+  {
+    auto new_geo_layer1 = rendertexture(width, height);
+    auto new_geo_layer2 = rendertexture(width, height);
+    auto new_geo_layer3 = rendertexture(width, height);
 
-  auto new_geo_layer1 = rendertexture(width, height);
-  auto new_geo_layer2 = rendertexture(width, height);
-  auto new_geo_layer3 = rendertexture(width, height);
+    BeginTextureMode(new_geo_layer1.get());
+    ClearBackground(WHITE);
+    if (geo_layer1.is_loaded()) {
+      DrawTexture(geo_layer1.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
 
-  BeginTextureMode(new_geo_layer1.get());
-  ClearBackground(WHITE);
-  if (geo_layer1.is_loaded()) {
-    DrawTexture(geo_layer1.get().texture, 0, 0, WHITE);
+    BeginTextureMode(new_geo_layer2.get());
+    ClearBackground(WHITE);
+    if (geo_layer2.is_loaded()) {
+      DrawTexture(geo_layer2.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    BeginTextureMode(new_geo_layer3.get());
+    ClearBackground(WHITE);
+    if (geo_layer3.is_loaded()) {
+      DrawTexture(geo_layer3.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    geo_layer1 = std::move(new_geo_layer1);
+    geo_layer2 = std::move(new_geo_layer2);
+    geo_layer3 = std::move(new_geo_layer3);
   }
-  EndTextureMode();
-
-  BeginTextureMode(new_geo_layer2.get());
-  ClearBackground(WHITE);
-  if (geo_layer2.is_loaded()) {
-    DrawTexture(geo_layer2.get().texture, 0, 0, WHITE);
-  }
-  EndTextureMode();
-
-  BeginTextureMode(new_geo_layer3.get());
-  ClearBackground(WHITE);
-  if (geo_layer3.is_loaded()) {
-    DrawTexture(geo_layer3.get().texture, 0, 0, WHITE);
-  }
-  EndTextureMode();
-
-  geo_layer1 = std::move(new_geo_layer1);
-  geo_layer2 = std::move(new_geo_layer2);
-  geo_layer3 = std::move(new_geo_layer3);
-
   // feature buffers
+  {
 
-  auto new_feature_layer1 = rendertexture(width, height);
-  auto new_feature_layer2 = rendertexture(width, height);
-  auto new_feature_layer3 = rendertexture(width, height);
+    auto new_feature_layer1 = rendertexture(width, height);
+    auto new_feature_layer2 = rendertexture(width, height);
+    auto new_feature_layer3 = rendertexture(width, height);
 
-  BeginTextureMode(feature_layer1.get());
-  ClearBackground(WHITE);
-  if (feature_layer1.is_loaded()) {
-    DrawTexture(feature_layer1.get().texture, 0, 0, WHITE);
+    BeginTextureMode(feature_layer1.get());
+    ClearBackground(WHITE);
+    if (feature_layer1.is_loaded()) {
+      DrawTexture(feature_layer1.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    BeginTextureMode(feature_layer2.get());
+    ClearBackground(WHITE);
+    if (feature_layer2.is_loaded()) {
+      DrawTexture(feature_layer2.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    BeginTextureMode(new_feature_layer3.get());
+    ClearBackground(WHITE);
+    if (feature_layer3.is_loaded()) {
+      DrawTexture(feature_layer3.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    feature_layer1 = std::move(new_feature_layer1);
+    feature_layer2 = std::move(new_feature_layer2);
+    feature_layer3 = std::move(new_feature_layer3);
   }
-  EndTextureMode();
+  // Tile buffers
+  {
+    auto new_tile_layer1 = rendertexture(width, height);
+    auto new_tile_layer2 = rendertexture(width, height);
+    auto new_tile_layer3 = rendertexture(width, height);
 
-  BeginTextureMode(feature_layer2.get());
-  ClearBackground(WHITE);
-  if (feature_layer2.is_loaded()) {
-    DrawTexture(feature_layer2.get().texture, 0, 0, WHITE);
+    BeginTextureMode(new_tile_layer1.get());
+    ClearBackground(WHITE);
+    if (tile_layer1.is_loaded()) {
+      DrawTexture(tile_layer1.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    BeginTextureMode(new_tile_layer2.get());
+    ClearBackground(WHITE);
+    if (tile_layer2.is_loaded()) {
+      DrawTexture(tile_layer2.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    BeginTextureMode(new_tile_layer3.get());
+    ClearBackground(WHITE);
+    if (tile_layer3.is_loaded()) {
+      DrawTexture(tile_layer3.get().texture, 0, 0, WHITE);
+    }
+    EndTextureMode();
+
+    tile_layer1 = std::move(new_tile_layer1);
+    tile_layer2 = std::move(new_tile_layer2);
+    tile_layer3 = std::move(new_tile_layer3);
   }
-  EndTextureMode();
-
-  BeginTextureMode(new_feature_layer3.get());
-  ClearBackground(WHITE);
-  if (feature_layer3.is_loaded()) {
-    DrawTexture(feature_layer3.get().texture, 0, 0, WHITE);
-  }
-  EndTextureMode();
-
-  feature_layer1 = std::move(new_feature_layer1);
-  feature_layer2 = std::move(new_feature_layer2);
-  feature_layer3 = std::move(new_feature_layer3);
 }
 
 textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)

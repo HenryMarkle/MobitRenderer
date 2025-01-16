@@ -180,9 +180,12 @@ std::shared_ptr<TileDef> deser_tiledef(const mp::Node *node) {
     try {
       specs2 = deser_int8_vec(spc2_node->second.get());
     } catch (deserialization_failure &e) {
-      std::string msg("failed to deserialize property 'specs2': ");
-      msg += e.what();
-      throw deserialization_failure(msg);
+      const mp::List *list = dynamic_cast<const mp::List*>(spc2_node->second.get());
+      if (list != nullptr) {
+        std::string msg("failed to deserialize property 'specs2': ");
+        msg += e.what();
+        throw deserialization_failure(msg);
+      }
     }
   }
 
@@ -191,9 +194,12 @@ std::shared_ptr<TileDef> deser_tiledef(const mp::Node *node) {
     try {
       specs3 = deser_int8_vec(spc3_node->second.get());
     } catch (deserialization_failure &e) {
-      std::string msg("failed to deserialize property 'specs3': ");
-      msg += e.what();
-      throw deserialization_failure(msg);
+      const mp::List *list = dynamic_cast<const mp::List*>(spc3_node->second.get());
+      if (list != nullptr) {
+        std::string msg("failed to deserialize property 'specs3': ");
+        msg += e.what();
+        throw deserialization_failure(msg);
+      }
     }
   }
 

@@ -54,4 +54,55 @@ Pager::~Pager() {
     delete p;
 }
 
+void pager::select(int index) noexcept {
+  if (index < 0 || index > 3) return;
+  _previous = _selected;
+  _selected = index;
+
+  switch (_selected) {
+    case 0: _start_page.order_level_redraw(); break;
+    case 1: _main_page.order_level_redraw(); break;
+    case 2: _geo_page.order_level_redraw(); break;
+    case 3: _tile_page.order_level_redraw(); break;
+  }
+}
+
+int pager::get_selected_index() const noexcept { return _selected; }
+int pager::get_previous_index() const noexcept { return _previous; }
+
+void pager::current_process() {
+  switch (_selected) {
+    case 0: _start_page.process(); break;
+    case 1: _main_page.process(); break;
+    case 2: _geo_page.process(); break;
+    case 3: _tile_page.process(); break;
+  }
+}
+void pager::current_draw() noexcept {
+  switch (_selected) {
+    case 0: _start_page.draw(); break;
+    case 1: _main_page.draw(); break;
+    case 2: _geo_page.draw(); break;
+    case 3: _tile_page.draw(); break;
+  }
+}
+void pager::current_windows() noexcept {
+  switch (_selected) {
+    case 0: _start_page.windows(); break;
+    case 1: _main_page.windows(); break;
+    case 2: _geo_page.windows(); break;
+    case 3: _tile_page.windows(); break;
+  }
+}
+
+pager::pager(std::shared_ptr<context> ctx) :
+  _selected(0),
+  _previous(0),
+  _start_page(Start_Page(ctx)),
+  _main_page(Main_Page(ctx)),
+  _geo_page(Geo_Page(ctx)),
+  _tile_page(Tile_Page(ctx)) {}
+
+pager::~pager() {}
+
 }; // namespace mr::pages

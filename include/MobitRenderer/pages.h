@@ -16,10 +16,9 @@ namespace mr::pages {
 
 class Page {
 protected:
-  std::shared_ptr<context> ctx_;
-  std::shared_ptr<spdlog::logger> logger_;
+  std::shared_ptr<context> ctx;
 
-  Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+  Page(std::shared_ptr<context>);
 
 public:
   /// @brief Updates the state of the page.
@@ -78,7 +77,7 @@ public:
   virtual void windows() noexcept override;
   virtual void order_level_redraw() noexcept override;
 
-  Start_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+  Start_Page(std::shared_ptr<context>);
 
   virtual ~Start_Page() override;
 };
@@ -95,7 +94,7 @@ public:
   virtual void windows() noexcept override;
   virtual void order_level_redraw() noexcept override;
 
-  Main_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+  Main_Page(std::shared_ptr<context>);
 
   virtual ~Main_Page() override;
 };
@@ -117,8 +116,58 @@ public:
   virtual void windows() noexcept override;
   virtual void order_level_redraw() noexcept override;
 
-  Geo_Page(std::shared_ptr<context>, std::shared_ptr<spdlog::logger>);
+  Geo_Page(std::shared_ptr<context>);
 
   virtual ~Geo_Page() override;
+};
+
+class Tile_Page : public Page {
+private:
+  bool 
+    should_redraw, 
+    should_redraw1,
+    should_redraw2,
+    should_redraw3,
+    should_redraw_tile1,
+    should_redraw_tile2,
+    should_redraw_tile3;
+
+public:
+  virtual void process() override;
+  virtual void draw() noexcept override;
+  virtual void windows() noexcept override;
+  virtual void order_level_redraw() noexcept override;
+
+  Tile_Page(std::shared_ptr<context>);
+
+  virtual ~Tile_Page() override;
+};
+
+class pager {
+
+private:
+
+Start_Page _start_page;
+Main_Page _main_page;
+Geo_Page _geo_page;
+Tile_Page _tile_page;
+
+int _selected, _previous;
+
+public:
+
+void select(int) noexcept;
+int get_selected_index() const noexcept;
+int get_previous_index() const noexcept;
+
+void current_process();
+void current_draw() noexcept;
+void current_windows() noexcept;
+
+pager &operator=(pager const&) = delete;
+
+pager(std::shared_ptr<context>);
+pager(pager const&) = delete;
+~pager();
 };
 }; // namespace mr::pages

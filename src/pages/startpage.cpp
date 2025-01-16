@@ -19,12 +19,10 @@
 namespace mr::pages {
 
 // TODO: Move this definition to its own, dedicated file.
-Page::Page(std::shared_ptr<context> ctx, std::shared_ptr<spdlog::logger> logger)
-    : ctx_(ctx), logger_(logger) {}
+Page::Page(std::shared_ptr<context> ctx) : ctx(ctx) {}
 
-Start_Page::Start_Page(std::shared_ptr<context> ctx,
-                       std::shared_ptr<spdlog::logger> logger)
-    : Page(ctx, logger), explorer_(ctx->directories, ctx->textures_.get()),
+Start_Page::Start_Page(std::shared_ptr<context> ctx)
+    : Page(ctx), explorer_(ctx->directories, ctx->textures_.get()),
       loaded_level(nullptr), project_load_thread(nullptr),
       loaded_project_was_handled(true), explorer_file_clicked(false) {
   explorer_.set_filters({".txt"});
@@ -39,8 +37,8 @@ void Start_Page::process() {
     project_thread_done = false;
 
     std::stringstream sb;
-    sb << "begin loading level " << '"' << file << '"' << ".\n";
-    ctx_->logger->info(sb.str());
+    sb << "begin loading level " << file->stem();
+    ctx->logger->info(sb.str());
 
     project_load_thread = std::make_unique<std::thread>([this, file]() {
       try {
@@ -86,13 +84,13 @@ void Start_Page::process() {
         UnloadTexture(lightmap);
       }
 
-      ctx_->textures_->resize_all_level_buffers(
+      ctx->textures_->resize_all_level_buffers(
         loaded_level->get_width()  * 20, 
         loaded_level->get_height() * 20
       );
-      ctx_->add_level(std::move(loaded_level));
-      ctx_->select_level(0);
-      ctx_->events.push(context_event{context_event_type::level_loaded, nullptr});
+      ctx->add_level(std::move(loaded_level));
+      ctx->select_level(0);
+      ctx->events.push(context_event{context_event_type::level_loaded, nullptr});
     }
   }
 }
@@ -103,7 +101,7 @@ void Start_Page::draw() noexcept {
   } else {
     ClearBackground(BLACK);
 
-    DrawTextEx(ctx_->get_selected_font(), "Please wait..", Vector2{0, 30}, 30,0.2f, WHITE);
+    DrawTextEx(ctx->get_selected_font(), "Please wait..", Vector2{0, 30}, 30,0.2f, WHITE);
   }
 }
 

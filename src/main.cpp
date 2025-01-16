@@ -21,6 +21,7 @@
 #include <MobitRenderer/pages.h>
 #include <MobitRenderer/state.h>
 #include <MobitRenderer/events.h>
+#include <MobitRenderer/dex.h>
 
 #define STRINGIFY_DEFINED(x) #x
 #define TO_STRING_DEFINED(x) STRINGIFY_DEFINED(x)
@@ -34,7 +35,7 @@ using std::shared_ptr;
 using std::string;
 
 typedef std::unordered_map<mr::context_event_type,
-                           void (*)(mr::context *, mr::pages::Pager *,
+                           void (*)(mr::context *, mr::pages::pager *,
                                     const std::any &)>
     event_handlers;
 
@@ -58,16 +59,24 @@ int main() {
   }
   //
 
+
+  logger->info("------ starting program");
+  logger->info("Mobit Renderer v{}.{}.{}{}", APP_VERSION_MAJOR, APP_VERSION_MINOR,
+               APP_VERSION_PATCH, IS_DEBUG_BUILD ? "Debug" : "");
+
+  logger->info("initializing context");
+
   shared_ptr<mr::context> ctx =
       std::make_shared<mr::context>(logger, directories);
 
-  logger->info("------ starting program");
-  logger->info("Mobit Renderer v{}.{}.{}", APP_VERSION_MAJOR, APP_VERSION_MINOR,
-               APP_VERSION_PATCH);
+  logger->info("importing tiles");
+  
+  auto tiledex = std::make_shared<mr::TileDex>();
+  tiledex->register_from(directories->get_tiles() / "Init.txt");
+
+  logger->info("initializing window");
 
   SetTargetFPS(40);
-
-  //  SetWindowState(FLAG_MSAA_4X_HINT);
 
   InitWindow(1200, 800, "Mobit Renderer");
 
@@ -83,7 +92,7 @@ int main() {
 
   io.ConfigDockingWithShift = true;
 
-  logger->info("initializing");
+  logger->info("loading font");
 
   ctx->get_shaders().reload_all();
 
@@ -91,6 +100,8 @@ int main() {
   auto font = LoadFont(font_path.string().c_str());
   ctx->add_font(font);
   ctx->select_font(0);
+
+  logger->info("initializing main viewport");
 
   ctx->textures_->main_level_viewport = mr::rendertexture(72 * 20, 53 * 20);
   ctx->textures_->reload_all_textures();
@@ -102,20 +113,9 @@ int main() {
   auto pe =
       std::make_unique<mr::ProjectExplorer>(directories, ctx->textures_.get());
 
-  logger->info("registering pages");
+  logger->info("initializing pages");
 
-  auto *start_page = new mr::pages::Start_Page(ctx, logger);
-  auto *main_page = new mr::pages::Main_Page(ctx, logger);
-  auto *geo_page = new mr::pages::Geo_Page(ctx, logger);
-
-  auto pager = std::make_unique<mr::pages::Pager>();
-
-  pager->push_page(start_page);
-  pager->push_page(main_page);
-  pager->push_page(geo_page);
-
-  // A page must be selected or a segmentation fault will be thrown.
-  pager->select_page(0);
+  auto *pager = new mr::pages::pager(ctx);
 
   logger->info("registering event handlers");
 
@@ -138,32 +138,32 @@ int main() {
         }
 
         if (IsKeyPressed(KEY_ONE)) {
-          pager->select_page(1);
+          pager->select(1);
         } else if (IsKeyPressed(KEY_TWO)) {
-          pager->select_page(2);
+          pager->select(2);
         } else if (IsKeyPressed(KEY_THREE)) {
-          pager->select_page(3);
+          pager->select(3);
         } else if (IsKeyPressed(KEY_FOUR)) {
-          pager->select_page(4);
+          pager->select(4);
         } else if (IsKeyPressed(KEY_FIVE)) {
-          pager->select_page(5);
+          pager->select(5);
         } else if (IsKeyPressed(KEY_SIX)) {
-          pager->select_page(6);
+          pager->select(6);
         } else if (IsKeyPressed(KEY_SEVEN)) {
-          pager->select_page(7);
+          pager->select(7);
         } else if (IsKeyPressed(KEY_EIGHT)) {
-          pager->select_page(8);
+          pager->select(8);
         } else if (IsKeyPressed(KEY_NINE)) {
-          pager->select_page(9);
+          pager->select(9);
         }
       }
     }
 
-    pager->get_current_page()->process();
+    pager->current_process();
 
     BeginDrawing();
     {
-      pager->get_current_page()->draw();
+      pager->current_draw();
 
       rlImGuiBegin();
       {
@@ -171,15 +171,15 @@ int main() {
                                      ImGui::GetMainViewport(),
                                      ImGuiDockNodeFlags_PassthruCentralNode);
 
-        pager->get_current_page()->windows();
-        auto current_page = pager->get_current_page_index();
+        pager->current_windows();
+        auto current_page = pager->get_selected_index();
 
         auto menubarOpened = ImGui::BeginMainMenuBar();
 
         if (current_page != 0 && menubarOpened) {
           auto goto_main = ImGui::MenuItem("Main", nullptr, current_page == 1, true);
           auto goto_geo = ImGui::MenuItem("Geometry", nullptr, current_page == 2, true);
-          ImGui::MenuItem("Tiles", nullptr, current_page == 3, false);
+          auto goto_tiles = ImGui::MenuItem("Tiles", nullptr, current_page == 3, true);
           ImGui::MenuItem("Cameras", nullptr, current_page == 4, false);
           ImGui::MenuItem("Light", nullptr, current_page == 5, false);
           ImGui::MenuItem("Dimensions", nullptr, current_page == 6, false);
@@ -188,10 +188,11 @@ int main() {
           ImGui::MenuItem("Settings", nullptr, current_page == 9, false);
 
           if (goto_main) {
-            ctx->events.push(mr::context_event{mr::context_event_type::goto_page, 1});
-            
+            pager->select(1);
           } else if (goto_geo) {
-            ctx->events.push(mr::context_event{mr::context_event_type::goto_page, 2});
+            pager->select(2);
+          } else if (goto_tiles) {
+            pager->select(3);
           }
         }
 
@@ -214,10 +215,10 @@ int main() {
         f3->print(GetFPS(), true);
 
         f3->print("PID ");
-        f3->print(pager->get_current_page_index(), true);
+        f3->print(pager->get_selected_index(), true);
 
         f3->print(" PPID ", true);
-        f3->print(pager->get_previous_page_index(), true);
+        f3->print(pager->get_previous_index(), true);
 
         f3->print_queue();
       }
@@ -233,7 +234,7 @@ int main() {
       while (!ctx->events.empty() && handled_events < EVENT_THRESHOLD) {
         auto &event = ctx->events.front();
 
-        handlers[event.type](ctx.get(), pager.get(), event.payload);
+        handlers[event.type](ctx.get(), pager, event.payload);
         ctx->events.pop();
 
         handled_events++;
@@ -243,8 +244,10 @@ int main() {
 
   logger->info("exiting loop");
 
-  pager.reset();
+  delete pager;
   ctx.reset();
+  tiledex->unload_textures();
+  tiledex.reset();
 
   rlImGuiShutdown();
 

@@ -93,6 +93,11 @@ public:
     feature_layer2, 
     feature_layer3;
 
+  rendertexture
+    tile_layer1,
+    tile_layer2,
+    tile_layer3;
+
   texture file_icon, folder_icon, up_icon, home_icon;
 
   GE_Textures geometry_editor;
