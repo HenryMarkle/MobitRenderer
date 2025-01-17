@@ -26,6 +26,23 @@ private:
   std::filesystem::path assets, projects, levels, data, logs;
   std::filesystem::path shaders, fonts, materials, tiles, props, cast;
 
+  bool 
+    ok, 
+    executable_found,
+    
+    assets_found,
+    shaders_found,
+    fonts_found,
+    
+    data_found,
+    tiles_found,
+    materials_found,
+    props_found,
+    cast_found,
+    
+    projects_found,
+    levels_found,
+    logs_found;
 public:
   const std::filesystem::path &get_executable() const;
 
@@ -41,6 +58,23 @@ public:
   const std::filesystem::path &get_tiles() const;
   const std::filesystem::path &get_props() const;
   const std::filesystem::path &get_cast() const;
+
+  inline bool is_ok() const noexcept { return ok; } 
+  inline bool is_executable_found() const noexcept { return executable_found; }
+  
+  inline bool is_assets_found() const noexcept { return assets_found; }
+  inline bool is_shaders_found() const noexcept { return shaders_found; }
+  inline bool is_fonts_found() const noexcept { return fonts_found; }
+  
+  inline bool is_data_found() const noexcept { return data_found; }
+  inline bool is_tiles_found() const noexcept { return tiles_found; }
+  inline bool is_materials_found() const noexcept { return materials_found; }
+  inline bool is_props_found() const noexcept { return props_found; }
+  inline bool is_cast_found() const noexcept { return cast_found; }
+  
+  inline bool is_projects_found() const noexcept { return projects_found; }
+  inline bool is_levels_found() const noexcept { return levels_found; }
+  inline bool is_logs_found() const noexcept { return logs_found; }
 
   dirs();
   dirs(const std::filesystem::path &);

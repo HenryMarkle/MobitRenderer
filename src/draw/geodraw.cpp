@@ -6,14 +6,24 @@
 
 namespace mr {
 
-void draw_mtx_geo_type(GeoCell cell, int x, int y, float scale,
-                           Color color) {
+void draw_mtx_geo_type(
+  GeoCell cell, 
+  int x, 
+  int y, 
+  float scale,
+  Color color
+) {
   switch (cell.type) {
   case GeoType::solid: {
     DrawRectangleRec(
         Rectangle{
-            x * scale, y * scale, scale, scale},
-        color);
+            x * scale, 
+            y * scale, 
+            scale, 
+            scale
+        },
+        color
+    );
   } break;
 
   case GeoType::platform: {
@@ -353,6 +363,81 @@ void draw_mtx_shortcut_entrances(
   if (!cell->has_feature(GeoFeature::shortcut_entrance)) return;
 
   // TODO: Complete this
+}
+
+void draw_geo_layer(
+  Matrix<GeoCell> const& matrix, 
+  uint8_t layer, 
+  Color color,
+  float scale
+) {
+  if (layer > 2) return;
+  if (color.a == 0) return;
+
+  for (uint16_t x = 0; x < matrix.get_width(); x++) {
+    for (uint16_t y = 0; y < matrix.get_height(); y++) {
+      auto cell1 = matrix.get_copy(x, y, layer);
+
+      mr::draw_mtx_geo_type(cell1, x, y, scale, color);
+    }
+  }
+}
+
+void draw_geo_layer(
+  Matrix<GeoCell> const* matrix, 
+  uint8_t layer, 
+  Color color,
+  float scale
+) {
+  if (matrix == nullptr) return;
+  if (layer > 2) return;
+  if (color.a == 0) return;
+
+  for (uint16_t x = 0; x < matrix->get_width(); x++) {
+    for (uint16_t y = 0; y < matrix->get_height(); y++) {
+      auto cell1 = matrix->get_copy(x, y, layer);
+
+      mr::draw_mtx_geo_type(cell1, x, y, scale, color);
+    }
+  }
+}
+
+void draw_geo_and_poles_layer(
+  Matrix<GeoCell> const& matrix, 
+  uint8_t layer,
+  Color color,
+  float scale
+) {
+  if (layer > 2) return;
+  if (color.a == 0) return;
+
+  for (uint16_t x = 0; x < matrix.get_width(); x++) {
+    for (uint16_t y = 0; y < matrix.get_height(); y++) {
+      auto cell1 = matrix.get_copy(x, y, layer);
+
+      mr::draw_mtx_geo_type(cell1, x, y, scale, color);
+      mr::draw_mtx_geo_poles(cell1, x, y, scale, color);
+    }
+  }
+}
+
+void draw_geo_features_layer(
+  Matrix<GeoCell> const& matrix, 
+  const GE_Textures &atlas,
+  uint8_t layer,
+  Color color, 
+  float scale
+) {
+  if (layer > 2) return;
+  if (color.a == 0) return;
+
+  for (uint16_t x = 0; x < matrix.get_width(); x++) {
+    for (uint16_t y = 0; y < matrix.get_height(); y++) {
+      auto cell1 = matrix.get_copy(x, y, 0);
+
+      mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, atlas);
+    }
+  }
 }
 
 };

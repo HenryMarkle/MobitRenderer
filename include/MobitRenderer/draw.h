@@ -285,7 +285,7 @@ void draw_tile_from_origin_tinted(const TileDef *def, int x, int y, float scale,
 /// @param color The color of the layer to be drawn.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_geo_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Color color);
+void draw_geo_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Color color, float scale = 20.0f);
 
 /// @brief Draws an entire layer of a geometry matrix. 
 /// @param matrix A constant reference to the matrix.
@@ -293,6 +293,22 @@ void draw_geo_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Color color);
 /// @param color The color of the layer to be drawn.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_geo_layer(Matrix<GeoCell> const* matrix, uint8_t layer, Color color);
+void draw_geo_layer(Matrix<GeoCell> const* matrix, uint8_t layer, Color color, float scale = 20.0f);
+
+/// @brief Draws an entire layer of a geometry matrix with poles. 
+/// @param matrix A constant reference to the matrix.
+/// @param layer The layer (0 - 2).
+/// @param scale The size of each cell in pixels.
+/// @param color The color of the layer to be drawn.
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_geo_and_poles_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Color color, float scale = 20.0f);
+
+/// @brief Draws an entire layer of a geometry matrix features.
+/// @param matrix A constant reference to the matrix.
+/// @param atlas A constant reference to the textures atlas.
+/// @param color The brush color.
+/// @param scale The size of each cell in pixels.
+void draw_geo_features_layer(Matrix<GeoCell> const& matrix, const GE_Textures &atlas, uint8_t layer, Color color, float scale = 20.0f);
 
 }; // namespace mr

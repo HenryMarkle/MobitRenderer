@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15.0)
-project(MobitRenderer VERSION 0.1.0 LANGUAGES C CXX)
+project(MobitRenderer VERSION 0.1.2 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
@@ -97,11 +97,13 @@ string(STRIP "${VERSION_CONTENT}" VERSION_CONTENT)
 target_compile_definitions(MobitRenderer PRIVATE
   APP_VERSION="${VERSION_CONTENT}")
 
-target_compile_definitions(MobitRenderer PRIVATE
-    APP_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-    APP_VERSION_MINOR=${PROJECT_VERSION_MINOR}
-    APP_VERSION_PATCH=${PROJECT_VERSION_PATCH}
-)
+target_compile_definitions(MobitRenderer PRIVATE APP_NAME="Mobit Renderer")
+
+# target_compile_definitions(MobitRenderer PRIVATE
+#   APP_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+#   APP_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+#   APP_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+# )
 
 # Copy imgui.ini
 file(COPY ${CMAKE_SOURCE_DIR}/imgui.ini DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)

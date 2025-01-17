@@ -56,11 +56,6 @@ dirs::dirs() {
   levels = executable / "Levels";
   logs = executable / "Logs";
 
-  if (!exists(assets))
-    throw std::invalid_argument("assets does not exist");
-  if (!exists(data))
-    throw std::invalid_argument("data does not exist");
-
   if (!exists(projects)) {
     std::filesystem::create_directory(projects);
   }
@@ -69,7 +64,7 @@ dirs::dirs() {
     std::filesystem::create_directory(levels);
   }
 
-  if (!exists(levels)) {
+  if (!exists(logs)) {
     std::filesystem::create_directory(logs);
   }
 
@@ -80,18 +75,30 @@ dirs::dirs() {
   props = data / "Props";
   cast = data / "Cast";
 
-  if (!exists(shaders))
-    throw std::invalid_argument("Assets/Shaders does not exist");
-  if (!exists(fonts))
-    std::filesystem::create_directory(fonts);
-  if (!exists(materials))
-    throw std::invalid_argument("Data/Materials does not exist");
-  if (!exists(tiles))
-    throw std::invalid_argument("Data/Graphics does not exist");
-  if (!exists(props))
-    throw std::invalid_argument("Data/Props does not exist");
-  if (!exists(cast))
-    throw std::invalid_argument("Data/Cast does not exist");
+  executable_found = exists(executable);
+
+  assets_found = exists(assets);
+  shaders_found = exists(shaders);
+  fonts_found = exists(fonts);
+
+  data_found = exists(data);
+  tiles_found = exists(tiles);
+  materials_found = exists(materials);
+  props_found = exists(props);
+  cast_found = exists(cast);
+
+  projects_found = exists(projects);
+  levels_found = exists(levels);
+  logs_found = exists(logs);
+  
+  ok = executable_found && 
+    assets_found &&
+    shaders_found &&
+    data_found &&
+    tiles_found &&
+    materials_found &&
+    props_found &&
+    cast_found;
 }
 
 dirs::dirs(const std::filesystem::path &executable_directory) {

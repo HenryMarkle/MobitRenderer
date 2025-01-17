@@ -41,7 +41,8 @@ void Geo_Page::f3() const noexcept {
   }
 
   f3->print("Grid ");
-  f3->print(ctx->get_config_const().grid.visible, true);
+  // f3->print(ctx->get_config_const().grid.visible, true);
+  f3->print(false, true);
 
   f3->print("Layer Pointer: Global");
   f3->print("L ");
@@ -71,42 +72,6 @@ void Geo_Page::process() {
     camera.target.x += delta.x;
     camera.target.y += delta.y;
   }
-
-  auto f3 = ctx->f3_;
-  auto camera = ctx->get_camera();
-
-  f3->enqueue("W ");
-  f3->enqueue(ctx->get_selected_level()->get_width(), true);
-  f3->enqueue(" H ", true);
-  f3->enqueue(ctx->get_selected_level()->get_height(), true);
-
-  f3->enqueue("Zoom ");
-  f3->enqueue(ctx->get_camera().zoom, true);
-
-  f3->enqueue("Target ");
-  f3->enqueue(ctx->get_camera().target, true);
-
-  f3->enqueue("Offset ");
-  f3->enqueue(ctx->get_camera().offset, true);
-
-  {
-    auto mouse = GetScreenToWorld2D(GetMousePosition(), ctx->get_camera());
-    f3->enqueue("Position ");
-    f3->enqueue(mouse, true);
-
-    auto mtxMouse = Vector2Divide(mouse, {20, 20});
-    f3->enqueue("MTX ");
-    f3->enqueue((int)mtxMouse.x, true);
-    f3->enqueue(" / ", true);
-    f3->enqueue((int)mtxMouse.y, true);
-  }
-
-  f3->enqueue("Grid ");
-  f3->enqueue(ctx->get_config_const().grid.visible, true);
-
-  f3->enqueue("Layer Pointer: Global");
-  f3->enqueue("L ");
-  f3->enqueue((int)ctx->level_layer_, true);
 }
 void Geo_Page::draw() noexcept {
   if (should_redraw1) {
@@ -114,17 +79,11 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    auto *level = ctx->get_selected_level();
-    auto &gmatrix = level->get_geo_matrix();
-
-    for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
-      for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
-        auto cell1 = gmatrix.get_copy(x, y, 0);
-
-        mr::draw_mtx_geo_type(cell1, x, y, 20, BLACK);
-        mr::draw_mtx_geo_poles(cell1, x, y, 20, BLACK);
-      }
-    }
+    draw_geo_and_poles_layer(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      0,
+      BLACK
+    );
 
     EndTextureMode();
 
@@ -137,17 +96,11 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    auto *level = ctx->get_selected_level();
-    auto &gmatrix = level->get_geo_matrix();
-
-    for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
-      for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
-        auto cell1 = gmatrix.get_copy(x, y, 1);
-
-        mr::draw_mtx_geo_type(cell1, x, y, 20, BLACK);
-        mr::draw_mtx_geo_poles(cell1, x, y, 20, BLACK);
-      }
-    }
+    draw_geo_and_poles_layer(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      1,
+      BLACK
+    );
 
     EndTextureMode();
 
@@ -160,17 +113,11 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    auto *level = ctx->get_selected_level();
-    auto &gmatrix = level->get_geo_matrix();
-
-    for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
-      for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
-        auto cell1 = gmatrix.get_copy(x, y, 2);
-
-        mr::draw_mtx_geo_type(cell1, x, y, 20, BLACK);
-        mr::draw_mtx_geo_poles(cell1, x, y, 20, BLACK);
-      }
-    }
+    draw_geo_and_poles_layer(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      2,
+      BLACK
+    );
 
     EndTextureMode();
 
@@ -179,20 +126,17 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw_feature1) {
+
     BeginTextureMode(ctx->textures_->feature_layer1.get());
 
     ClearBackground(WHITE);
 
-    auto *level = ctx->get_selected_level();
-    auto &gmatrix = level->get_geo_matrix();
-
-    for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
-      for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
-        auto cell1 = gmatrix.get_copy(x, y, 0);
-
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx->textures_->geometry_editor);
-      }
-    }
+    draw_geo_features_layer(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      ctx->textures_->geometry_editor,
+      0, 
+      BLACK
+    );
 
     EndTextureMode();
   
@@ -205,16 +149,12 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    auto *level = ctx->get_selected_level();
-    auto &gmatrix = level->get_geo_matrix();
-
-    for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
-      for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
-        auto cell1 = gmatrix.get_copy(x, y, 1);
-
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx->textures_->geometry_editor);
-      }
-    }
+    draw_geo_features_layer(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      ctx->textures_->geometry_editor,
+      1, 
+      BLACK
+    );
 
     EndTextureMode();
   
@@ -227,16 +167,12 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    auto *level = ctx->get_selected_level();
-    auto &gmatrix = level->get_geo_matrix();
-
-    for (uint16_t x = 0; x < gmatrix.get_width(); x++) {
-      for (uint16_t y = 0; y < gmatrix.get_height(); y++) {
-        auto cell1 = gmatrix.get_copy(x, y, 2);
-
-        mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, ctx->textures_->geometry_editor);
-      }
-    }
+    draw_geo_features_layer(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      ctx->textures_->geometry_editor,
+      2, 
+      BLACK
+    );
 
     EndTextureMode();
   
@@ -295,7 +231,11 @@ void Geo_Page::draw() noexcept {
   DrawTexture(ctx->textures_->get_main_level_viewport().texture, 0, 0, WHITE);
 
   if (ctx->get_config_const().grid.visible) {
-    mr::draw_nested_grid(72, 43, Color{130, 130, 130, 200});
+    mr::draw_nested_grid(
+      level->get_width(), 
+      level->get_height(), 
+      Color{255, 255, 255, 90}
+    );
   }
 
   mr::draw_double_frame(level->get_pixel_width(), level->get_pixel_height());

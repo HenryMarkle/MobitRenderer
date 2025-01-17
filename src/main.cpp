@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <exception>
 #include <unordered_map>
 
 #include <raylib.h>
@@ -26,10 +27,6 @@
 #define STRINGIFY_DEFINED(x) #x
 #define TO_STRING_DEFINED(x) STRINGIFY_DEFINED(x)
 
-constexpr const char *PROJECT_VERSION =
-    "Mobit Renderer v" TO_STRING_DEFINED(APP_VERSION_MAJOR) "." TO_STRING_DEFINED(
-        APP_VERSION_MINOR) "." TO_STRING_DEFINED(APP_VERSION_PATCH);
-
 using spdlog::logger;
 using std::shared_ptr;
 using std::string;
@@ -39,8 +36,93 @@ typedef std::unordered_map<mr::context_event_type,
                                     const std::any &)>
     event_handlers;
 
+void _missing_dirs_window(const mr::dirs *d) {
+  SetTargetFPS(40);
+  InitWindow(1200, 800, "Mobit Renderer");
+  while (!WindowShouldClose()) {
+    BeginDrawing();
+    ClearBackground(BLACK);
+    DrawText(
+      "Missing Required Folders", 
+      (GetScreenWidth() - MeasureText("Missing Required Folders", 50))/2,
+      50,
+      50,
+      WHITE
+    );
+
+    DrawText("Assets/", 100, 230, 30, WHITE);
+    DrawText("Assets/Shaders/", 100, 270, 30, WHITE);
+
+    DrawText("Data/", 100, 320, 30, WHITE);
+    DrawText("Data/Graphics/", 100, 360, 30, WHITE);
+    DrawText("Data/Materials/", 100, 400, 30, WHITE);
+    DrawText("Data/Props/", 100, 440, 30, WHITE);
+    DrawText("Data/Cast/", 100, 480, 30, WHITE);
+
+    DrawText(
+      d->is_assets_found() ? "OK" : "MISSING", 
+      500, 230, 30, 
+      d->is_assets_found() ? GREEN : ORANGE
+    );
+    DrawText(
+      d->is_shaders_found() ? "OK" : "MISSING", 
+      500, 270, 30, 
+      d->is_shaders_found() ? GREEN : ORANGE
+    );
+
+    DrawText(
+      d->is_data_found() ? "OK" : "MISSING", 
+      500, 320, 30, 
+      d->is_data_found() ? GREEN : ORANGE
+    );
+    DrawText(
+      d->is_tiles_found() ? "OK" : "MISSING", 
+      500, 360, 30, 
+      d->is_tiles_found() ? GREEN : ORANGE
+    );
+    DrawText(
+      d->is_materials_found() ? "OK" : "MISSING", 
+      500, 400, 30, 
+      d->is_materials_found() ? GREEN : ORANGE
+    );
+    DrawText(
+      d->is_props_found() ? "OK" : "MISSING", 
+      500, 440, 30, 
+      d->is_props_found() ? GREEN : ORANGE
+    );
+    DrawText(
+      d->is_cast_found() ? "OK" : "MISSING", 
+      500, 480, 30, 
+      d->is_cast_found() ? GREEN : ORANGE
+    );
+
+    const auto *version_text = APP_NAME " v" APP_VERSION;
+
+    #ifdef IS_DEBUG_BUILD
+    version_text = TextFormat("%s Debug", version_text);
+    #endif
+
+    DrawText(
+      version_text,
+      10,
+      GetScreenHeight() - 40,
+      30,
+      WHITE
+    );
+
+    EndDrawing();
+  }
+  CloseWindow();
+}
+
 int main() {
-  shared_ptr<mr::dirs> directories = std::make_shared<mr::dirs>();
+  auto directories = std::make_shared<mr::dirs>();
+
+  if (!directories->is_ok()) {
+    _missing_dirs_window(directories.get());
+    return 1;
+  }
+
   shared_ptr<logger> logger = nullptr;
 
   // Initializing logging
@@ -59,10 +141,8 @@ int main() {
   }
   //
 
-
   logger->info("------ starting program");
-  logger->info("Mobit Renderer v{}.{}.{}{}", APP_VERSION_MAJOR, APP_VERSION_MINOR,
-               APP_VERSION_PATCH, IS_DEBUG_BUILD ? "Debug" : "");
+  logger->info("{}{}", APP_VERSION, IS_DEBUG_BUILD ? "Debug" : "");
 
   logger->info("initializing context");
 
@@ -205,7 +285,9 @@ int main() {
       if (ctx->f3_enabled) {
         auto *f3 = ctx->f3_.get();
 
-        f3->print(PROJECT_VERSION);
+        f3->print(APP_NAME);
+        f3->print(" v");
+        f3->print(APP_VERSION, true);
         
         #ifdef IS_DEBUG_BUILD
           f3->print(" Debug", true);
