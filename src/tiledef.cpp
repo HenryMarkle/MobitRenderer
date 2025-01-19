@@ -5,7 +5,6 @@
 
 #include <MobitRenderer/definitions.h>
 
-
 // To be used in unordered maps and sets
 namespace std {
 template <> struct hash<mr::TileDef> {
@@ -16,43 +15,28 @@ template <> struct hash<mr::TileDef> {
 }; // namespace std
 
 namespace mr {
-const std::string &TileDef::get_name() const noexcept { return name; }
-
-TileDefType TileDef::get_type() const noexcept { return type; }
-
-const std::string &TileDef::get_category() const noexcept { return category; }
-void TileDef::set_category(std::string _category) noexcept { category = _category; }
-
-int TileDef::get_width() const { return width; }
-int TileDef::get_height() const { return height; }
-int TileDef::get_buffer() const { return buffer; }
-
-ivec2 TileDef::get_head_offset() const { return head_offset; }
-
-const std::vector<int8_t> &TileDef::get_specs() const { return specs; }
-const std::vector<int8_t> &TileDef::get_specs2() const { return specs2; }
-const std::vector<int8_t> &TileDef::get_specs3() const { return specs3; }
-
-const std::vector<uint8_t> &TileDef::get_repeat() const { return repeat; }
-
-const std::vector<std::string> &TileDef::get_tags() const { return tags; }
-int TileDef::get_rnd() const { return rnd; }
-
-void TileDef::set_texture_path(std::filesystem::path path) noexcept { texture_path = path; }
-const std::filesystem::path &TileDef::get_texture_path() const noexcept { return texture_path; }
 
 void TileDef::reload_texture() {
   unload_texture();
-  texture = LoadTexture(texture_path.string().c_str());
+
+  if (type != TileDefType::box) {
+    auto img = LoadImage(texture_path.string().c_str());
+    ImageCrop(&img, Rectangle{0, 1, (float)img.width, (float)img.height-1});
+    texture = LoadTextureFromImage(img);
+    UnloadImage(img);
+  } else {
+    texture = LoadTexture(texture_path.string().c_str());
+  }
+
+  if (!_is_texture_loaded) _is_texture_loaded = true;
 }
 void TileDef::unload_texture() {
-  if (texture.id != 0) {
-    UnloadTexture(texture);
-    texture = {0};
-  }
+  if (texture.id == 0) return;
+  
+  UnloadTexture(texture);
+  texture = {0};
+  _is_texture_loaded = false;
 }
-
-const Texture2D &TileDef::get_texture() const noexcept { return texture; }
 
 // TileDef &TileDef::operator=(TileDef &&other) noexcept {
 //   if (this == &other)
@@ -138,7 +122,31 @@ TileDef::TileDef(
     repeat(repeat), 
     texture_path(""), 
     texture(Texture2D{0}), 
-    head_offset(mr::ivec2{(int)(width / 2), (int)(height / 2)}) {}
+    _is_texture_loaded(false),
+    head_offset(mr::ivec2{(int)(width / 2), (int)(height / 2)}) 
+  {
+    _preview_rectangle = Rectangle{
+      0, 
+      0, 
+      width*16.0f, 
+      height*16.0f
+    };
+
+    switch (type) {
+      case TileDefType::box:
+      _preview_rectangle.y = 20 * width * height + 20  *(height + (buffer*2));
+      break;
+
+      case TileDefType::voxel_struct_rock_type:
+      case TileDefType::voxel_struct_sand_type:
+      _preview_rectangle.y = 20 * (height + (buffer * 2));
+      break;
+
+      default:
+      _preview_rectangle.y = 20 * (height + (buffer * 2)) * repeat.size();
+      break;
+    }
+}
 
 TileDef::~TileDef() {
   unload_texture();

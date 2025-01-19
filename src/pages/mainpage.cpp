@@ -34,7 +34,7 @@ void Main_Page::draw() noexcept {
   // Draw the level into the main buffer.
   // TODO: Change This.
   if (should_redraw) {
-    BeginTextureMode(ctx->textures_->get_main_level_viewport());
+    BeginTextureMode(ctx->_textures->get_main_level_viewport());
 
     ClearBackground(Color{240, 240, 240, 255});
 
@@ -62,9 +62,9 @@ void Main_Page::draw() noexcept {
 
   ClearBackground(DARKGRAY);
 
-  BeginShaderMode(ctx->get_shaders_const().vflip());
-  const Shader &shader = ctx->get_shaders_const().vflip();
-  const auto texture = ctx->textures_->get_main_level_viewport().texture;
+  BeginShaderMode(ctx->_shaders->vflip());
+  const Shader &shader = ctx->_shaders->vflip();
+  const auto texture = ctx->_textures->get_main_level_viewport().texture;
   SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
 
   float scale = MIN((GetScreenWidth() - 80) / (texture.width*1.0f), (GetScreenHeight() - 80) / (texture.height*1.0f));

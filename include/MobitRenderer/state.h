@@ -17,6 +17,7 @@
 #include <MobitRenderer/managed.h>
 #include <MobitRenderer/exceptions.h>
 #include <MobitRenderer/atlas.h>
+#include <MobitRenderer/dex.h>
 
 namespace mr {
 
@@ -88,6 +89,8 @@ private:
   Shader _vflip;
   Shader _white_remover;
   Shader _white_remover_apply_color;
+  Shader _white_remover_rgb_recolor;
+  Shader _voxel_struct_tinted;
 
 public:
   /// @attention Requires OpenGL context.
@@ -95,14 +98,16 @@ public:
   /// @attention Requires OpenGL context.
   void reload_all();
 
-  const Shader &vflip() const noexcept;
-  const Shader &white_remover() const noexcept;
-  const Shader &white_remover_apply_color() const noexcept;
+  inline const Shader &vflip() const noexcept { return _vflip; }
+  inline const Shader &white_remover() const noexcept { return _white_remover; }
+  inline const Shader &white_remover_apply_color() const noexcept { return _white_remover_apply_color; }
+  inline const Shader &white_remover_rgb_recolor() const noexcept { return _white_remover_rgb_recolor; }
+  inline const Shader &voxel_struct_tinted() const noexcept { return _voxel_struct_tinted; }
 
-  shaders &operator=(shaders const&);
+  shaders &operator=(shaders const&) = delete;
   shaders &operator=(shaders &&) noexcept;
 
-  shaders(shaders const&);
+  shaders(shaders const&) = delete;
   shaders(shaders &&) noexcept;
 
   shaders() = delete;
@@ -204,14 +209,21 @@ private:
   std::vector<Font> fonts;
   uint8_t selected_font;
 
-  shaders _shaders;
 
   config _config;
 
 public:
   std::shared_ptr<spdlog::logger> logger;
   std::shared_ptr<dirs> directories;
-  textures *textures_;
+
+  // DO NOT DELETE THESE
+
+  shaders *_shaders;
+  textures *_textures;
+  TileDex *_tiledex;
+  
+  //
+  
   std::shared_ptr<mr::debug::f3> f3_;
   std::queue<context_event> events;
   Camera2D &get_camera();
@@ -234,9 +246,6 @@ public:
   void select_font(uint8_t) noexcept;
   void add_font(Font) noexcept;
 
-  shaders &get_shaders() noexcept;
-  const shaders &get_shaders_const() const noexcept;
-
   const config &get_config_const() const noexcept;
   config &get_config() noexcept;
   const config *get_config_const_ptr() const noexcept;
@@ -244,7 +253,7 @@ public:
   void set_config(config) noexcept;
 
   context() = delete;
-  context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>, textures*);
+  context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);
   ~context();
 };
 

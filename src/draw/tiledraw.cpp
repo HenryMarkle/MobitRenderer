@@ -91,21 +91,18 @@ void draw_mtx_tile_prev(const TileDef *def, int x, int y,
   float width = def->calculate_width(scale);
   float height = def->calculate_height(scale);
 
-  float offset = (def->get_height() + def->get_buffer() * 2) * 20;
-
   DrawTexturePro(
       def->get_texture(),
-      Rectangle{0,
-                0,
-                (float)texture.width,
-                offset},
+      def->get_preview_rectangle(),
       Rectangle{
           x * scale, 
           y * scale, 
           width, 
           height
         },
-      Vector2{ 0, 0 }, 0, color);
+      Vector2{ 0, 0 }, 0, 
+      color
+  );
 }
 
 void draw_mtx_tile_prev_from_origin(const TileDef *def, int x,
@@ -122,10 +119,7 @@ void draw_mtx_tile_prev_from_origin(const TileDef *def, int x,
   ivec2 offset = def->get_head_offset();
 
   DrawTexturePro(def->get_texture(),
-                 Rectangle{0,
-                          0,
-                          (float)texture.width,
-                          (float)texture.height},
+                 def->get_preview_rectangle(),
                  Rectangle{(x - offset.x) * scale,
                           (y - offset.y) * scale,
                           width,
@@ -133,8 +127,35 @@ void draw_mtx_tile_prev_from_origin(const TileDef *def, int x,
                  Vector2{0, 0}, 0, color);
 }
 
-void draw_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
-               Color color) {
+void draw_tile_prev(const TileDef *def, int x, int y,
+                       float scale, Color color) {
+  if (def == nullptr || color.a == 0)
+    return;
+
+  auto &texture = def->get_texture();
+  if (texture.id == 0)
+    return;
+
+  float width = def->get_width() * scale;
+  float height = def->get_height() * scale;
+  auto src_rect = def->get_preview_rectangle();
+
+  DrawTexturePro(
+      def->get_texture(),
+      src_rect,
+      Rectangle{
+          (float)x, 
+          (float)y, 
+          width, 
+          height
+        },
+      Vector2{ 0, 0 }, 0, 
+      color
+  );
+}
+
+void draw_tile_prev_from_origin(const TileDef *def, int x, int y,
+  float scale, Color color) {
   if (def == nullptr || color.a == 0)
     return;
 
@@ -144,15 +165,45 @@ void draw_tile(std::shared_ptr<TileDef> def, int x, int y, float scale,
 
   float width = def->calculate_width(scale);
   float height = def->calculate_height(scale);
+  ivec2 offset = def->get_head_offset();
 
-  DrawTexturePro(
+  DrawTexturePro(def->get_texture(),
+                 def->get_preview_rectangle(),
+                 Rectangle{(x - offset.x * scale),
+                          (y - offset.y * scale),
+                          width,
+                          height},
+                 Vector2{0, 0}, 0, color);
+}
+
+void draw_tile(const TileDef* def, int x, int y, float scale) {
+  if (def == nullptr)
+    return;
+
+  auto &texture = def->get_texture();
+  if (texture.id == 0) return;
+
+  float width = def->calculate_width(scale);
+  float height = def->calculate_height(scale);
+
+  float src_width = def->calculate_width(20);
+  float src_height = def->calculate_height(20);
+
+  for (int h = def->get_repeat().size(); h >= 0; h--) {
+    auto offset = 1 + 20 * src_height * h;
+
+    DrawTexturePro(
       def->get_texture(),
-      Rectangle{0,
-                0,
-                (float)texture.width,
-                (float)texture.height},
+      Rectangle{
+        0,
+        offset,
+        src_width,
+        src_height
+      },
       Rectangle{(float)x, (float)y, width, height},
-      Vector2{0, 0}, 0, color);
+      Vector2{0, 0}, 0, WHITE
+    );
+  }
 }
 
 void draw_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
@@ -178,5 +229,39 @@ void draw_tile_from_origin(std::shared_ptr<TileDef> def, int x, int y,
                            width,
                            height},
                  Vector2{0, 0}, 0, color);
+}
+
+void draw_tile_tinted(
+  const TileDef *def, 
+  int x, int y, float scale,
+  Color color) {
+  if (def == nullptr || color.a == 0)
+    return;
+
+  auto &texture = def->get_texture();
+  if (texture.id == 0) return;
+
+  float width = def->calculate_width(scale);
+  float height = def->calculate_height(scale);
+
+  float src_width = def->calculate_width(20);
+  float src_height = def->calculate_height(20);
+
+  for (int h = def->get_repeat().size(); h >= 0; h--) {
+    auto offset = 1 + 20 * src_height * h;
+
+    DrawTexturePro(
+      def->get_texture(),
+      Rectangle{
+        0,
+        offset,
+        src_width,
+        src_height
+      },
+      Rectangle{(float)x, (float)y, width, height},
+      Vector2{0, 0}, 0, 
+      color
+    );
+  }
 }
 };

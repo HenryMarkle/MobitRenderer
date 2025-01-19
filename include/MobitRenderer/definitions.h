@@ -38,44 +38,57 @@ private:
   const std::vector<uint8_t> repeat;
   const std::vector<std::string> tags;
   std::filesystem::path texture_path;
+  Rectangle _preview_rectangle;
 
   /// Auto-calculated
   const ivec2 head_offset;
 
+  bool _is_texture_loaded;
+
   Texture2D texture;
 
 public:
-  const std::string &get_name() const noexcept;
-  TileDefType get_type() const noexcept;
+  inline const std::string &get_name() const noexcept { return name; }
+  inline TileDefType get_type() const noexcept { return type; }
 
-  const std::string &get_category() const noexcept;
-  void set_category(std::string) noexcept;
+  inline const std::string &get_category() const noexcept { return category; }
+  inline void set_category(std::string new_category) noexcept { category = new_category; }
 
-  int get_width() const;
-  int get_height() const;
-  int get_buffer() const;
+  inline int get_width() const noexcept { return width; }
+  inline int get_height() const noexcept { return height; }
+  inline int get_buffer() const noexcept { return buffer; }
 
   inline int calculate_width(int scale = 1) const { return (width + (buffer * 2)) * scale; }
   inline int calculate_height(int scale = 1) const { return (height + (buffer * 2)) * scale; }
 
-  ivec2 get_head_offset() const;
+  inline ivec2 get_head_offset() const noexcept { return head_offset; }
 
-  const std::vector<int8_t> &get_specs() const;
-  const std::vector<int8_t> &get_specs2() const;
-  const std::vector<int8_t> &get_specs3() const;
+  inline const std::vector<int8_t> &get_specs() const { return specs; }
+  inline const std::vector<int8_t> &get_specs2() const { return specs2; }
+  inline const std::vector<int8_t> &get_specs3() const { return specs3; }
 
-  const std::vector<uint8_t> &get_repeat() const;
+  inline const std::vector<uint8_t> &get_repeat() const noexcept { return repeat; }
 
-  const std::vector<std::string> &get_tags() const;
-  int get_rnd() const;
+  inline const std::vector<std::string> &get_tags() const noexcept { return tags; }
+  inline int get_rnd() const noexcept { return rnd; }
 
-  void set_texture_path(std::filesystem::path) noexcept;
-  const std::filesystem::path &get_texture_path() const noexcept;
+  /// @brief Retrieves the rectangle to draw the preview section of the texture.
+  inline Rectangle get_preview_rectangle() const noexcept { return _preview_rectangle; }
 
+  inline void set_texture_path(std::filesystem::path p) noexcept { texture_path = p; }
+  inline const std::filesystem::path &get_texture_path() const noexcept { return texture_path; }
+
+  inline bool is_texture_loaded() const noexcept { return _is_texture_loaded; }
   void reload_texture();
   void unload_texture();
   
-  const Texture2D &get_texture() const noexcept;
+  inline const Texture2D &get_texture() const noexcept { return texture; }
+  
+  /// @brief Loads the tile texture before accessing the texture.
+  inline const Texture2D &get_loaded_texture() {
+    if (!_is_texture_loaded) reload_texture();
+    return texture;
+  };
 
   TileDef &operator=(TileDef &&) noexcept = delete;
   TileDef &operator=(const TileDef &) = delete;

@@ -75,7 +75,7 @@ void Geo_Page::process() {
 }
 void Geo_Page::draw() noexcept {
   if (should_redraw1) {
-    BeginTextureMode(ctx->textures_->geo_layer1.get());
+    BeginTextureMode(ctx->_textures->geo_layer1.get());
 
     ClearBackground(WHITE);
 
@@ -92,7 +92,7 @@ void Geo_Page::draw() noexcept {
   }
   
   if (should_redraw2) {
-    BeginTextureMode(ctx->textures_->geo_layer2.get());
+    BeginTextureMode(ctx->_textures->geo_layer2.get());
 
     ClearBackground(WHITE);
 
@@ -109,7 +109,7 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw3) {
-    BeginTextureMode(ctx->textures_->geo_layer3.get());
+    BeginTextureMode(ctx->_textures->geo_layer3.get());
 
     ClearBackground(WHITE);
 
@@ -127,13 +127,13 @@ void Geo_Page::draw() noexcept {
 
   if (should_redraw_feature1) {
 
-    BeginTextureMode(ctx->textures_->feature_layer1.get());
+    BeginTextureMode(ctx->_textures->feature_layer1.get());
 
     ClearBackground(WHITE);
 
     draw_geo_features_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
-      ctx->textures_->geometry_editor,
+      ctx->_textures->geometry_editor,
       0, 
       BLACK
     );
@@ -145,13 +145,13 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw_feature2) {
-    BeginTextureMode(ctx->textures_->feature_layer2.get());
+    BeginTextureMode(ctx->_textures->feature_layer2.get());
 
     ClearBackground(WHITE);
 
     draw_geo_features_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
-      ctx->textures_->geometry_editor,
+      ctx->_textures->geometry_editor,
       1, 
       BLACK
     );
@@ -163,13 +163,13 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw_feature3) {
-    BeginTextureMode(ctx->textures_->feature_layer3.get());
+    BeginTextureMode(ctx->_textures->feature_layer3.get());
 
     ClearBackground(WHITE);
 
     draw_geo_features_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
-      ctx->textures_->geometry_editor,
+      ctx->_textures->geometry_editor,
       2, 
       BLACK
     );
@@ -181,20 +181,20 @@ void Geo_Page::draw() noexcept {
   }
 
   if (should_redraw) {
-    BeginTextureMode(ctx->textures_->get_main_level_viewport());
+    BeginTextureMode(ctx->_textures->get_main_level_viewport());
     {
       ClearBackground(Color{190, 190, 190, 255});
 
-      const auto& shader = ctx->get_shaders_const().white_remover_apply_color(); 
+      const auto& shader = ctx->_shaders->white_remover_apply_color(); 
       BeginShaderMode(shader);
       {
-        const auto geo3 = ctx->textures_->geo_layer3.get().texture;
-        const auto geo2 = ctx->textures_->geo_layer2.get().texture;
-        const auto geo1 = ctx->textures_->geo_layer1.get().texture;
+        const auto geo3 = ctx->_textures->geo_layer3.get().texture;
+        const auto geo2 = ctx->_textures->geo_layer2.get().texture;
+        const auto geo1 = ctx->_textures->geo_layer1.get().texture;
         
-        const auto feature3 = ctx->textures_->feature_layer3.get().texture;
-        const auto feature2 = ctx->textures_->feature_layer2.get().texture;
-        const auto feature1 = ctx->textures_->feature_layer1.get().texture;
+        const auto feature3 = ctx->_textures->feature_layer3.get().texture;
+        const auto feature2 = ctx->_textures->feature_layer2.get().texture;
+        const auto feature1 = ctx->_textures->feature_layer1.get().texture;
 
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), geo1);
         DrawTexture(geo1, 0, 0, BLACK);
@@ -228,12 +228,12 @@ void Geo_Page::draw() noexcept {
   auto width = mtx.get_width(), height = mtx.get_height();
 
   DrawRectangle(0, 0, width * 20, height * 20, GRAY);
-  DrawTexture(ctx->textures_->get_main_level_viewport().texture, 0, 0, WHITE);
+  DrawTexture(ctx->_textures->get_main_level_viewport().texture, 0, 0, WHITE);
 
   if (ctx->get_config_const().grid.visible) {
     mr::draw_nested_grid(
-      level->get_width(), 
-      level->get_height(), 
+      width, 
+      height, 
       Color{255, 255, 255, 90}
     );
   }

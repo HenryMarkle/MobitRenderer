@@ -11,6 +11,7 @@
 #include <MobitRenderer/definitions.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/matrix.h>
+#include <MobitRenderer/dex.h>
 #include <MobitParser/nodes.h>
 
 namespace mr {
@@ -55,7 +56,7 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path&);
 // Init line parsers
 
 TileDefCategory deser_tiledef_category(const mp::Node*);
-std::shared_ptr<TileDef> deser_tiledef(const mp::Node*);
+TileDef* deser_tiledef(const mp::Node*);
 
 // Deserialization utilities
 
@@ -92,5 +93,12 @@ std::vector<uint8_t> deser_uint8_vec(const mp::Node *node);
 /// @brief Deserializes a 'point' global call.
 /// @param node The underlying pointer must be mp::GCall* and the name must be 'point'.
 void deser_point(const mp::Node *node, int&, int&);
+
+// TODO: Maybe move this section somewhere else
+
+/// @brief Goes through a tile matrix and defines each cell that 
+/// is a tile head, body, or a material.
+/// @note This function fails silently.
+void define_tile_matrix(Matrix<TileCell>&, TileDex const&);
 
 }; // namespace mr

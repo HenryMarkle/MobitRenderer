@@ -34,6 +34,9 @@ public:
   /// @brief Draws debug information
   virtual void f3() const noexcept;
 
+  /// @brief Resets data that need to be reset every frame.
+  virtual void reset_frame_data() noexcept;
+
   /// @brief Propagates texture buffer refreshing.
   virtual void order_level_redraw() noexcept;
 
@@ -128,13 +131,39 @@ public:
 class Tile_Page : public Page {
 private:
   bool 
-    should_redraw, 
-    should_redraw1,
-    should_redraw2,
-    should_redraw3,
-    should_redraw_tile1,
-    should_redraw_tile2,
-    should_redraw_tile3;
+    _should_redraw, 
+    _should_redraw1,
+    _should_redraw2,
+    _should_redraw3,
+    _should_redraw_tile1,
+    _should_redraw_tile2,
+    _should_redraw_tile3;
+
+bool _hovering_on_window;
+
+size_t 
+  _selected_category_index, 
+  _selected_tile_index;
+
+/// @brief Viewport to draw currently selected tile preview.
+RenderTexture2D _tile_preview_rt;
+
+/// @brief Viewport to draw currently selected tile texture.
+RenderTexture2D _tile_texture_rt;
+
+/// @brief Viewport to draw currently selected tile specs.
+RenderTexture2D _tile_specs_rt;
+
+TileDef 
+  *_selected_tile, 
+  *_hovered_tile,
+  *_previously_drawn_texture,
+  *_previously_drawn_preview,
+  *_previously_drawn_specs;
+
+void _redraw_tile_preview_rt() noexcept;
+void _redraw_tile_texture_rt() noexcept;
+void _redraw_tile_specs_rt() noexcept;
 
 public:
   virtual void process() override;

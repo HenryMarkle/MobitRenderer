@@ -22,15 +22,15 @@ using std::filesystem::exists;
 
 namespace mr {
 
-const TileDef *TileDex::tile(const std::string &name) const noexcept {
+TileDef *TileDex::tile(const std::string &name) const noexcept {
     auto tile_ptr = _tiles.find(name);
     if (tile_ptr == _tiles.end()) return nullptr;
-    return tile_ptr->second.get();
+    return tile_ptr->second;
 }
-const std::map<std::string, std::shared_ptr<TileDef>> &TileDex::tiles() const noexcept { return _tiles; }
+const std::map<std::string, TileDef*> &TileDex::tiles() const noexcept { return _tiles; }
 const std::vector<TileDefCategory> &TileDex::categories() const noexcept { return _categories; }
-const std::vector<std::vector<std::shared_ptr<TileDef>>> &TileDex::sorted_tiles() const noexcept { return _sorted_tiles; }
-const std::map<std::string, std::vector<std::shared_ptr<TileDef>>> &TileDex::category_tiles() const noexcept { return _category_tiles; }
+const std::vector<std::vector<TileDef*>> &TileDex::sorted_tiles() const noexcept { return _sorted_tiles; }
+const std::map<std::string, std::vector<TileDef*>> &TileDex::category_tiles() const noexcept { return _category_tiles; }
 const std::map<std::string, Color> &TileDex::colors() const noexcept { return _category_colors; }
 
 void TileDex::register_from(path const&file) {
@@ -73,8 +73,8 @@ void TileDex::register_from(path const&file) {
             
                 _categories.push_back(category);
                 _category_colors[category.name] = category.color;
-                _category_tiles[category.name] = std::vector<std::shared_ptr<TileDef>>();
-                _sorted_tiles.push_back(std::vector<std::shared_ptr<TileDef>>());
+                _category_tiles[category.name] = std::vector<TileDef*>();
+                _sorted_tiles.push_back(std::vector<TileDef*>());
 
                 current_category = category;
                 category_parsed = true;
@@ -173,6 +173,16 @@ void TileDex::unload_textures() {
     for (auto pair : _tiles) pair.second->unload_texture();
 }
 
+void TileDex::unload_all() {
+    for (auto def : _tiles) delete def.second;
+
+    _tiles.clear();
+    _categories.clear();
+    _sorted_tiles.clear();
+    _category_tiles.clear();
+    _category_colors.clear();
+}
+
 TileDex &TileDex::operator=(TileDex &&other) noexcept {
     if (this == &other)
         return *this;
@@ -191,7 +201,7 @@ TileDex::TileDex(TileDex &&other) noexcept {
     _category_colors = std::move(other._category_colors);
 }
 TileDex::~TileDex() {
-    unload_textures();
+    unload_all();
 }
 
 };

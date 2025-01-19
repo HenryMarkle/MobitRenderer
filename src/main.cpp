@@ -146,13 +146,13 @@ int main() {
 
   logger->info("initializing context");
 
-  auto *textures = new mr::textures(directories);
-  auto *ctx = new mr::context(logger, directories, textures);
+  auto *ctx = new mr::context(logger, directories);
 
   logger->info("importing tiles");
   
   auto *tiledex = new mr::TileDex();
   tiledex->register_from(directories->get_tiles() / "Init.txt");
+  ctx->_tiledex = tiledex;
 
   logger->info("initializing window");
 
@@ -174,14 +174,23 @@ int main() {
 
   logger->info("loading font");
 
-  ctx->get_shaders().reload_all();
-
   auto font_path = ctx->directories->get_fonts() / "Oswald-Regular.ttf";
   auto font = LoadFont(font_path.string().c_str());
   ctx->add_font(font);
   ctx->select_font(0);
 
+  logger->info("loading shaders");
+
+  auto *shaders = new mr::shaders(directories->get_shaders());
+  shaders->reload_all();
+  ctx->_shaders = shaders;
+
   logger->info("initializing main viewport");
+
+  auto *textures = new mr::textures(directories);
+  textures->reload_all_textures();
+
+  ctx->_textures = textures;
 
   textures->main_level_viewport = mr::rendertexture(72 * 20, 53 * 20);
 
@@ -191,7 +200,6 @@ int main() {
 
   logger->info("loading textures");
 
-  textures->reload_all_textures();
 
   auto pe = std::make_unique<mr::ProjectExplorer>(directories, textures);
 
@@ -238,6 +246,10 @@ int main() {
         } else if (IsKeyPressed(KEY_NINE)) {
           pager->select(9);
         }
+      }
+    
+      if (IsKeyPressed(KEY_S) && IsKeyDown(KEY_R)) {
+        shaders->reload_all();
       }
     }
 
@@ -344,6 +356,7 @@ int main() {
   delete pager;
   delete ctx;
   delete tiledex;
+  delete shaders;
   delete textures;
 
   rlImGuiShutdown();

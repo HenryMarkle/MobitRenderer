@@ -28,6 +28,7 @@
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/serialization.h>
 #include <MobitRenderer/state.h>
+#include <MobitRenderer/dex.h>
 
 namespace mr {
 
@@ -57,7 +58,7 @@ TileDefCategory deser_tiledef_category(const mp::Node *node) {
   return TileDefCategory{name_string_node->str, color};
 }
 
-std::shared_ptr<TileDef> deser_tiledef(const mp::Node *node) {
+TileDef* deser_tiledef(const mp::Node *node) {
   const mp::Props *props = dynamic_cast<const mp::Props*>(node);
   
   if (props == nullptr) throw deserialization_failure("node is not a property list");
@@ -225,7 +226,9 @@ std::shared_ptr<TileDef> deser_tiledef(const mp::Node *node) {
     }
   }
 
-  return std::make_shared<TileDef>(
+  if (repeat.size() == 0) repeat.push_back(1);
+
+  return new TileDef(
     std::move(name), 
     tile_type,
     width, height, buffer, rnd,
@@ -912,6 +915,53 @@ void deser_point(const mp::Node *node, int &x, int &y) {
 
   x = value_x;
   y = value_y;
+}
+
+void define_tile_matrix(Matrix<TileCell> &mtx, const TileDex &dex) {
+  for (uint16_t x = 0; x < mtx.get_width(); x++) {
+    for (uint16_t y = 0; y < mtx.get_height(); y++) {
+      for (uint16_t z = 0; z < 3; z++) {
+        auto &cell = mtx.get(x, y, z);
+
+        switch (cell.type) {
+          case TileType::head:
+          {
+            cell.tile_def = dex.tile(cell.und_name);
+          }
+          break;
+
+          case TileType::body:
+          {
+            if (mtx.is_in_bounds(cell.head_pos_x, cell.head_pos_y, cell.head_pos_z)) {
+              auto &supposed_head = mtx.get(cell.head_pos_x, cell.head_pos_y, cell.head_pos_z);
+
+              if (supposed_head.type == TileType::head) {
+                if (supposed_head.tile_def == nullptr) {
+                  auto *def = dex.tile(supposed_head.und_name);
+
+                  cell.tile_def = def;
+                  supposed_head.tile_def = def;
+                }
+                else
+                {
+                  cell.tile_def = supposed_head.tile_def;
+                }
+              }
+            }
+          }
+          break;
+
+          case TileType::material:
+          {
+            // TODO: Continue here..
+          }
+          break;
+
+          default: continue;
+        }
+      }
+    }
+  }
 }
 
 }; // namespace mr

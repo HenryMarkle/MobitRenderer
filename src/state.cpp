@@ -49,8 +49,8 @@ dirs::dirs() {
   assets = executable / "Assets";
   #endif
 
-  data = executable / "Data";
-  assets = executable / "Assets";
+  // data = executable / "Data";
+  // assets = executable / "Assets";
 
   projects = executable / "Projects";
   levels = executable / "Levels";
@@ -155,6 +155,8 @@ void shaders::unload_all() {
   mr::utils::unload_shader(_vflip);
   mr::utils::unload_shader(_white_remover);
   mr::utils::unload_shader(_white_remover_apply_color);
+  mr::utils::unload_shader(_white_remover_rgb_recolor);
+  mr::utils::unload_shader(_voxel_struct_tinted);
 }
 
 void shaders::reload_all() {
@@ -168,24 +170,12 @@ void shaders::reload_all() {
 
   auto white_remover_apply_color_path = _shaders_dir / "white_remover_apply_color.frag";
   _white_remover_apply_color = LoadShader(nullptr, white_remover_apply_color_path.string().c_str());
-}
 
-const Shader &shaders::vflip() const noexcept { return _vflip; }
-const Shader &shaders::white_remover() const noexcept { return _white_remover; }
-const Shader &shaders::white_remover_apply_color() const noexcept { return _white_remover_apply_color; }
+  auto white_remover_rgb_recolor_path = _shaders_dir / "white_remover_rgb_recolor.frag";
+  _white_remover_rgb_recolor = LoadShader(nullptr, white_remover_rgb_recolor_path.string().c_str());
 
-shaders &shaders::operator=(shaders const&other) {
-  if (&other == this) return *this;
-
-  _shaders_dir = other._shaders_dir;
-
-  _vflip = Shader{0};
-  _white_remover = Shader{0};
-  _white_remover_apply_color = Shader{0};
-
-  reload_all();
-
-  return *this;
+  auto voxel_struct_tinted_path = _shaders_dir / "voxel_struct_tinted.frag";
+  _voxel_struct_tinted = LoadShader(nullptr, voxel_struct_tinted_path.string().c_str());
 }
 
 shaders &shaders::operator=(shaders &&other) noexcept {
@@ -196,30 +186,40 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _vflip = other._vflip;
   _white_remover = other._white_remover;
   _white_remover_apply_color = other._white_remover_apply_color;
+  _white_remover_rgb_recolor = other._white_remover_rgb_recolor;
+  _voxel_struct_tinted = other._voxel_struct_tinted;
 
   other._vflip = Shader{0};
   other._white_remover = Shader{0};
   other._white_remover_apply_color = Shader{0};
+  other._white_remover_rgb_recolor = Shader{0};
+  other._voxel_struct_tinted = Shader{0};
 
   return *this;
 }
 
-shaders::shaders(shaders const&other) 
-  : _shaders_dir(other._shaders_dir), _vflip(Shader{0}), _white_remover(Shader{0}), _white_remover_apply_color(Shader{0}) {
-    reload_all();
-}
-
-shaders::shaders(shaders &&other) noexcept : _shaders_dir(other._shaders_dir), _vflip(other._vflip), _white_remover(other._white_remover), _white_remover_apply_color(other._white_remover_apply_color) {
+shaders::shaders(shaders &&other) noexcept : 
+  _shaders_dir(other._shaders_dir), 
+  _vflip(other._vflip), 
+  _white_remover(other._white_remover), 
+  _white_remover_apply_color(other._white_remover_apply_color),
+  _white_remover_rgb_recolor(other._white_remover_rgb_recolor),
+  _voxel_struct_tinted(other._voxel_struct_tinted)
+{
   other._vflip = Shader{0};
   other._white_remover = Shader{0};
   other._white_remover_apply_color = Shader{0};
+  other._white_remover_rgb_recolor = Shader{0};
+  other._voxel_struct_tinted = Shader{0};
 }
 
 shaders::shaders(std::filesystem::path shaders_dir) : 
   _shaders_dir(shaders_dir), 
   _vflip(Shader{0}), 
   _white_remover(Shader{0}),
-  _white_remover_apply_color(Shader{0}) { }
+  _white_remover_apply_color(Shader{0}),
+  _white_remover_rgb_recolor(Shader{0}),
+  _voxel_struct_tinted(Shader{0}) { }
 
 shaders::~shaders() { 
   unload_all();
@@ -278,9 +278,6 @@ void context::select_font(uint8_t index) noexcept {
 }
 void context::add_font(Font f) noexcept { fonts.push_back(f); }
 
-const shaders &context::get_shaders_const() const noexcept { return _shaders; }
-shaders &context::get_shaders() noexcept { return _shaders; }
-
 const config &context::get_config_const() const noexcept {
   return _config;
 }
@@ -298,11 +295,12 @@ void context::set_config(config c) noexcept {
 }
 
 context::context(std::shared_ptr<spdlog::logger> logger,
-                 std::shared_ptr<dirs> dirs, textures *_textures)
+                 std::shared_ptr<dirs> dirs)
     : logger(logger), 
       directories(dirs),
-      textures_(_textures),
-      _shaders(dirs->get_shaders()),
+      _textures(nullptr),
+      _tiledex(nullptr),
+      _shaders(nullptr),
       f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
       camera(Camera2D{Vector2{1, 40}, Vector2{0, 0}, 0, 0.5f}),
       enable_global_shortcuts(true),

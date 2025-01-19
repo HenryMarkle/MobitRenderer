@@ -19,7 +19,7 @@
 namespace mr::pages {
 
 Start_Page::Start_Page(context *ctx)
-    : Page(ctx), explorer_(ctx->directories, ctx->textures_),
+    : Page(ctx), explorer_(ctx->directories, ctx->_textures),
       loaded_level(nullptr), project_load_thread(nullptr),
       loaded_project_was_handled(true), explorer_file_clicked(false) {
   explorer_.set_filters({".txt"});
@@ -82,7 +82,7 @@ void Start_Page::process() {
         UnloadTexture(lightmap);
       }
 
-      ctx->textures_->resize_all_level_buffers(
+      ctx->_textures->resize_all_level_buffers(
         loaded_level->get_width()  * 20, 
         loaded_level->get_height() * 20
       );

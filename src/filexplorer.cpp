@@ -7,21 +7,9 @@
 #include <string>
 #include <vector>
 
-#define LoadImage RayLoadImage
-#define Rectangle RayRectangle
-#define ShowCursor RaylibShowCursor
-#define CloseWindow RayCloseWindow
-#define DrawText RayDrawText
-#define DrawTextEx RayDrawTextEx
 #include <raylib.h>
 #include <imgui.h>
 #include <rlImGui.h>
-#undef Rectangle
-#undef ShowCursor
-#undef CloseWindow
-#undef LoadImage
-#undef LoadImageA
-#undef DrawTextA
 
 #include <MobitRenderer/imwin.h>
 #include <MobitRenderer/state.h>
@@ -272,7 +260,7 @@ bool ProjectExplorer::draw() noexcept {
           auto *file_icon = textures_->file_icon.get_ptr();
           auto *folder_icon = textures_->folder_icon.get_ptr();
 
-          rlImGuiImageRect((entry_is_dir[n] ? folder_icon : file_icon), 20, 20, RayRectangle{0, 0, (float)file_icon->width,
+          rlImGuiImageRect((entry_is_dir[n] ? folder_icon : file_icon), 20, 20, Rectangle{0, 0, (float)file_icon->width,
                                      (float)file_icon->height});
           ImGui::SameLine();
           bool is_clicked =

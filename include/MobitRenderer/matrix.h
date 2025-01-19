@@ -136,7 +136,7 @@ public:
   T get_copy(uint16_t x, uint16_t y, uint16_t z) const;
 
   // Crash if index is out-of-bounds
-  T &get(uint16_t x, uint16_t y, uint16_t z) const;
+  T &get(uint16_t x, uint16_t y, uint16_t z);
   const T &get_const(uint16_t x, uint16_t y, uint16_t z) const;
 
   // Return nullptr if index is out-of-bounds
@@ -227,7 +227,7 @@ T Matrix<T>::get_copy(uint16_t x, uint16_t y, uint16_t z) const {
 }
 
 template <typename T>
-T &Matrix<T>::get(uint16_t x, uint16_t y, uint16_t z) const {
+T &Matrix<T>::get(uint16_t x, uint16_t y, uint16_t z) {
   if (!is_in_bounds(x, y, z))
     throw std::out_of_range("matrix index is out of bounds");
 
