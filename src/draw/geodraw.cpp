@@ -6,6 +6,10 @@
 
 namespace mr {
 
+namespace draw {
+
+
+
 void draw_mtx_geo_type(
   GeoCell cell, 
   int x, 
@@ -378,7 +382,7 @@ void draw_geo_layer(
     for (uint16_t y = 0; y < matrix.get_height(); y++) {
       auto cell1 = matrix.get_copy(x, y, layer);
 
-      mr::draw_mtx_geo_type(cell1, x, y, scale, color);
+      draw_mtx_geo_type(cell1, x, y, scale, color);
     }
   }
 }
@@ -397,7 +401,7 @@ void draw_geo_layer(
     for (uint16_t y = 0; y < matrix->get_height(); y++) {
       auto cell1 = matrix->get_copy(x, y, layer);
 
-      mr::draw_mtx_geo_type(cell1, x, y, scale, color);
+      draw_mtx_geo_type(cell1, x, y, scale, color);
     }
   }
 }
@@ -415,8 +419,8 @@ void draw_geo_and_poles_layer(
     for (uint16_t y = 0; y < matrix.get_height(); y++) {
       auto cell1 = matrix.get_copy(x, y, layer);
 
-      mr::draw_mtx_geo_type(cell1, x, y, scale, color);
-      mr::draw_mtx_geo_poles(cell1, x, y, scale, color);
+      draw_mtx_geo_type(cell1, x, y, scale, color);
+      draw_mtx_geo_poles(cell1, x, y, scale, color);
     }
   }
 }
@@ -435,9 +439,11 @@ void draw_geo_features_layer(
     for (uint16_t y = 0; y < matrix.get_height(); y++) {
       auto cell1 = matrix.get_copy(x, y, 0);
 
-      mr::draw_mtx_geo_features(cell1, x, y, 20, BLACK, atlas);
+      draw_mtx_geo_features(cell1, x, y, 20, BLACK, atlas);
     }
   }
 }
+
+};
 
 };

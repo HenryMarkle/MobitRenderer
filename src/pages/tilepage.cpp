@@ -38,7 +38,7 @@ void Tile_Page::_redraw_tile_preview_rt() noexcept {
     BeginShaderMode(shader);
     {
       SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
-      draw_tile_prev(_hovered_tile, 0, 0, 16, WHITE);
+      mr::draw::draw_tile_prev(_hovered_tile, 0, 0, 16, WHITE);
     }
     EndShaderMode();
   }
@@ -236,7 +236,7 @@ void Tile_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_and_poles_layer(
+    mr::draw::draw_geo_and_poles_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       0,
       BLACK
@@ -253,7 +253,7 @@ void Tile_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_and_poles_layer(
+    mr::draw::draw_geo_and_poles_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       1,
       BLACK
@@ -270,7 +270,7 @@ void Tile_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_and_poles_layer(
+    mr::draw::draw_geo_and_poles_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       2,
       BLACK
@@ -392,7 +392,7 @@ void Tile_Page::draw() noexcept {
     //   mr::draw_nested_grid(72, 43, Color{130, 130, 130, 200});
     // }
 
-    mr::draw_double_frame(
+    mr::draw::draw_double_frame(
       level->get_pixel_width(), 
       level->get_pixel_height()
     );

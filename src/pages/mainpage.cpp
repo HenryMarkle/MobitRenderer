@@ -47,10 +47,10 @@ void Main_Page::draw() noexcept {
         auto cell2 = gmatrix.get_copy(x, y, 1);
         auto cell3 = gmatrix.get_copy(x, y, 2);
 
-        mr::draw_mtx_geo_type(cell1, x, y, 20, BLACK);
-        mr::draw_mtx_geo_type(cell2, x, y, 20,
+        mr::draw::draw_mtx_geo_type(cell1, x, y, 20, BLACK);
+        mr::draw::draw_mtx_geo_type(cell2, x, y, 20,
                               Color{ 0, 255, 0, 80});
-        mr::draw_mtx_geo_type(cell3, x, y, 20,
+        mr::draw::draw_mtx_geo_type(cell3, x, y, 20,
                               Color{ 255, 0, 0, 80});
       }
     }

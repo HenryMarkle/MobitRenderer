@@ -25,8 +25,6 @@ namespace mr {
     type(type) 
   { }
 
-  MaterialDef::~MaterialDef() {}
-  
   bool CustomMaterialDef::are_textures_loaded() const noexcept {
     return 
       (texture_params == nullptr || main_texture.is_loaded())
@@ -107,10 +105,10 @@ namespace mr {
   CustomMaterialDef::CustomMaterialDef(
     std::string const &name, 
     Color color,
-    MaterialDefTexture *texture_params = nullptr,
-    MaterialDefBlock *block_params = nullptr,
-    MaterialDefSlope *slope_params = nullptr,
-    MaterialDefFloor *floor_params = nullptr
+    MaterialDefTexture *texture_params,
+    MaterialDefBlock *block_params,
+    MaterialDefSlope *slope_params,
+    MaterialDefFloor *floor_params
   ) : 
     MaterialDef(
       name, 

@@ -283,7 +283,7 @@ public:
   CustomMaterialDef(CustomMaterialDef&&) noexcept = delete;
   CustomMaterialDef(CustomMaterialDef const&) = delete;
 
-  ~CustomMaterialDef();
+  virtual ~CustomMaterialDef() override;
 
 };
 

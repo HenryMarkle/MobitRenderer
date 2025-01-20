@@ -79,7 +79,7 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_and_poles_layer(
+    mr::draw::draw_geo_and_poles_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       0,
       BLACK
@@ -96,7 +96,7 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_and_poles_layer(
+    mr::draw::draw_geo_and_poles_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       1,
       BLACK
@@ -113,7 +113,7 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_and_poles_layer(
+    mr::draw::draw_geo_and_poles_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       2,
       BLACK
@@ -131,7 +131,7 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_features_layer(
+    mr::draw::draw_geo_features_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       ctx->_textures->geometry_editor,
       0, 
@@ -149,7 +149,7 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_features_layer(
+    mr::draw::draw_geo_features_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       ctx->_textures->geometry_editor,
       1, 
@@ -167,7 +167,7 @@ void Geo_Page::draw() noexcept {
 
     ClearBackground(WHITE);
 
-    draw_geo_features_layer(
+    mr::draw::draw_geo_features_layer(
       ctx->get_selected_level()->get_const_geo_matrix(),
       ctx->_textures->geometry_editor,
       2, 
@@ -231,14 +231,14 @@ void Geo_Page::draw() noexcept {
   DrawTexture(ctx->_textures->get_main_level_viewport().texture, 0, 0, WHITE);
 
   if (ctx->get_config_const().grid.visible) {
-    mr::draw_nested_grid(
+    mr::draw::draw_nested_grid(
       width, 
       height, 
       Color{255, 255, 255, 90}
     );
   }
 
-  mr::draw_double_frame(level->get_pixel_width(), level->get_pixel_height());
+  mr::draw::draw_double_frame(level->get_pixel_width(), level->get_pixel_height());
 
   EndMode2D();
 }

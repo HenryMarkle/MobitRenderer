@@ -71,6 +71,8 @@ struct fquad {
   Vector2 topright, topleft, bottomleft, bottomright;
 };
 
+namespace draw {
+
 void draw_texture(const Texture2D &texture, const iquad &quad);
 void draw_texture(const Texture2D *texture, const iquad *quad);
 
@@ -173,7 +175,7 @@ void draw_mtx_shortcut_entrances(
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
 void draw_mtx_tile_prev(const TileDef *def, int x, int y, float scale,
-                   Color color);
+                  Color color);
 
 /// @brief Draws a tile preview from the origin (x - origin.x, y - origin.y).
 /// @param x The matrix' X coordinates.
@@ -184,7 +186,7 @@ void draw_mtx_tile_prev(const TileDef *def, int x, int y, float scale,
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
 void draw_mtx_tile_prev_from_origin(const TileDef *def, int x, int y,
-                               float scale, Color color);
+                              float scale, Color color);
 
 /// @brief Draws a tile preview from the top left corner.
 /// @param x The matrix' X coordinates.
@@ -194,7 +196,7 @@ void draw_mtx_tile_prev_from_origin(const TileDef *def, int x, int y,
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
 void draw_tile_prev(const TileDef *def, int x, int y, float scale,
-               Color color);
+              Color color);
 
 /// @brief Draws a tile preview from the origin (x - origin.x, y - origin.y).
 /// @param x The matrix' X coordinates.
@@ -204,7 +206,7 @@ void draw_tile_prev(const TileDef *def, int x, int y, float scale,
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
 void draw_tile_prev_from_origin(const TileDef *def, int x, int y,
-                           float scale, Color color);
+                          float scale, Color color);
 
 /// @brief Draws a tile texture from the top left corner.
 /// @param x The matrix' X coordinates.
@@ -310,5 +312,7 @@ void draw_geo_and_poles_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Colo
 /// @param color The brush color.
 /// @param scale The size of each cell in pixels.
 void draw_geo_features_layer(Matrix<GeoCell> const& matrix, const GE_Textures &atlas, uint8_t layer, Color color, float scale = 20.0f);
+
+};
 
 }; // namespace mr

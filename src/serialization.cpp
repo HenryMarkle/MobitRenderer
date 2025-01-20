@@ -341,7 +341,6 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
 
     /// TODO: continue here..
 
-    int brnd = 0;
     auto brnd_iter = block_props->map.find("rnd");
     if (brnd_iter != block_props->map.end()) {
       try {
@@ -353,7 +352,6 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
       }
     }
 
-    uint8_t bbuffer = 0;
     auto bbuffer_iter = block_props->map.find("bftiles");
     if (bbuffer_iter != block_props->map.end()) {
       try {
@@ -396,7 +394,6 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
 
     /// TODO: continue here..
 
-    int brnd = 0;
     auto brnd_iter = block_props->map.find("rnd");
     if (brnd_iter != block_props->map.end()) {
       try {
@@ -408,7 +405,6 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
       }
     }
 
-    uint8_t bbuffer = 0;
     auto bbuffer_iter = block_props->map.find("bftiles");
     if (bbuffer_iter != block_props->map.end()) {
       try {
@@ -451,7 +447,6 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
 
     /// TODO: continue here..
 
-    int brnd = 0;
     auto brnd_iter = block_props->map.find("rnd");
     if (brnd_iter != block_props->map.end()) {
       try {
@@ -463,7 +458,6 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
       }
     }
 
-    uint8_t bbuffer = 0;
     auto bbuffer_iter = block_props->map.find("bftiles");
     if (bbuffer_iter != block_props->map.end()) {
       try {

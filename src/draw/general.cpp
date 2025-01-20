@@ -5,6 +5,10 @@
 
 namespace mr {
 
+namespace draw {
+
+
+
 void draw_grid(levelsize width, levelsize height, Color color, int scale, int thickness) noexcept {
     for (levelsize x = 1; x < width; x++) {
         float scaled = x * scale;
@@ -67,5 +71,7 @@ void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept {
         BLACK
     );
 }
+
+};
     
 };

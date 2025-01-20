@@ -79,6 +79,8 @@ void draw_texture(const Texture2D &texture, const iquad &quad) {
   draw_texture(&texture, &quad);
 }
 
+namespace draw {
+
 void draw_mtx_tile_prev(const TileDef *def, int x, int y,
                        float scale, Color color) {
   if (def == nullptr || color.a == 0)
@@ -264,4 +266,7 @@ void draw_tile_tinted(
     );
   }
 }
+
+};
+
 };
