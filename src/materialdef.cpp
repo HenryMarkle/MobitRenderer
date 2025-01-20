@@ -1,6 +1,4 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
+#include <filesystem>
 
 #include <string>
 
@@ -17,6 +15,113 @@ namespace std {
 };
 
 namespace mr {
-    const std::string& MaterialDef::get_name() const { return name; }
+  MaterialDef::MaterialDef(
+    std::string const &name, 
+    Color color,
+    MaterialRenderType type
+  ) :
+    name(name),
+    color(color),
+    type(type) 
+  { }
 
+  MaterialDef::~MaterialDef() {}
+  
+  bool CustomMaterialDef::are_textures_loaded() const noexcept {
+    return 
+      (texture_params == nullptr || main_texture.is_loaded())
+      &&
+      (block_params == nullptr || block_texture.is_loaded())
+      &&
+      (slope_params == nullptr || slope_texture.is_loaded())
+      &&
+      (floor_params == nullptr || floor_texture.is_loaded());
+  }
+
+  void CustomMaterialDef::reload_textures() {
+    if (texture_params != nullptr) {
+      main_texture = texture(main_texture_path.string().c_str());
+    }
+
+    if (block_params != nullptr) {
+      block_texture = texture(block_texture_path.string().c_str());
+    }
+
+    if (slope_params != nullptr) {
+      slope_texture = texture(slope_texture_path.string().c_str());
+    }
+
+    if (floor_params != nullptr) {
+      floor_texture = texture(floor_texture_path.string().c_str());
+    }
+  }
+
+  MaterialDefTexture::MaterialDefTexture(
+    uint16_t width, 
+    uint16_t height, 
+    std::vector<uint8_t> repeat,
+    std::unordered_set<std::string> tags
+  ) : 
+    width(width), 
+    height(height), 
+    repeat(repeat), 
+    tags(tags) 
+  {}
+
+  MaterialDefBlock::MaterialDefBlock(
+    std::vector<uint8_t> repeat,
+    int rnd, 
+    uint8_t buffer,
+    std::unordered_set<std::string> tags
+  ) :
+    repeat(repeat),
+    rnd(rnd),
+    buffer(buffer),
+    tags(tags) 
+  {}
+
+  MaterialDefSlope::MaterialDefSlope(
+    std::vector<uint8_t> repeat,
+    int rnd,
+    uint8_t buffer,
+    std::unordered_set<std::string> tags
+  ) :
+    repeat(repeat),
+    rnd(rnd),
+    buffer(buffer),
+    tags(tags) 
+  {}
+
+  MaterialDefFloor::MaterialDefFloor(
+    std::vector<uint8_t> repeat,
+    int rnd,
+    uint8_t buffer,
+    std::unordered_set<std::string> tags
+  ) :
+    repeat(repeat),
+    rnd(rnd),
+    buffer(buffer),
+    tags(tags) 
+  {}
+
+  CustomMaterialDef::CustomMaterialDef(
+    std::string const &name, 
+    Color color,
+    MaterialDefTexture *texture_params = nullptr,
+    MaterialDefBlock *block_params = nullptr,
+    MaterialDefSlope *slope_params = nullptr,
+    MaterialDefFloor *floor_params = nullptr
+  ) : 
+    MaterialDef(
+      name, 
+      color, 
+      MaterialRenderType::custom_unified
+    ),
+    texture_params(texture_params),
+    block_params(block_params),
+    slope_params(slope_params),
+    floor_params(floor_params) 
+  {}
+
+  CustomMaterialDef::~CustomMaterialDef() {}
 };

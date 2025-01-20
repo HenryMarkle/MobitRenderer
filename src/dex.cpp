@@ -204,4 +204,25 @@ TileDex::~TileDex() {
     unload_all();
 }
 
+// Material dex
+
+void MaterialDex::unload_textures() {
+    for (auto &pair : _materials) {
+        MaterialDef *m = pair.second;
+        if (m->get_type() != MaterialRenderType::custom_unified) continue;
+
+        CustomMaterialDef *cm = dynamic_cast<CustomMaterialDef *>(m);
+   
+        if (cm != nullptr) {
+            cm->unload_textures();
+        }
+    }
+}
+
+MaterialDex::~MaterialDex() {
+    for (auto &pair : _materials) delete pair.second;
+}
+
+/// TODO: continue here..
+
 };

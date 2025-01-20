@@ -77,9 +77,58 @@ TileDex &operator=(TileDex &&) noexcept;
 TileDex &operator=(TileDex const&) = delete;
 
 TileDex();
-TileDex(TileDex &&) noexcept;
+TileDex(TileDex&&) noexcept;
 TileDex(TileDex const&) = delete;
 ~TileDex();
+
+};
+
+class MaterialDex {
+
+private:
+
+std::map<std::string, MaterialDef*> _materials;
+std::vector<std::string> _categories;
+std::vector<std::vector<MaterialDef*>> _sorted_materials;
+std::map<std::string, std::vector<MaterialDef*>> _category_materials;
+
+public:
+
+inline MaterialDef *material(std::string const&name) const noexcept {
+    auto def = _materials.find(name);
+    if (def == _materials.end()) return nullptr;
+    return def->second;
+}
+inline const std::vector<std::string> &categories() const noexcept { return _categories; }
+inline const std::vector<std::vector<MaterialDef*>> &sorted_materials() const noexcept { return _sorted_materials; }
+inline const std::map<std::string, std::vector<MaterialDef*>> &category_materials() const noexcept { return _category_materials; }
+
+inline void unload_all() noexcept {
+    for (auto &m : _materials) delete m.second;
+
+    _materials.clear();
+    _categories.clear();
+    _sorted_materials.clear();
+    _category_materials.clear();
+}
+
+void unload_textures();
+
+/// @brief Loads internal materials.
+/// @param cast_folder The path to the Cast folder.
+void load_internals(std::filesystem::path const &cast_folder);
+
+/// @brief Loads embedded materials (Drought content).
+/// @param cast_folder The path to the Cast folder.
+void load_embedded(std::filesystem::path const &cast_folder);
+
+void register_from(std::filesystem::path const &file);
+
+MaterialDex &operator=(MaterialDex const&) = delete;
+
+MaterialDex(bool load_embedded = true, bool load_internals = true);
+MaterialDex(MaterialDex const&) = delete;
+~MaterialDex();
 
 };
 

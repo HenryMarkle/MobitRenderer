@@ -1,5 +1,6 @@
 #include <string>
 #include <filesystem>
+#include <unordered_set>
 
 #include <raylib.h>
 
@@ -105,7 +106,7 @@ void TileDef::unload_texture() {
 TileDef::TileDef(
   std::string name, TileDefType type, uint8_t width,
   uint8_t height, uint8_t buffer, int8_t rnd,
-  std::vector<std::string> tags, std::vector<int8_t> specs,
+  std::unordered_set<std::string> tags, std::vector<int8_t> specs,
   std::vector<int8_t> specs2, std::vector<int8_t> specs3,
   std::vector<uint8_t> repeat
   ) : 

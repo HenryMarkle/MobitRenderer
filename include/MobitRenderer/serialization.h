@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 #include <raylib.h>
 
@@ -57,6 +58,7 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path&);
 
 TileDefCategory deser_tiledef_category(const mp::Node*);
 TileDef* deser_tiledef(const mp::Node*);
+CustomMaterialDef *deser_materialdef(const mp::Node*);
 
 // Deserialization utilities
 
@@ -81,6 +83,10 @@ Color deser_color(const mp::Node*);
 /// @brief Deserializes a linear list into a vector of std::string.
 /// @param node The underlying pointer must be mp::List*.
 std::vector<std::string> deser_string_vec(const mp::Node *node);
+
+/// @brief Deserializes a linear list into an unordered set of std::string.
+/// @param node The underlying pointer must be mp::List*.
+std::unordered_set<std::string> deser_string_set(const mp::Node *node);
 
 /// @brief Deserializes a linear list into a vector of int8 (char).
 /// @param node The underlying pointer must be mp::List*.

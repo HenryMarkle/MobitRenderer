@@ -3,9 +3,13 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <map>
 #include <filesystem>
+#include <unordered_set>
 
 #include <raylib.h>
+
+#include <MobitRenderer/managed.h>
 
 namespace mr {
 
@@ -36,7 +40,7 @@ private:
   const int8_t rnd;
   const std::vector<int8_t> specs, specs2, specs3;
   const std::vector<uint8_t> repeat;
-  const std::vector<std::string> tags;
+  const std::unordered_set<std::string> tags;
   std::filesystem::path texture_path;
   Rectangle _preview_rectangle;
 
@@ -69,7 +73,7 @@ public:
 
   inline const std::vector<uint8_t> &get_repeat() const noexcept { return repeat; }
 
-  inline const std::vector<std::string> &get_tags() const noexcept { return tags; }
+  inline const std::unordered_set<std::string> &get_tags() const noexcept { return tags; }
   inline int get_rnd() const noexcept { return rnd; }
 
   /// @brief Retrieves the rectangle to draw the preview section of the texture.
@@ -97,24 +101,191 @@ public:
   TileDef(const TileDef &) = delete;
 
   TileDef(std::string name, TileDefType type, uint8_t width, uint8_t height,
-          uint8_t buffer, int8_t rnd, std::vector<std::string> tags,
+          uint8_t buffer, int8_t rnd, std::unordered_set<std::string> tags,
           std::vector<int8_t> specs, std::vector<int8_t> specs2,
           std::vector<int8_t> specs3, std::vector<uint8_t> repeat);
 
   ~TileDef();
 };
 
-/// TODO: More fields to add
+enum class MaterialRenderType {
+  unified,
+  tiles,
+  pipe,
+  invisible,
+  large_trash,
+  dirt,
+  ceramic,
+  dense_pipe,
+  ridge,
+  ceramic_a,
+  ceramic_b,
+  random_pipes,
+  rock,
+  rough_rock,
+  sandy,
+  mega_trash,
+  wv,
+
+  custom_unified
+};
+
 class MaterialDef {
-private:
+
+protected:
+
   const std::string name;
-  const std::string category;
+  std::string category;
   const Color color;
+  const MaterialRenderType type;
 
 public:
-  const std::string &get_name() const;
 
-  MaterialDef(std::string const &name, std::string const &category,
-              Color color);
+  inline const std::string &get_name() const noexcept { return name; }
+  inline const std::string &get_category() const noexcept { return category; }
+  inline void set_category(std::string new_category) noexcept { category = new_category; }
+  inline Color get_color() const noexcept { return color; }
+  inline MaterialRenderType get_type() const noexcept { return type; }
+
+  MaterialDef(
+    std::string const &name, 
+    Color color,
+    MaterialRenderType type
+  );
+
+  virtual ~MaterialDef() = default;
 };
+
+struct MaterialDefTexture {
+  uint16_t width, height;
+  std::vector<uint8_t> repeat;
+  std::unordered_set<std::string> tags;
+
+  MaterialDefTexture(
+    uint16_t, 
+    uint16_t, 
+    std::vector<uint8_t>,
+    std::unordered_set<std::string>
+  );
+};
+
+struct MaterialDefBlock {
+  std::vector<uint8_t> repeat;
+  int rnd;
+  uint8_t buffer;
+  std::unordered_set<std::string> tags;
+
+  MaterialDefBlock(
+    std::vector<uint8_t>,
+    int, 
+    uint8_t,
+    std::unordered_set<std::string>
+  );
+};
+
+struct MaterialDefSlope {
+  std::vector<uint8_t> repeat;
+  int rnd;
+  uint8_t buffer;
+  std::unordered_set<std::string> tags;
+
+  MaterialDefSlope(
+    std::vector<uint8_t>,
+    int,
+    uint8_t,
+    std::unordered_set<std::string>
+  );
+};
+
+struct MaterialDefFloor {
+  std::vector<uint8_t> repeat;
+  int rnd;
+  uint8_t buffer;
+  std::unordered_set<std::string> tags;
+
+  MaterialDefFloor(
+    std::vector<uint8_t>,
+    int,
+    uint8_t,
+    std::unordered_set<std::string>
+  );
+};
+
+class CustomMaterialDef : public MaterialDef {
+
+private:
+
+  const MaterialDefTexture *texture_params;
+  const MaterialDefBlock *block_params;
+  const MaterialDefSlope *slope_params;
+  const MaterialDefFloor *floor_params;
+
+  std::filesystem::path 
+    main_texture_path,
+    block_texture_path,
+    slope_texture_path,
+    floor_texture_path;
+
+  texture 
+    main_texture,
+    block_texture,
+    slope_texture,
+    floor_texture;
+
+public:
+
+  inline const texture &get_main_texture() const noexcept { return main_texture; }
+  inline const texture &get_block_texture() const noexcept { return block_texture; }
+  inline const texture &get_slope_texture() const noexcept { return slope_texture; }
+  inline const texture &get_floor_texture() const noexcept { return floor_texture; }
+
+  inline void set_textures_dir(const std::filesystem::path &dir) {
+    if (texture_params != nullptr) {
+      main_texture_path = dir / (name + "Texture.png");
+    }
+
+    if (block_params != nullptr) {
+      block_texture_path = dir / (name + ".png");
+    }
+
+    if (slope_params != nullptr) {
+      slope_texture_path = dir / (name + "Slopes.png");
+    }
+
+    if (floor_params != nullptr) {
+      floor_texture_path = dir / (name + "Floor.png");
+    }
+  }
+
+  bool are_textures_loaded() const noexcept;
+
+  void reload_textures();
+  
+  inline void unload_textures() { 
+    main_texture.unload(); 
+    block_texture.unload();
+    slope_texture.unload();
+    floor_texture.unload();
+  }
+
+  CustomMaterialDef &operator=(CustomMaterialDef&&) noexcept = delete;
+  CustomMaterialDef &operator=(CustomMaterialDef const&) = delete;
+
+  CustomMaterialDef(
+    std::string const &name, 
+    Color color,
+    MaterialDefTexture *texture_params = nullptr,
+    MaterialDefBlock *block_params = nullptr,
+    MaterialDefSlope *slope_params = nullptr,
+    MaterialDefFloor *floor_params = nullptr
+  );
+
+  CustomMaterialDef(CustomMaterialDef&&) noexcept = delete;
+  CustomMaterialDef(CustomMaterialDef const&) = delete;
+
+  ~CustomMaterialDef();
+
+};
+
+
 }; // namespace mr

@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <exception>
 
@@ -58,7 +59,7 @@ TileDefCategory deser_tiledef_category(const mp::Node *node) {
   return TileDefCategory{name_string_node->str, color};
 }
 
-TileDef* deser_tiledef(const mp::Node *node) {
+TileDef *deser_tiledef(const mp::Node *node) {
   const mp::Props *props = dynamic_cast<const mp::Props*>(node);
   
   if (props == nullptr) throw deserialization_failure("node is not a property list");
@@ -68,7 +69,7 @@ TileDef* deser_tiledef(const mp::Node *node) {
   int8_t rnd;
   std::vector<int8_t> specs1, specs2, specs3;
   std::vector<uint8_t> repeat;
-  std::vector<std::string> tags;
+  std::unordered_set<std::string> tags;
   TileDefType tile_type;
 
   const auto &dict = props->map;
@@ -165,7 +166,7 @@ TileDef* deser_tiledef(const mp::Node *node) {
   // tags
   try {
     const auto &tags_node = dict.at("tags");
-    tags = deser_string_vec(tags_node.get());
+    tags = deser_string_set(tags_node.get());
   } catch (std::out_of_range &e) {
     throw deserialization_failure("missing required propery: 'tags'");
   } catch (deserialization_failure &de) {
@@ -237,6 +238,273 @@ TileDef* deser_tiledef(const mp::Node *node) {
     std::move(specs2),
     std::move(specs3),
     std::move(repeat)
+  );
+}
+CustomMaterialDef *deser_materialdef(const mp::Node *node) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(node);
+   
+  if (props == nullptr) throw deserialization_failure("node is not a property list");
+
+  std::string name;
+  Color color;
+  MaterialDefTexture *texture_params = nullptr;
+  MaterialDefBlock *block_params = nullptr;
+  MaterialDefSlope *slope_params = nullptr;
+  MaterialDefFloor *floor_params = nullptr;
+
+  const auto &dict = props->map;
+
+  // Required
+
+  // nm
+  try {
+    const auto &name_node = dict.at("nm");
+    name = deser_string(name_node.get());
+  } catch (std::out_of_range &e) {
+    throw deserialization_failure("missing required propery: 'nm'");
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'nm': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  // color
+  try {
+    const auto &color_node = dict.at("color");
+    color = deser_color(color_node.get());
+  } catch (std::out_of_range &e) {
+    color = RED;
+  } catch (deserialization_failure &de) {
+    std::string msg("failed to deserialize property 'color': ");
+    msg += de.what();
+    throw deserialization_failure(msg);
+  }
+
+  // Params
+
+  auto texture_params_iter = dict.find("texture");
+  if (texture_params_iter != dict.end()) {
+    mp::Node *texture_params_node = texture_params_iter->second.get();
+
+    mp::Props *texture_props = dynamic_cast<mp::Props*>(texture_params_node);
+    if (texture_props == nullptr) throw deserialization_failure("#texture property is not a property list");
+
+    uint16_t tw, th;
+    std::vector<uint8_t> trepeat;
+    std::unordered_set<std::string> ttags;
+
+    try {
+      mp::Node *size_node = texture_props->map.at("sz").get();
+      int w, h;
+      deser_point(size_node, w, h);
+
+      tw = (uint16_t)w;
+      th = (uint16_t)h;
+    } catch (std::out_of_range &re) {
+      throw deserialization_failure("missing #texture property 'sz'");
+    } catch (deserialization_failure &de) {
+      std::string msg("failed to deserialize #texture property 'sz': ");
+      msg += de.what();
+      throw deserialization_failure(msg);
+    }
+
+    auto trepeat_iter = texture_props->map.find("repeatl");
+    if (trepeat_iter != texture_props->map.end()) {
+      try {
+        trepeat = deser_uint8_vec(trepeat_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #texture property 'repeatL': ") + de.what()
+        );
+      }
+    }
+
+    auto ttags_iter = texture_props->map.find("tags");
+    if (ttags_iter != texture_props->map.end()) {
+      try {
+        ttags = deser_string_set(ttags_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #texture property 'tags': ") + de.what()
+        );
+      }
+    }
+
+    texture_params = new MaterialDefTexture(tw, th, trepeat, ttags);
+  }
+
+  auto block_params_iter = dict.find("block");
+  if (block_params_iter != dict.end()) {
+    std::vector<uint8_t> brepeat;
+    int brnd;
+    uint8_t bbuffer;
+    std::unordered_set<std::string> btags;
+
+    mp::Props *block_props = dynamic_cast<mp::Props*>(block_params_iter->second.get());
+    if (block_props == nullptr) throw deserialization_failure("#block property is not a property list");
+
+    /// TODO: continue here..
+
+    int brnd = 0;
+    auto brnd_iter = block_props->map.find("rnd");
+    if (brnd_iter != block_props->map.end()) {
+      try {
+        brnd = deser_int(brnd_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #block property 'rnd': ") + de.what()
+        );
+      }
+    }
+
+    uint8_t bbuffer = 0;
+    auto bbuffer_iter = block_props->map.find("bftiles");
+    if (bbuffer_iter != block_props->map.end()) {
+      try {
+        bbuffer = deser_uint8(bbuffer_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #block property 'bfTiles': ") + de.what()
+        );
+      }
+    }
+
+    auto btags_iter = block_props->map.find("tags");
+    if (btags_iter != block_props->map.end()) {
+      try {
+        btags = deser_string_set(btags_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #block property 'tags': ") + de.what()
+        );
+      }
+    }
+
+    block_params = new MaterialDefBlock(
+      brepeat,
+      brnd,
+      bbuffer,
+      btags
+    );
+  }
+
+  auto slope_params_iter = dict.find("slope");
+  if (slope_params_iter != dict.end()) {
+    std::vector<uint8_t> brepeat;
+    int brnd;
+    uint8_t bbuffer;
+    std::unordered_set<std::string> btags;
+
+    mp::Props *block_props = dynamic_cast<mp::Props*>(block_params_iter->second.get());
+    if (block_props == nullptr) throw deserialization_failure("#block property is not a property list");
+
+    /// TODO: continue here..
+
+    int brnd = 0;
+    auto brnd_iter = block_props->map.find("rnd");
+    if (brnd_iter != block_props->map.end()) {
+      try {
+        brnd = deser_int(brnd_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #slope property 'rnd': ") + de.what()
+        );
+      }
+    }
+
+    uint8_t bbuffer = 0;
+    auto bbuffer_iter = block_props->map.find("bftiles");
+    if (bbuffer_iter != block_props->map.end()) {
+      try {
+        bbuffer = deser_uint8(bbuffer_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #slope property 'bfTiles': ") + de.what()
+        );
+      }
+    }
+
+    auto btags_iter = block_props->map.find("tags");
+    if (btags_iter != block_props->map.end()) {
+      try {
+        btags = deser_string_set(btags_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #slope property 'tags': ") + de.what()
+        );
+      }
+    }
+
+    slope_params = new MaterialDefSlope(
+      brepeat,
+      brnd,
+      bbuffer,
+      btags
+    );
+  }
+
+  auto floor_params_iter = dict.find("floor");
+  if (floor_params_iter != dict.end()) {
+    std::vector<uint8_t> brepeat;
+    int brnd;
+    uint8_t bbuffer;
+    std::unordered_set<std::string> btags;
+
+    mp::Props *block_props = dynamic_cast<mp::Props*>(block_params_iter->second.get());
+    if (block_props == nullptr) throw deserialization_failure("#block property is not a property list");
+
+    /// TODO: continue here..
+
+    int brnd = 0;
+    auto brnd_iter = block_props->map.find("rnd");
+    if (brnd_iter != block_props->map.end()) {
+      try {
+        brnd = deser_int(brnd_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #floor property 'rnd': ") + de.what()
+        );
+      }
+    }
+
+    uint8_t bbuffer = 0;
+    auto bbuffer_iter = block_props->map.find("bftiles");
+    if (bbuffer_iter != block_props->map.end()) {
+      try {
+        bbuffer = deser_uint8(bbuffer_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #floor property 'bfTiles': ") + de.what()
+        );
+      }
+    }
+
+    auto btags_iter = block_props->map.find("tags");
+    if (btags_iter != block_props->map.end()) {
+      try {
+        btags = deser_string_set(btags_iter->second.get());
+      } catch (deserialization_failure &de) {
+        throw deserialization_failure(
+          std::string("failed to deserialize #floor property 'tags': ") + de.what()
+        );
+      }
+    }
+
+    floor_params = new MaterialDefFloor(
+      brepeat,
+      brnd,
+      bbuffer,
+      btags
+    );
+  }
+
+  return new CustomMaterialDef(
+    name, 
+    color, 
+    texture_params,
+    block_params,
+    slope_params,
+    floor_params
   );
 }
 
@@ -839,6 +1107,28 @@ std::vector<std::string> deser_string_vec(const mp::Node *node) {
       mp::String *element_string = dynamic_cast<mp::String*>(element_node);
       if (element_string == nullptr) throw deserialization_failure("failed to deserialize list element: node is not a string");
       strings.push_back(element_string->str);
+    }
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize list element: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  return strings;
+}
+std::unordered_set<std::string> deser_string_set(const mp::Node *node) {
+  const mp::List *list = dynamic_cast<const mp::List*>(node);
+  if (list == nullptr) throw deserialization_failure("node is not a linear list");
+
+  std::unordered_set<std::string> strings;
+  strings.reserve(list->elements.size());
+
+  try {
+    for (auto &element : list->elements) {
+      mp::Node *element_node = element.get();
+      mp::String *element_string = dynamic_cast<mp::String*>(element_node);
+      if (element_string == nullptr) throw deserialization_failure("failed to deserialize list element: node is not a string");
+      strings.insert(element_string->str);
     }
   } catch (deserialization_failure &e) {
     std::string msg("failed to deserialize list element: ");
