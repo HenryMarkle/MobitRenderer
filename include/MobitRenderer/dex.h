@@ -115,12 +115,7 @@ inline void unload_all() noexcept {
 void unload_textures();
 
 /// @brief Loads internal materials.
-/// @param cast_folder The path to the Cast folder.
-void load_internals(std::filesystem::path const &cast_folder);
-
-/// @brief Loads embedded materials (Drought content).
-/// @param cast_folder The path to the Cast folder.
-void load_embedded(std::filesystem::path const &cast_folder);
+void load_internals();
 
 void register_from(std::filesystem::path const &file);
 

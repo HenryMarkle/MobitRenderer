@@ -25,6 +25,18 @@ namespace mr {
     type(type) 
   { }
 
+  MaterialDef::MaterialDef(
+    std::string const &name, 
+    std::string const &category, 
+    Color color,
+    MaterialRenderType type
+  ) :
+    name(name),
+    category(category),
+    color(color),
+    type(type) 
+  { }
+
   bool CustomMaterialDef::are_textures_loaded() const noexcept {
     return 
       (texture_params == nullptr || main_texture.is_loaded())

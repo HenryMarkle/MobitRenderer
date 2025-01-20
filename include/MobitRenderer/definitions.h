@@ -153,6 +153,13 @@ public:
     MaterialRenderType type
   );
 
+  MaterialDef(
+    std::string const &name, 
+    std::string const &category, 
+    Color color,
+    MaterialRenderType type
+  );
+
   virtual ~MaterialDef() = default;
 };
 
