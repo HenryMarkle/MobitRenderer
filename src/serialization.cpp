@@ -1,7 +1,3 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -1207,16 +1203,26 @@ void deser_point(const mp::Node *node, int &x, int &y) {
   y = value_y;
 }
 
-void define_tile_matrix(Matrix<TileCell> &mtx, const TileDex &dex) {
-  for (uint16_t x = 0; x < mtx.get_width(); x++) {
-    for (uint16_t y = 0; y < mtx.get_height(); y++) {
-      for (uint16_t z = 0; z < 3; z++) {
+void define_tile_matrix(
+  Matrix<TileCell> &mtx, 
+  const TileDex *tiledex,
+  const MaterialDex *materialdex
+) {
+  if (tiledex == nullptr)
+    throw std::invalid_argument("tile dex was null");
+  
+  if (materialdex == nullptr)
+    throw std::invalid_argument("material dex was null");
+
+  for (uint16_t z = 0; z < 3; z++) {
+    for (uint16_t x = 0; x < mtx.get_width(); x++) {
+      for (uint16_t y = 0; y < mtx.get_height(); y++) {
         auto &cell = mtx.get(x, y, z);
 
         switch (cell.type) {
           case TileType::head:
           {
-            cell.tile_def = dex.tile(cell.und_name);
+            cell.tile_def = tiledex->tile(cell.und_name);
           }
           break;
 
@@ -1227,7 +1233,7 @@ void define_tile_matrix(Matrix<TileCell> &mtx, const TileDex &dex) {
 
               if (supposed_head.type == TileType::head) {
                 if (supposed_head.tile_def == nullptr) {
-                  auto *def = dex.tile(supposed_head.und_name);
+                  auto *def = tiledex->tile(supposed_head.und_name);
 
                   cell.tile_def = def;
                   supposed_head.tile_def = def;
@@ -1243,7 +1249,8 @@ void define_tile_matrix(Matrix<TileCell> &mtx, const TileDex &dex) {
 
           case TileType::material:
           {
-            // TODO: Continue here..
+            auto *def = materialdex->material(cell.und_name);
+            cell.material_def = def;
           }
           break;
 

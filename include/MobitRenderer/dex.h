@@ -126,7 +126,10 @@ void register_from(std::filesystem::path const &file);
 
 MaterialDex &operator=(MaterialDex const&) = delete;
 
-MaterialDex(bool load_embedded = true, bool load_internals = true);
+MaterialDex(
+    bool load_embedded = true, 
+    bool load_internals = true
+);
 MaterialDex(MaterialDex const&) = delete;
 ~MaterialDex();
 

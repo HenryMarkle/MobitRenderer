@@ -105,6 +105,10 @@ void deser_point(const mp::Node *node, int&, int&);
 /// @brief Goes through a tile matrix and defines each cell that 
 /// is a tile head, body, or a material.
 /// @note This function fails silently.
-void define_tile_matrix(Matrix<TileCell>&, TileDex const&);
+void define_tile_matrix(
+  Matrix<TileCell>&, 
+  TileDex const*, 
+  MaterialDex const*
+);
 
 }; // namespace mr
