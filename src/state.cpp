@@ -301,7 +301,7 @@ context::context(std::shared_ptr<spdlog::logger> logger,
       _textures(nullptr),
       _tiledex(nullptr),
       _shaders(nullptr),
-      f3_(std::make_shared<debug::f3>(GetFontDefault(), 28, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
+      f3_(std::make_shared<debug::f3>(GetFontDefault(), 22, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
       camera(Camera2D{Vector2{1, 40}, Vector2{0, 0}, 0, 0.5f}),
       enable_global_shortcuts(true),
       level_layer_(0) {}

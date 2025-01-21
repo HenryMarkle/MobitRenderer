@@ -186,9 +186,11 @@ int main() {
   logger->info("loading font");
 
   auto font_path = ctx->directories->get_fonts() / "Oswald-Regular.ttf";
-  auto font = LoadFont(font_path.string().c_str());
+  auto font = LoadFontEx(font_path.string().c_str(), 22, nullptr, 0);
   ctx->add_font(font);
   ctx->select_font(0);
+
+  SetTextureFilter(font.texture, TEXTURE_FILTER_POINT);
 
   logger->info("loading shaders");
 
@@ -313,7 +315,7 @@ int main() {
         auto *f3 = ctx->f3_.get();
 
         f3->print(APP_NAME);
-        f3->print(" v");
+        f3->print(" v", true);
         f3->print(APP_VERSION, true);
         
         #ifdef IS_DEBUG_BUILD
