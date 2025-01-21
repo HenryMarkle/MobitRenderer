@@ -9,6 +9,7 @@
 #include <raylib.h>
 
 #include <MobitRenderer/definitions.h>
+#include <MobitRenderer/castlibs.h>
 
 namespace mr {
 
@@ -59,10 +60,11 @@ const std::map<std::string, std::vector<TileDef*>> &category_tiles() const noexc
 /// @brief A map of categories with colors.
 const std::map<std::string, Color> &colors() const noexcept;
 
-/// @brief Registers tiles from a directory.
+/// @brief Registers tiles from an Init text file.
 /// @param file The path to the Init.txt file.
+/// @param libs A pointer to the Cast libraries for internal tiles.
 /// @attention The path's parent directory must contain the tile textures.
-void register_from(std::filesystem::path const&file);
+void register_from(std::filesystem::path const&file, CastLibs const*libs = nullptr);
 
 /// @brief Unloads all textures of tiles. 
 /// Must be called before CloseWindow().
@@ -121,13 +123,12 @@ void register_from(std::filesystem::path const &file);
 
 MaterialDex &operator=(MaterialDex const&) = delete;
 
-MaterialDex(
-    bool load_embedded = true, 
-    bool load_internals = true
-);
+MaterialDex();
 MaterialDex(MaterialDex const&) = delete;
 ~MaterialDex();
 
 };
+
+class PropDex {};
 
 };

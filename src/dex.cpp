@@ -13,6 +13,7 @@
 #include <MobitParser/nodes.h>
 
 #include <MobitRenderer/dex.h>
+#include <MobitRenderer/castlibs.h>
 #include <MobitRenderer/exceptions.h>
 #include <MobitRenderer/definitions.h>
 #include <MobitRenderer/serialization.h>
@@ -33,7 +34,7 @@ const std::vector<std::vector<TileDef*>> &TileDex::sorted_tiles() const noexcept
 const std::map<std::string, std::vector<TileDef*>> &TileDex::category_tiles() const noexcept { return _category_tiles; }
 const std::map<std::string, Color> &TileDex::colors() const noexcept { return _category_colors; }
 
-void TileDex::register_from(path const&file) {
+void TileDex::register_from(path const&file, CastLibs const*libs) {
     if (!exists(file)) return;
 
     path init_dir = file.parent_path();
@@ -132,7 +133,27 @@ void TileDex::register_from(path const&file) {
                     // throw dex_error(msg.str());
                 }
 
-                tiledef->set_texture_path(init_dir / (tiledef->get_name() + ".png"));
+                auto &tags = tiledef->get_tags();
+
+                if (tags.find("INTERNAL") != tags.end()) {
+                    if (libs == nullptr) 
+                        throw dex_error(
+                            std::string("tile '"+tiledef->get_name()+"' resource is internal but CastLibs* argument was nullptr")
+                        );
+                
+                    try {
+                        auto *member = libs->member_or_throw(tiledef->get_name());
+                        tiledef->set_texture_path(member->get_texture_path());
+                    } catch (std::runtime_error &e) {
+                        throw dex_error(
+                            std::string("tile '"+tiledef->get_name()+"' internal resouce was not found")
+                        );
+                    }
+                } 
+                else {
+                    tiledef->set_texture_path(init_dir / (tiledef->get_name() + ".png"));
+                }
+
                 tiledef->set_category(current_category.name);
 
                 _tiles[tiledef->get_name()] = tiledef;
@@ -316,6 +337,6 @@ MaterialDex::~MaterialDex() {
     for (auto &pair : _materials) delete pair.second;
 }
 
-/// TODO: continue here..
+MaterialDex::MaterialDex() {}
 
 };

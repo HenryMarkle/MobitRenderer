@@ -1,12 +1,9 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <iostream>
 #include <memory>
 #include <string>
 #include <exception>
 #include <unordered_map>
+#include <iostream>
 
 #include <raylib.h>
 #include <imgui.h>
@@ -23,6 +20,7 @@
 #include <MobitRenderer/state.h>
 #include <MobitRenderer/events.h>
 #include <MobitRenderer/dex.h>
+#include <MobitRenderer/castlibs.h>
 
 #define STRINGIFY_DEFINED(x) #x
 #define TO_STRING_DEFINED(x) STRINGIFY_DEFINED(x)
@@ -148,11 +146,24 @@ int main() {
 
   auto *ctx = new mr::context(logger, directories);
 
-  logger->info("importing tiles");
+  logger->info("loading cast libraries");
+
+  auto *castlibs = new mr::CastLibs(directories->get_cast());
+  castlibs->load_all();
+  ctx->_castlibs = castlibs;
+
+  logger->info("loading tiles");
   
   auto *tiledex = new mr::TileDex();
   tiledex->register_from(directories->get_tiles() / "Init.txt");
+  tiledex->register_from(directories->get_cast() / "Drought_393439_Drought Needed Init.txt", castlibs);
   ctx->_tiledex = tiledex;
+
+  logger->info("loading materials");
+
+  auto *materialdex = new mr::MaterialDex();
+  materialdex->load_internals();
+  ctx->_materialdex = materialdex;
 
   logger->info("initializing window");
 
@@ -356,6 +367,8 @@ int main() {
   delete pager;
   delete ctx;
   delete tiledex;
+  delete materialdex;
+  delete castlibs;
   delete shaders;
   delete textures;
 

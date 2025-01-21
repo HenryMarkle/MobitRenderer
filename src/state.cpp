@@ -49,8 +49,8 @@ dirs::dirs() {
   assets = executable / "Assets";
   #endif
 
-  // data = executable / "Data";
-  // assets = executable / "Assets";
+  data = executable / "Data";
+  assets = executable / "Assets";
 
   projects = executable / "Projects";
   levels = executable / "Levels";

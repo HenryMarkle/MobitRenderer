@@ -18,6 +18,7 @@
 #include <MobitRenderer/exceptions.h>
 #include <MobitRenderer/atlas.h>
 #include <MobitRenderer/dex.h>
+#include <MobitRenderer/castlibs.h>
 
 namespace mr {
 
@@ -220,8 +221,12 @@ public:
 
   shaders *_shaders;
   textures *_textures;
+
   TileDex *_tiledex;
-  
+  MaterialDex *_materialdex;
+
+  CastLibs *_castlibs;
+
   //
   
   std::shared_ptr<mr::debug::f3> f3_;
