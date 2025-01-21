@@ -257,27 +257,6 @@ void context::unlock_global_shortcuts() noexcept {
   enable_global_shortcuts = true;
 }
 
-const Font *context::get_selected_font_const_ptr() const noexcept {
-  if (selected_font >= fonts.size())
-    return nullptr;
-
-  return &fonts[selected_font];
-}
-Font context::get_selected_font() const noexcept {
-  if (selected_font >= fonts.size())
-    return {{0}};
-
-  return fonts[selected_font];
-}
-void context::select_font(uint8_t index) noexcept {
-  if (index >= fonts.size())
-    return;
-
-  selected_font = index;
-  f3_->set_font(fonts[index]);
-}
-void context::add_font(Font f) noexcept { fonts.push_back(f); }
-
 const config &context::get_config_const() const noexcept {
   return _config;
 }
@@ -301,6 +280,7 @@ context::context(std::shared_ptr<spdlog::logger> logger,
       _textures(nullptr),
       _tiledex(nullptr),
       _shaders(nullptr),
+      _fonts(nullptr),
       f3_(std::make_shared<debug::f3>(GetFontDefault(), 22, WHITE, Color{GRAY.r, GRAY.g, GRAY.b, 120})),
       camera(Camera2D{Vector2{1, 40}, Vector2{0, 0}, 0, 0.5f}),
       enable_global_shortcuts(true),
@@ -312,8 +292,6 @@ context::~context() {
     for (auto *level : levels)
       delete level;
   }
-
-  for (auto &f : fonts) UnloadFont(f);
 }
 
 void textures::reload_all_textures() {
@@ -475,4 +453,24 @@ config::config() :
   props_prerender(SpritePrerender()),
   materials_prerender(SpritePrerender()),
   shadows(false) {}
+
+void fonts::load_all() {
+  if (loaded) return;
+  
+  small_default_font = LoadFontEx((fonts_dir / "Oswald-Regular.ttf").string().c_str(), 22, nullptr, 0);
+  large_default_font = LoadFontEx((fonts_dir / "Oswald-Regular.ttf").string().c_str(), 30, nullptr, 0);
+
+  SetTextureFilter(small_default_font.texture, TEXTURE_FILTER_POINT);
+  SetTextureFilter(large_default_font.texture, TEXTURE_FILTER_POINT);
+
+  loaded = true;
+}
+
+fonts::fonts(const std::filesystem::path &fonts_dir)
+  : fonts_dir(fonts_dir), loaded(false) {}
+
+fonts::~fonts() {
+  unload_all();
+}
+
 }; // namespace mr

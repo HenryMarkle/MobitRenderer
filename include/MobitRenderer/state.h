@@ -82,6 +82,46 @@ public:
   dirs(const std::filesystem::path &);
 };
 
+class fonts {
+
+private:
+
+const std::filesystem::path fonts_dir;
+Font small_default_font;
+Font large_default_font;
+bool loaded;
+
+public:
+
+inline const Font &get_small_default_font() const noexcept { return small_default_font; }
+inline const Font &get_large_default_font() const noexcept { return large_default_font; }
+
+inline void unload_all() {
+  if (!loaded) return;
+
+  UnloadFont(small_default_font);
+  UnloadFont(large_default_font);
+
+  loaded = false;
+}
+
+void load_all();
+
+inline void reload_all() {
+  unload_all();
+  load_all();
+}
+
+fonts &operator=(fonts&&) noexcept = delete;
+fonts &operator=(fonts const&) = delete;
+
+fonts(const std::filesystem::path &fonts_dir);
+fonts(fonts&&) noexcept = delete;
+fonts(fonts const&) = delete;
+~fonts();
+
+};
+
 /// @note Requires shaders to be loaded.
 class shaders {
 private:
@@ -207,10 +247,6 @@ private:
   std::vector<mr::Level *> levels;
   uint8_t selected_level;
 
-  std::vector<Font> fonts;
-  uint8_t selected_font;
-
-
   config _config;
 
 public:
@@ -226,6 +262,8 @@ public:
   MaterialDex *_materialdex;
 
   CastLibs *_castlibs;
+
+  fonts *_fonts;
 
   //
   
@@ -245,11 +283,6 @@ public:
   void remove_level(size_t);
   void lock_global_shortcuts() noexcept;
   void unlock_global_shortcuts() noexcept;
-
-  const Font *get_selected_font_const_ptr() const noexcept;
-  Font get_selected_font() const noexcept;
-  void select_font(uint8_t) noexcept;
-  void add_font(Font) noexcept;
 
   const config &get_config_const() const noexcept;
   config &get_config() noexcept;

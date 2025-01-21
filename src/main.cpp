@@ -185,12 +185,10 @@ int main() {
 
   logger->info("loading font");
 
-  auto font_path = ctx->directories->get_fonts() / "Oswald-Regular.ttf";
-  auto font = LoadFontEx(font_path.string().c_str(), 22, nullptr, 0);
-  ctx->add_font(font);
-  ctx->select_font(0);
-
-  SetTextureFilter(font.texture, TEXTURE_FILTER_POINT);
+  auto *fonts = new mr::fonts(directories->get_fonts());
+  fonts->reload_all();
+  ctx->_fonts = fonts;
+  ctx->f3_->set_font(fonts->get_small_default_font());
 
   logger->info("loading shaders");
 
@@ -377,6 +375,7 @@ int main() {
   delete castlibs;
   delete shaders;
   delete textures;
+  delete fonts;
 
   rlImGuiShutdown();
 
