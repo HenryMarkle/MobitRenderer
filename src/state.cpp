@@ -312,6 +312,8 @@ context::~context() {
     for (auto *level : levels)
       delete level;
   }
+
+  for (auto &f : fonts) UnloadFont(f);
 }
 
 void textures::reload_all_textures() {
