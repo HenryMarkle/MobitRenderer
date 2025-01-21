@@ -1,6 +1,6 @@
 #pragma once
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <memory>
@@ -20,7 +20,7 @@ class TileDex {
 
 private:
 
-std::map<std::string, TileDef*> _tiles;
+std::unordered_map<std::string, TileDef*> _tiles;
 
 /// @brief An array of tile categories, in the 
 /// order they were registered.
@@ -32,10 +32,10 @@ std::vector<std::vector<TileDef*>> _sorted_tiles;
 
 /// @brief A map of category name with associated tiles, 
 /// that are ordered by registering orderer.
-std::map<std::string, std::vector<TileDef*>> _category_tiles;
+std::unordered_map<std::string, std::vector<TileDef*>> _category_tiles;
 
 /// @brief A map of categories with colors.
-std::map<std::string, Color> _category_colors;
+std::unordered_map<std::string, Color> _category_colors;
 
 public:
 
@@ -43,7 +43,7 @@ public:
 /// @return A pointer to the tile if found; otherwise a null pointer is returned.
 TileDef *tile(const std::string&) const noexcept;
 
-const std::map<std::string, TileDef*> &tiles() const noexcept;
+const std::unordered_map<std::string, TileDef*> &tiles() const noexcept;
 
 /// @brief An array of tile categories, in the 
 /// order they were registered.
@@ -55,10 +55,10 @@ const std::vector<std::vector<TileDef*>> &sorted_tiles() const noexcept;
 
 /// @brief A map of category name with associated tiles, 
 /// that are ordered by registering orderer.
-const std::map<std::string, std::vector<TileDef*>> &category_tiles() const noexcept;
+const std::unordered_map<std::string, std::vector<TileDef*>> &category_tiles() const noexcept;
 
 /// @brief A map of categories with colors.
-const std::map<std::string, Color> &colors() const noexcept;
+const std::unordered_map<std::string, Color> &colors() const noexcept;
 
 /// @brief Registers tiles from an Init text file.
 /// @param file The path to the Init.txt file.
@@ -89,10 +89,10 @@ class MaterialDex {
 
 private:
 
-std::map<std::string, MaterialDef*> _materials;
+std::unordered_map<std::string, MaterialDef*> _materials;
 std::vector<std::string> _categories;
 std::vector<std::vector<MaterialDef*>> _sorted_materials;
-std::map<std::string, std::vector<MaterialDef*>> _category_materials;
+std::unordered_map<std::string, std::vector<MaterialDef*>> _category_materials;
 
 public:
 
@@ -103,7 +103,7 @@ inline MaterialDef *material(std::string const&name) const noexcept {
 }
 inline const std::vector<std::string> &categories() const noexcept { return _categories; }
 inline const std::vector<std::vector<MaterialDef*>> &sorted_materials() const noexcept { return _sorted_materials; }
-inline const std::map<std::string, std::vector<MaterialDef*>> &category_materials() const noexcept { return _category_materials; }
+inline const std::unordered_map<std::string, std::vector<MaterialDef*>> &category_materials() const noexcept { return _category_materials; }
 
 inline void unload_all() noexcept {
     for (auto &m : _materials) delete m.second;

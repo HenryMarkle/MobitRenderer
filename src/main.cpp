@@ -155,7 +155,7 @@ int main() {
   logger->info("loading tiles");
   
   auto *tiledex = new mr::TileDex();
-  tiledex->register_from(directories->get_tiles() / "Init.txt");
+  tiledex->register_from(directories->get_tiles() / "Init.txt", castlibs);
   tiledex->register_from(directories->get_cast() / "Drought_393439_Drought Needed Init.txt", castlibs);
   ctx->_tiledex = tiledex;
 
@@ -228,6 +228,10 @@ int main() {
   logger->info("entering main loop");
 
   while (!WindowShouldClose()) {
+    if (IsFileDropped()) {
+      auto list = LoadDroppedFiles();
+    }
+
     { // Handle global shortcuts
 
       if (IsKeyPressed(KEY_F3)) {

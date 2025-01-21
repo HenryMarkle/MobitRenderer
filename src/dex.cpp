@@ -1,4 +1,4 @@
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -28,11 +28,11 @@ TileDef *TileDex::tile(const std::string &name) const noexcept {
     if (tile_ptr == _tiles.end()) return nullptr;
     return tile_ptr->second;
 }
-const std::map<std::string, TileDef*> &TileDex::tiles() const noexcept { return _tiles; }
+const std::unordered_map<std::string, TileDef*> &TileDex::tiles() const noexcept { return _tiles; }
 const std::vector<TileDefCategory> &TileDex::categories() const noexcept { return _categories; }
 const std::vector<std::vector<TileDef*>> &TileDex::sorted_tiles() const noexcept { return _sorted_tiles; }
-const std::map<std::string, std::vector<TileDef*>> &TileDex::category_tiles() const noexcept { return _category_tiles; }
-const std::map<std::string, Color> &TileDex::colors() const noexcept { return _category_colors; }
+const std::unordered_map<std::string, std::vector<TileDef*>> &TileDex::category_tiles() const noexcept { return _category_tiles; }
+const std::unordered_map<std::string, Color> &TileDex::colors() const noexcept { return _category_colors; }
 
 void TileDex::register_from(path const&file, CastLibs const*libs) {
     if (!exists(file)) return;
