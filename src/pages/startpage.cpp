@@ -99,7 +99,7 @@ void Start_Page::draw() noexcept {
   } else {
     ClearBackground(BLACK);
 
-    DrawTextEx(ctx->get_selected_font(), "Please wait..", Vector2{0, 30}, 30,0.2f, WHITE);
+    DrawTextEx(ctx->_fonts->get_large_default_font(), "Please wait..", Vector2{0, 30}, 30,0.2f, WHITE);
   }
 }
 
