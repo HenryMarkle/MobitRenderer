@@ -8,7 +8,79 @@ namespace mr {
 
 namespace draw {
 
+void draw_geo_shape(GeoType type, float x, float y, float scale, Color color) {
+  switch (type) {
+    case GeoType::solid:
+    DrawRectangleRec(
+      Rectangle{x, y, scale, scale},
+      color
+    );
+    break;
 
+    case GeoType::platform:
+    DrawRectangleRec(
+      Rectangle{x, y, scale, scale/2.0f},
+      color
+    );
+    break;
+
+    case GeoType::slope_es:
+    {
+      auto tx = x + scale;
+      auto ty = y + scale;
+
+      DrawTriangle(
+        Vector2{ x ,  y },
+        Vector2{ tx,  y },
+        Vector2{ x , ty },
+        color
+      );
+    }
+    break;
+
+    case GeoType::slope_ne:
+    {
+      auto tx = x + scale;
+      auto ty = y + scale;
+
+      DrawTriangle(
+        Vector2{ x ,  y },
+        Vector2{ tx, ty },
+        Vector2{ x , ty },
+        color
+      );
+    }
+    break;
+
+    case GeoType::slope_nw:
+    {
+      auto tx = x + scale;
+      auto ty = y + scale;
+
+      DrawTriangle(
+        Vector2{ tx,  y },
+        Vector2{ tx, ty },
+        Vector2{ x , ty },
+        color
+      );
+    }
+    break;
+
+    case GeoType::slope_sw:
+    {
+      auto tx = x + scale;
+      auto ty = y + scale;
+
+      DrawTriangle(
+        Vector2{ x ,  y },
+        Vector2{ tx, y },
+        Vector2{ tx, ty },
+        color
+      );
+    }
+    break;
+  }
+}
 
 void draw_mtx_geo_type(
   GeoCell cell, 

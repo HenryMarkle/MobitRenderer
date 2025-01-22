@@ -155,6 +155,7 @@ void TileDex::register_from(path const&file, CastLibs const*libs) {
                 }
 
                 tiledef->set_category(current_category.name);
+                tiledef->set_color(current_category.color);
 
                 _tiles[tiledef->get_name()] = tiledef;
                 _sorted_tiles[_categories.size() - 1].push_back(tiledef);

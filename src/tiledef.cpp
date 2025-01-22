@@ -110,7 +110,9 @@ TileDef::TileDef(
   std::vector<int8_t> specs2, std::vector<int8_t> specs3,
   std::vector<uint8_t> repeat
   ) : 
-    name(name), 
+    name(name),
+    category(std::string()),
+    color(WHITE),
     type(type), 
     width(width), 
     height(height), 
@@ -120,6 +122,7 @@ TileDef::TileDef(
     specs(specs), 
     specs2(specs2), 
     specs3(specs3),
+    multilayer(!specs2.empty() || !specs.empty()),
     repeat(repeat), 
     texture_path(""), 
     texture(Texture2D{0}), 

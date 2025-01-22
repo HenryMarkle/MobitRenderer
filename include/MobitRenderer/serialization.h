@@ -49,7 +49,11 @@ std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::filesystem::path 
 
 void deser_size           (const mp::Node*, uint16_t &width, uint16_t &height);
 void deser_geometry_matrix(const mp::Node*, Matrix<GeoCell>&);
+
+/// @brief Deserializes a tile matrix from a syntax tree node.
+/// @note The function expects receiving the #tilMatrix node and the node the entire line.
 void deser_tile_matrix    (const mp::Node*, Matrix<TileCell>&);
+
 void deser_cameras        (const mp::Node*, std::vector<mr::LevelCamera>&);
 
 std::unique_ptr<Level> deser_level(const std::filesystem::path&);
@@ -99,6 +103,8 @@ std::vector<uint8_t> deser_uint8_vec(const mp::Node *node);
 /// @brief Deserializes a 'point' global call.
 /// @param node The underlying pointer must be mp::GCall* and the name must be 'point'.
 void deser_point(const mp::Node *node, int&, int&);
+
+void deser_tilecell(const mp::Node*, TileCell&);
 
 // TODO: Maybe move this section somewhere else
 

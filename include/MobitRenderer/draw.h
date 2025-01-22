@@ -13,6 +13,7 @@
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/atlas.h>
+#include <MobitRenderer/dex.h>
 
 namespace mr {
 
@@ -81,6 +82,8 @@ void draw_nested_grid(levelsize width, levelsize height, Color color, int scale 
 
 void draw_frame(levelpixelsize width, levelpixelsize height, Color color = WHITE) noexcept;
 void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept;
+
+void draw_geo_shape(GeoType type, float x, float y, float scale, Color color);
 
 /// @brief Draws a geo cell based on the provided type.
 /// @param cell Determines the shape of the cell.
@@ -205,8 +208,30 @@ void draw_tile_prev(const TileDef *def, int x, int y, float scale,
 /// @param color The color of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
-void draw_tile_prev_from_origin(const TileDef *def, int x, int y,
-                          float scale, Color color);
+void draw_tile_prev_from_origin(
+  const TileDef *def, 
+  int x, 
+  int y,
+  float scale, 
+  Color color
+) noexcept;
+
+/// @brief Draws a tile preview from the origin (x - origin.x, y - origin.y).
+/// @param x The matrix' X coordinates.
+/// @param Y The matrix' Y coordinates.
+/// @param scale The scale of the tile.
+/// @param color The color of the tile.
+/// @param tile_spec_layer The layer of the tile targeted (if the tile is multi-layered).
+/// @attention This must be called in a drawing context (after BeginDrawing()
+/// and before EndDrawing()).
+void draw_tile_prev_from_origin(
+  const TileDef *def, 
+  int x, 
+  int y,
+  float scale,
+  Color color,
+  uint8_t tile_spec_layer
+);
 
 /// @brief Draws a tile texture from the top left corner.
 /// @param x The matrix' X coordinates.
@@ -313,6 +338,16 @@ void draw_geo_and_poles_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Colo
 /// @param scale The size of each cell in pixels.
 void draw_geo_features_layer(Matrix<GeoCell> const& matrix, const GE_Textures &atlas, uint8_t layer, Color color, float scale = 20.0f);
 
-};
+/// @brief Draws an entire layer of a tile matrix (previews)
+void draw_tile_prevs_layer(
+  Matrix<GeoCell> const &geomtx, 
+  Matrix<TileCell> const &tilemtx, 
+  const TileDex *tiles, 
+  const MaterialDex *materials,
+  uint8_t layer,
+  float scale
+);
+
+}; // namespace draw
 
 }; // namespace mr

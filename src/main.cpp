@@ -140,7 +140,9 @@ int main() {
   //
 
   logger->info("------ starting program");
-  logger->info("{}{}", APP_VERSION, IS_DEBUG_BUILD ? "Debug" : "");
+  
+  logger->info("Mobit Renderer v{}", APP_VERSION);
+  logger->info("build configuration: {}", BUILD_TYPE);
 
   logger->info("initializing context");
 
@@ -183,7 +185,7 @@ int main() {
 
   io.ConfigDockingWithShift = true;
 
-  logger->info("loading font");
+  logger->info("loading fonts");
 
   auto *fonts = new mr::fonts(directories->get_fonts());
   fonts->reload_all();
@@ -367,6 +369,8 @@ int main() {
   }
 
   logger->info("exiting loop");
+
+  logger->info("cleaning up");
 
   delete pager;
   delete ctx;

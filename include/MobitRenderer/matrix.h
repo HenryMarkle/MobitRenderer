@@ -140,12 +140,12 @@ public:
   const T &get_const(uint16_t x, uint16_t y, uint16_t z) const;
 
   // Return nullptr if index is out-of-bounds
-  T *get_ptr(uint16_t x, uint16_t y, uint16_t z) const noexcept;
+  T *get_ptr(uint16_t x, uint16_t y, uint16_t z) noexcept;
   const T *get_const_ptr(uint16_t x, uint16_t y, uint16_t z) const noexcept;
 
-  void set(uint16_t x, uint16_t y, uint16_t z, T &&element);
+  void set(uint16_t x, uint16_t y, uint16_t z, T element);
   void set_noexcept(uint16_t x, uint16_t y, uint16_t z, T &&element) noexcept;
-
+  
   void resize(int16_t left, int16_t top, int16_t right, int16_t bottom);
 
   Matrix<T> &operator=(const Matrix<T> &) = delete;
@@ -154,7 +154,11 @@ public:
   Matrix(const Matrix<T> &) = delete;
   Matrix(Matrix<T> &&);
 
-  Matrix(uint16_t width, uint16_t height, uint16_t depth = 3);
+  Matrix(
+    uint16_t width, 
+    uint16_t height, 
+    uint16_t depth = 3
+  );
   ~Matrix();
 };
 
@@ -173,6 +177,10 @@ Matrix<T>::Matrix(uint16_t _width, uint16_t _height, uint16_t _depth) {
   depth = _depth;
 
   matrix.reserve(width * height * depth);
+
+  for (size_t x = 0; x < width * height * depth; x++) {
+    matrix.push_back(T());
+  }
 }
 
 template <typename T>
@@ -243,7 +251,7 @@ const T &Matrix<T>::get_const(uint16_t x, uint16_t y, uint16_t z) const {
 }
 
 template <typename T>
-T *Matrix<T>::get_ptr(uint16_t x, uint16_t y, uint16_t z) const noexcept {
+T *Matrix<T>::get_ptr(uint16_t x, uint16_t y, uint16_t z) noexcept {
   if (!is_in_bounds(x, y, z))
     return nullptr;
 
@@ -260,7 +268,7 @@ const T *Matrix<T>::get_const_ptr(uint16_t x, uint16_t y,
 }
 
 template <typename T>
-void Matrix<T>::set(uint16_t x, uint16_t y, uint16_t z, T &&element) {
+void Matrix<T>::set(uint16_t x, uint16_t y, uint16_t z, T element) {
   if (!is_in_bounds(x, y, z))
     throw std::out_of_range("matrix index is out of bounds");
 
@@ -273,7 +281,7 @@ void Matrix<T>::set_noexcept(uint16_t x, uint16_t y, uint16_t z,
   if (!is_in_bounds(x, y, z))
     return;
 
-  matrix[index(x, y, z)] = element;
+  matrix[index(x, y, z)] = std::move(element);
 }
 
 // No depth resizing

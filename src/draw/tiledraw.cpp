@@ -1,7 +1,3 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <memory>
 
 #include <raylib.h>
@@ -120,13 +116,17 @@ void draw_mtx_tile_prev_from_origin(const TileDef *def, int x,
   float height = def->calculate_height(scale);
   ivec2 offset = def->get_head_offset();
 
-  DrawTexturePro(def->get_texture(),
-                 def->get_preview_rectangle(),
-                 Rectangle{(x - offset.x) * scale,
-                          (y - offset.y) * scale,
-                          width,
-                          height},
-                 Vector2{0, 0}, 0, color);
+  DrawTexturePro(
+    def->get_texture(),
+    def->get_preview_rectangle(),
+    Rectangle{
+      (x - offset.x) * scale,
+      (y - offset.y) * scale,
+      width,
+      height
+    },
+    Vector2{0, 0}, 0, color
+  );
 }
 
 void draw_tile_prev(const TileDef *def, int x, int y,
@@ -156,8 +156,13 @@ void draw_tile_prev(const TileDef *def, int x, int y,
   );
 }
 
-void draw_tile_prev_from_origin(const TileDef *def, int x, int y,
-  float scale, Color color) {
+void draw_tile_prev_from_origin(
+  const TileDef *def, 
+  int x, 
+  int y,
+  float scale,
+  Color color
+) noexcept {
   if (def == nullptr || color.a == 0)
     return;
 
@@ -169,13 +174,73 @@ void draw_tile_prev_from_origin(const TileDef *def, int x, int y,
   float height = def->calculate_height(scale);
   ivec2 offset = def->get_head_offset();
 
-  DrawTexturePro(def->get_texture(),
-                 def->get_preview_rectangle(),
-                 Rectangle{(x - offset.x * scale),
-                          (y - offset.y * scale),
-                          width,
-                          height},
-                 Vector2{0, 0}, 0, color);
+  DrawTexturePro(
+    def->get_texture(),
+    def->get_preview_rectangle(),
+    Rectangle{
+      (x - offset.x * scale),
+      (y - offset.y * scale),
+      width,
+      height
+    },
+    Vector2{0, 0}, 0, color
+  );
+}
+
+void draw_tile_prev_from_origin(
+  const TileDef *def, 
+  int x, 
+  int y,
+  float scale,
+  Color color,
+  uint8_t tile_spec_layer
+) {
+  if (def == nullptr || color.a == 0 || tile_spec_layer > 2)
+    return;
+
+  auto &texture = def->get_texture();
+  if (texture.id == 0)
+    return;
+
+  std::vector<int8_t> specs;
+  switch (tile_spec_layer) {
+    case 0: specs = def->get_specs(); break;
+    case 1: specs = def->get_specs2(); break;
+    case 2: specs = def->get_specs3(); break;
+  }
+  if (specs.empty()) return;
+
+  float width = def->calculate_width(scale);
+  float height = def->calculate_height(scale);
+  ivec2 offset = def->get_head_offset();
+  Rectangle src_rec = def->get_preview_rectangle();
+
+  for (size_t sx = 0; sx < def->get_width(); sx++) {
+    for (size_t sy = 0; sy < def->get_height(); sy++) {
+      auto &spec = specs.at(sy + (sx * def->get_width()));
+
+      if (spec == -1) continue;
+
+      DrawTexturePro(
+        def->get_texture(),
+        Rectangle{
+          src_rec.x + sx*16.0f,
+          src_rec.y + sy*16.0f,
+          16.0f,
+          16.0f
+        },
+        Rectangle{
+          (x - offset.x * scale + sx * scale),
+          (y - offset.y * scale + sy * scale),
+          scale,
+          scale
+        },
+        Vector2{0, 0}, 0, color
+      );
+
+    }
+  }
+
 }
 
 void draw_tile(const TileDef* def, int x, int y, float scale) {
@@ -264,6 +329,77 @@ void draw_tile_tinted(
       Vector2{0, 0}, 0, 
       color
     );
+  }
+}
+
+void draw_tile_prevs_layer(
+  Matrix<GeoCell> const &geomtx,
+  Matrix<TileCell> const &tilemtx, 
+  const TileDex *tiles, 
+  const MaterialDex *materials,
+  uint8_t layer,
+  float scale
+) {
+  if (layer > 2 || tiles == nullptr || materials == nullptr) 
+    return;
+
+  // terrible names. I know.
+
+  const float sxy = scale * 0.1f;
+  const float ss = scale * 0.1f;
+
+  for (uint16_t x = 0; x < tilemtx.get_width(); x++) {
+    for (uint16_t y = 0; y < tilemtx.get_height(); y++) {
+      const auto *cell = tilemtx.get_const_ptr(x, y, layer);
+      if (cell == nullptr) continue;
+
+      switch (cell->type) {
+        case TileType::head:
+        {
+          auto *def = cell->tile_def;
+          if (def == nullptr) break;
+
+          if (def->is_multilayer()) {
+            draw_tile_prev_from_origin(
+              def, 
+              x*scale, 
+              y*scale, 
+              scale,
+              def->get_color(),
+              layer
+            );
+          }
+          else {
+            draw_tile_prev_from_origin(
+              def, 
+              x*scale, 
+              y*scale, 
+              scale,
+              def->get_color()
+            );
+          }
+
+        }
+        break;
+
+        case TileType::material:
+        {
+          auto *def = cell->material_def;
+          if (def == nullptr) break;
+
+          auto &geocell = geomtx.get_const(x, y, layer);
+
+          draw_geo_shape(
+            geocell.type, 
+            x + sxy,
+            y + sxy,
+            ss,
+            def->get_color()
+          );
+        }
+        break;
+      }
+    }
   }
 }
 

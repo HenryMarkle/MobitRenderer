@@ -41,4 +41,5 @@ cmake --build build
 
 ---
 
-The output should be in `/build/bin`
+The output should be in `/build/bin`.
+Copy `Assets` and `Data` from the source directory to `/build/bin`.

@@ -53,7 +53,7 @@ add_executable(
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   # Copy assets
-  set(PROJECT_SOURCE_ASSETS "${CMAKE_SOURCE_DIR}/assets")
+  set(PROJECT_SOURCE_ASSETS "${CMAKE_SOURCE_DIR}/Assets")
   set(PROJECT_BINARY_ASSETS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Assets")
 
   add_custom_target(copy_assets ALL
@@ -90,6 +90,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
   target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=0)
 endif()
+
+target_compile_definitions(MobitRenderer PRIVATE BUILD_TYPE="${CMAKE_BUILD_TYPE}")
 
 # Define version
 file(READ "${CMAKE_SOURCE_DIR}/version.txt" VERSION_CONTENT)

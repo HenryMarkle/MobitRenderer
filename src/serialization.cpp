@@ -738,7 +738,7 @@ void deser_geometry_matrix(const mp::Node *node, Matrix<GeoCell> &matrix) {
   const mp::List *columns = dynamic_cast<const mp::List *>(node);
 
   if (columns == nullptr)
-    throw malformed_geometry("malformed geometry (expected a list of columns)");
+    throw deserialization_failure("top level node (columns) is not a linear list");
 
   if (columns->elements.size() != matrix.get_width()) {
     std::stringstream sb;
@@ -746,7 +746,186 @@ void deser_geometry_matrix(const mp::Node *node, Matrix<GeoCell> &matrix) {
     sb << "incorrect matrix width; expected (" << matrix.get_width()
        << "), but got (" << columns->elements.size() << ')';
 
-    throw malformed_geometry(sb.str());
+    throw deserialization_failure(sb.str());
+  }
+
+  for (auto x = 0; x < matrix.get_width(); x++) {
+    auto *rows = dynamic_cast<mp::List *>(columns->elements[x].get());
+
+    if (rows == nullptr) {
+      std::stringstream sb;
+
+      sb << "malformed geometry (expected a list of rows at column " << x
+         << ")";
+
+      throw deserialization_failure(sb.str());
+    }
+
+    if (rows->elements.size() != matrix.get_height()) {
+      std::stringstream sb;
+
+      sb << "incorrect geometry height; expected (" << matrix.get_height()
+         << ") but got (" << rows->elements.size() << ')';
+
+      throw deserialization_failure(sb.str());
+    }
+
+    for (auto y = 0; y < matrix.get_height(); y++) {
+      auto *depth = dynamic_cast<mp::List *>(rows->elements[y].get());
+
+      if (depth == nullptr)
+        throw deserialization_failure(
+            "malformed geometry (expected a list of cell layers)");
+
+      if (depth->elements.size() != 3) {
+        std::stringstream sb;
+
+        sb << "incorrect geometry depth; expected (3) but got ("
+           << depth->elements.size() << ')';
+
+        throw deserialization_failure(sb.str());
+      }
+
+      auto *l1 = dynamic_cast<mp::List *>(depth->elements[0].get());
+      auto *l2 = dynamic_cast<mp::List *>(depth->elements[1].get());
+      auto *l3 = dynamic_cast<mp::List *>(depth->elements[2].get());
+
+      if (l1 == nullptr) {
+        std::stringstream sb;
+
+        sb << "malformed geometry cell at (x: " << x << ", y: " << y
+           << ", z: 0)";
+        throw deserialization_failure(sb.str());
+      }
+
+      if (l2 == nullptr) {
+        std::stringstream sb;
+
+        sb << "malformed geometry cell at (x: " << x << ", y: " << y
+           << ", z: 1)";
+        throw deserialization_failure(sb.str());
+      }
+
+      if (l3 == nullptr) {
+        std::stringstream sb;
+
+        sb << "malformed geometry cell at (x: " << x << ", y: " << y
+           << ", z: 2)";
+        throw deserialization_failure(sb.str());
+      }
+
+      if (l1->elements.size() < 2) {
+        std::stringstream sb;
+        sb << "malformed geometry cell at (x: " << x << ", y: " << y
+           << ", z: 0)";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      if (l2->elements.size() < 2) {
+        std::stringstream sb;
+        sb << "malformed geometry cell at (x: " << x << ", y: " << y
+           << ", z: 1)";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      if (l3->elements.size() < 2) {
+        std::stringstream sb;
+        sb << "malformed geometry cell at (x: " << x << ", y: " << y
+           << ", z: 2)";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      auto *geo1 = dynamic_cast<mp::Int *>(l1->elements[0].get());
+      auto *geo2 = dynamic_cast<mp::Int *>(l2->elements[0].get());
+      auto *geo3 = dynamic_cast<mp::Int *>(l3->elements[0].get());
+
+      auto *features1 = dynamic_cast<mp::List *>(l1->elements[1].get());
+      auto *features2 = dynamic_cast<mp::List *>(l2->elements[1].get());
+      auto *features3 = dynamic_cast<mp::List *>(l3->elements[1].get());
+
+      if (geo1 == nullptr) {
+        std::stringstream sb;
+        sb << "malformed geometry cell type at (x: " << x << ", y: " << y
+           << ", z: 0)";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      if (geo2 == nullptr) {
+        std::stringstream sb;
+        sb << "malformed geometry cell type at (x: " << x << ", y: " << y
+           << ", z: 1)";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      if (geo3 == nullptr) {
+        std::stringstream sb;
+        sb << "malformed geometry cell type at (x: " << x << ", y: " << y
+           << ", z: 2)";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      if (features1 == nullptr) {
+        std::stringstream sb;
+
+        sb << "malformed geometry cell features at (x: " << x << ", y: " << y
+           << ", z: 0";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      if (features2 == nullptr) {
+        std::stringstream sb;
+
+        sb << "malformed geometry cell features at (x: " << x << ", y: " << y
+           << ", z: 1";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      if (features3 == nullptr) {
+        std::stringstream sb;
+
+        sb << "malformed geometry cell features at (x: " << x << ", y: " << y
+           << ", z: 2";
+
+        throw deserialization_failure(sb.str());
+      }
+
+      matrix.set_noexcept(x, y, 0,
+                          GeoCell{get_geo_type(geo1->number),
+                                  get_geo_features(features1)});
+      matrix.set_noexcept(x, y, 1,
+                          GeoCell{get_geo_type(geo2->number),
+                                  get_geo_features(features2)});
+      matrix.set_noexcept(x, y, 2,
+                          GeoCell{get_geo_type(geo3->number),
+                                  get_geo_features(features3)});
+    }
+  }
+
+}
+void deser_tile_matrix    (const mp::Node *node, Matrix<TileCell> &matrix) {
+  const mp::List *columns = dynamic_cast<const mp::List*>(node);
+
+  if (columns == nullptr) throw deserialization_failure("top level node (columns) is not a linear list");
+
+  if (columns->elements.size() != matrix.get_width()) {
+    std::stringstream sb;
+
+    sb 
+      << "incorrect matrix width; expected (" 
+      << matrix.get_width()
+      << "), but got (" 
+      << columns->elements.size() 
+      << ')';
+
+    throw deserialization_failure(sb.str());
   }
 
   for (auto x = 0; x < matrix.get_width(); x++) {
@@ -774,140 +953,62 @@ void deser_geometry_matrix(const mp::Node *node, Matrix<GeoCell> &matrix) {
       auto *depth = dynamic_cast<mp::List *>(rows->elements[y].get());
 
       if (depth == nullptr)
-        throw malformed_geometry(
-            "malformed geometry (expected a list of cell layers)");
+        throw deserialization_failure(
+            "malformed tiles (expected a list of cell layers)");
 
       if (depth->elements.size() != 3) {
         std::stringstream sb;
 
-        sb << "incorrect geometry depth; expected (3) but got ("
+        sb << "incorrect tiles depth; expected (3) but got ("
            << depth->elements.size() << ')';
 
-        throw malformed_geometry(sb.str());
+        throw deserialization_failure(sb.str());
       }
 
-      auto *l1 = dynamic_cast<mp::List *>(depth->elements[0].get());
-      auto *l2 = dynamic_cast<mp::List *>(depth->elements[1].get());
-      auto *l3 = dynamic_cast<mp::List *>(depth->elements[2].get());
+      const auto *l1 = depth->elements[0].get();
+      const auto *l2 = depth->elements[1].get();
+      const auto *l3 = depth->elements[2].get();
 
-      if (l1 == nullptr) {
+      TileCell new_cell1, new_cell2, new_cell3;
+
+      try {
+        deser_tilecell(l1, matrix.get(x, y, 0));
+      } catch (deserialization_failure &de1) {
         std::stringstream sb;
+        sb 
+          << "failed to deserialize cell at ("
+          << x << ", " << y << ", 0): "
+          << de1.what();
 
-        sb << "malformed geometry cell at (x: " << x << ", y: " << y
-           << ", z: 0)";
-        throw malformed_geometry(sb.str());
+        throw deserialization_failure(sb.str());
       }
 
-      if (l2 == nullptr) {
+      try {
+        deser_tilecell(l2, matrix.get(x, y, 1));
+      } catch (deserialization_failure &de2) {
         std::stringstream sb;
+        sb 
+          << "failed to deserialize cell at ("
+          << x << ", " << y << ", 1): "
+          << de2.what();
 
-        sb << "malformed geometry cell at (x: " << x << ", y: " << y
-           << ", z: 1)";
-        throw malformed_geometry(sb.str());
+        throw deserialization_failure(sb.str());
       }
 
-      if (l3 == nullptr) {
+      try {
+        deser_tilecell(l3, matrix.get(x, y, 2));
+      } catch (deserialization_failure &de3) {
         std::stringstream sb;
+        sb 
+          << "failed to deserialize cell at ("
+          << x << ", " << y << ", 2): "
+          << de3.what();
 
-        sb << "malformed geometry cell at (x: " << x << ", y: " << y
-           << ", z: 2)";
-        throw malformed_geometry(sb.str());
+        throw deserialization_failure(sb.str());
       }
-
-      if (l1->elements.size() < 2) {
-        std::stringstream sb;
-        sb << "malformed geometry cell at (x: " << x << ", y: " << y
-           << ", z: 0)";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      if (l2->elements.size() < 2) {
-        std::stringstream sb;
-        sb << "malformed geometry cell at (x: " << x << ", y: " << y
-           << ", z: 1)";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      if (l3->elements.size() < 2) {
-        std::stringstream sb;
-        sb << "malformed geometry cell at (x: " << x << ", y: " << y
-           << ", z: 2)";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      auto *geo1 = dynamic_cast<mp::Int *>(l1->elements[0].get());
-      auto *geo2 = dynamic_cast<mp::Int *>(l2->elements[0].get());
-      auto *geo3 = dynamic_cast<mp::Int *>(l3->elements[0].get());
-
-      auto *features1 = dynamic_cast<mp::List *>(l1->elements[1].get());
-      auto *features2 = dynamic_cast<mp::List *>(l2->elements[1].get());
-      auto *features3 = dynamic_cast<mp::List *>(l3->elements[1].get());
-
-      if (geo1 == nullptr) {
-        std::stringstream sb;
-        sb << "malformed geometry cell type at (x: " << x << ", y: " << y
-           << ", z: 0)";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      if (geo2 == nullptr) {
-        std::stringstream sb;
-        sb << "malformed geometry cell type at (x: " << x << ", y: " << y
-           << ", z: 1)";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      if (geo3 == nullptr) {
-        std::stringstream sb;
-        sb << "malformed geometry cell type at (x: " << x << ", y: " << y
-           << ", z: 2)";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      if (features1 == nullptr) {
-        std::stringstream sb;
-
-        sb << "malformed geometry cell features at (x: " << x << ", y: " << y
-           << ", z: 0";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      if (features2 == nullptr) {
-        std::stringstream sb;
-
-        sb << "malformed geometry cell features at (x: " << x << ", y: " << y
-           << ", z: 1";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      if (features3 == nullptr) {
-        std::stringstream sb;
-
-        sb << "malformed geometry cell features at (x: " << x << ", y: " << y
-           << ", z: 2";
-
-        throw malformed_geometry(sb.str());
-      }
-
-      matrix.set_noexcept(x, y, 0,
-                          GeoCell{get_geo_type(geo1->number),
-                                  get_geo_features(features1)});
-      matrix.set_noexcept(x, y, 1,
-                          GeoCell{get_geo_type(geo2->number),
-                                  get_geo_features(features2)});
-      matrix.set_noexcept(x, y, 2,
-                          GeoCell{get_geo_type(geo3->number),
-                                  get_geo_features(features3)});
     }
   }
+
 }
 
 /// @brief deserializes the cameras with their quads.
@@ -1000,7 +1101,33 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
 
   auto level = std::make_unique<Level>(width, height);
 
-  deser_geometry_matrix(nodes->geometry.get(), level->get_geo_matrix());
+  // Geometry
+
+  try {
+    deser_geometry_matrix(nodes->geometry.get(), level->get_geo_matrix());
+  } catch (deserialization_failure &gde) {
+    throw deserialization_failure(
+      std::string("failed to deserialize the geometry matrix: ")+gde.what()
+    );
+  }
+
+  // Tiles
+  
+  const mp::Props* tile_proplist = dynamic_cast<const mp::Props*>(nodes->tiles.get());
+  if (tile_proplist == nullptr) 
+    throw deserialization_failure("failed to deserialize the tile matrix: top-level node is not a Property list");
+  
+  const auto tile_matrix_iter = tile_proplist->map.find("tlmatrix");
+  if (tile_matrix_iter == tile_proplist->map.end())
+    throw deserialization_failure("failed to deserialize the tile matrix: #tlMatrix not found");
+
+  try {
+    deser_tile_matrix(tile_matrix_iter->second.get(), level->get_tile_matrix());
+  } catch (deserialization_failure &mde) {
+    throw deserialization_failure(
+      std::string("failed to deserialize the tile matrix: ")+mde.what()
+    );
+  }
 
   return level;
 }
@@ -1196,7 +1323,120 @@ void deser_point(const mp::Node *node, int &x, int &y) {
   x = value_x;
   y = value_y;
 }
+void deser_tilecell(const mp::Node *node, TileCell &cell) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(node);
 
+  if (props == nullptr) throw deserialization_failure("node is not a property list");
+
+  auto tp_iter = props->map.find("tp");
+
+  if (tp_iter == props->map.end())
+    throw deserialization_failure("missing required cell property #tp");
+
+  auto data_iter = props->map.find("data");
+
+  if (data_iter == props->map.end())
+    throw deserialization_failure("missing required cell property #Data");
+
+  mp::String *tp_node = dynamic_cast<mp::String*>(tp_iter->second.get());
+  if (tp_node == nullptr)
+    throw deserialization_failure("cell property #tp is not a String");
+  
+  
+  TileType type = TileType::_default;
+
+  if (tp_node->str == "tileHead") {
+    type = TileType::head;
+  } else if (tp_node->str == "tileBody") {
+    type = TileType::body;
+  } else if (tp_node->str == "material") {
+    type = TileType::material;
+  } else if (tp_node->str == "default") {
+    type = TileType::_default;
+  } else throw deserialization_failure("unknown cell type '"+tp_node->str+"'");
+  
+  switch (type) {
+    case TileType::head:
+    {
+      const mp::List *data_node = dynamic_cast<const mp::List*>(data_iter->second.get());
+      if (data_node == nullptr)
+        throw deserialization_failure("cell property #Data is not a Linear list (requierd for cell type 'tileHead')");
+
+      if (data_node->elements.size() < 2)
+        throw deserialization_failure("cell data has insufficient data (expected at least 2 elements)");
+    
+      std::string und_name;
+
+      try {
+        und_name = deser_string(data_node->elements[1].get());
+      } catch (deserialization_failure &sde) {
+        throw deserialization_failure(
+          std::string("failed tp deserialize cell #Data node's head tile name (second element): ") + sde.what()
+        );
+      }
+
+      cell = TileCell(und_name, false);
+    }
+    break;
+
+    case TileType::body:
+    {
+      const mp::List *data_node = dynamic_cast<const mp::List*>(data_iter->second.get());
+      if (data_node == nullptr)
+        throw deserialization_failure("cell property #Data is not a Linear list (requierd for cell type 'tileBody')");
+
+      if (data_node->elements.size() < 2)
+        throw deserialization_failure("cell data has insufficient data (expected at least 2 elements)");
+    
+      int x, y, z;
+
+      try {
+        deser_point(data_node->elements[0].get(), x, y);
+      } catch (deserialization_failure &pde) {
+        throw deserialization_failure(
+          std::string("failed to deserialize cell's #Data node's first element: ")+pde.what()
+        );
+      }
+
+      try {
+        z = deser_int(data_node->elements[1].get());
+      } catch (deserialization_failure &pde) {
+        throw deserialization_failure(
+          std::string("failed to deserialize cell's #Data node's second element: ")+pde.what()
+        );
+      }
+
+      cell = TileCell(x, y, z);
+    }
+    break;
+
+    case TileType::material:
+    {
+      const mp::String *data_node = dynamic_cast<const mp::String*>(data_iter->second.get());
+      if (data_node == nullptr)
+        throw deserialization_failure("cell property #Data is not a String (requierd for cell type 'material')");
+
+      std::string und_name;
+
+      try {
+        und_name = deser_string(data_node);
+      } catch (deserialization_failure &sde) {
+        throw deserialization_failure(
+          std::string("failed to deserialize cell #Data propery as String: ")+sde.what()
+        );
+      }
+
+      auto new_cell = TileCell(und_name, true);
+
+      cell = new_cell;
+    }
+    break;
+
+    default:
+    if (cell.type != TileType::_default) cell = TileCell();
+    break;
+  }
+}
 void define_tile_matrix(
   Matrix<TileCell> &mtx, 
   const TileDex *tiledex,

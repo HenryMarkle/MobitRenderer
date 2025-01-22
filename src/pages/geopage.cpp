@@ -42,7 +42,7 @@ void Geo_Page::f3() const noexcept {
 
   f3->print("Grid ");
   // f3->print(ctx->get_config_const().grid.visible, true);
-  f3->print(false, true);
+  f3->print(ctx->get_config_const().grid.visible, true);
 
   f3->print("Layer Pointer: Global");
   f3->print("L ");

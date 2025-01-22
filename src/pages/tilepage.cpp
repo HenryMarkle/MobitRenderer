@@ -282,14 +282,36 @@ void Tile_Page::draw() noexcept {
     _should_redraw = true;
   }
 
+  if (_should_redraw_tile1) {
+    BeginTextureMode(ctx->_textures->tile_layer1.get());
+
+    // This is necessary to draw white tile previews.
+    // ClearBackground(Color{0, 0, 0, 0});
+    ClearBackground(WHITE);
+
+    mr::draw::draw_tile_prevs_layer(
+      level->get_const_geo_matrix(),
+      level->get_const_tile_matrix(),
+      ctx->_tiledex,
+      ctx->_materialdex,
+      0,
+      20
+    );
+
+    EndTextureMode();
+
+    _should_redraw_tile1 = false;
+    _should_redraw = true;
+  }
+
   if (_should_redraw) {
     BeginTextureMode(ctx->_textures->get_main_level_viewport());
     ClearBackground(Color{200, 200, 200, 255});
 
     const auto &shader = ctx->_shaders->white_remover_apply_color();
+    const auto layer = ctx->level_layer_;
     BeginShaderMode(shader);
     {
-      const auto layer = ctx->level_layer_;
 
       if (layer != 2) {
         SetShaderValueTexture(
@@ -378,11 +400,12 @@ void Tile_Page::draw() noexcept {
       }
     }
     EndShaderMode();
-    
+
     EndTextureMode();
 
     _should_redraw = false;
   }
+
 
   BeginMode2D(camera);
   {
@@ -516,7 +539,7 @@ void Tile_Page::f3() const noexcept {
   }
 
   f3->print("Grid ");
-  f3->print(ctx->get_config_const().grid.visible, true);
+  f3->print(false, true);
 
   f3->print("Layer Pointer: Global");
   f3->print("L ");

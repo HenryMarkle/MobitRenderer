@@ -35,10 +35,12 @@ class TileDef {
 private:
   const std::string name;
   std::string category;
+  Color color;
   const TileDefType type;
   const uint8_t width, height, buffer;
   const int8_t rnd;
   const std::vector<int8_t> specs, specs2, specs3;
+  const bool multilayer;
   const std::vector<uint8_t> repeat;
   const std::unordered_set<std::string> tags;
   std::filesystem::path texture_path;
@@ -58,6 +60,9 @@ public:
   inline const std::string &get_category() const noexcept { return category; }
   inline void set_category(std::string new_category) noexcept { category = new_category; }
 
+  inline const Color get_color() const noexcept { return color; }
+  inline void set_color(Color c) noexcept { color = c; }
+
   inline int get_width() const noexcept { return width; }
   inline int get_height() const noexcept { return height; }
   inline int get_buffer() const noexcept { return buffer; }
@@ -70,6 +75,8 @@ public:
   inline const std::vector<int8_t> &get_specs() const { return specs; }
   inline const std::vector<int8_t> &get_specs2() const { return specs2; }
   inline const std::vector<int8_t> &get_specs3() const { return specs3; }
+
+  inline bool is_multilayer() const noexcept { return multilayer; }
 
   inline const std::vector<uint8_t> &get_repeat() const noexcept { return repeat; }
 
