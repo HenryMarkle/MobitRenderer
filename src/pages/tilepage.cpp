@@ -8,6 +8,7 @@
 #include <rlImGui.h>
 
 #include <MobitRenderer/draw.h>
+#include <MobitRenderer/sdraw.h>
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/pages.h>
 
@@ -190,7 +191,9 @@ void Tile_Page::_redraw_tile_specs_rt() noexcept {
   EndTextureMode();
 }
 
-void Tile_Page::process() {  
+void Tile_Page::process() { 
+  if (ctx == nullptr) return;
+
   auto wheel = GetMouseWheelMove();
 
   if (!_hovering_on_window) {
@@ -221,14 +224,38 @@ void Tile_Page::process() {
     }
   }
 
+  update_mtx_mouse_pos();
+
+  auto *level = ctx->get_selected_level();
+
+  if (level != nullptr) {
+    if (_is_mouse_in_mtx_bounds) {
+      auto *cell = level
+        ->get_tile_matrix()
+        .get_ptr(
+          _mtx_mouse_pos.x, 
+          _mtx_mouse_pos.y, 
+          ctx->level_layer_
+        );
+
+      _hovered_cell = cell;
+    }
+  }
+
+
   _hovering_on_window = false;
 }
 
 void Tile_Page::draw() noexcept {
+  if (ctx == nullptr) return;
+
+  const auto *level = ctx->get_selected_level();
+
+  if (level == nullptr) return;
+
   ClearBackground(DARKGRAY);
 
   auto &camera = ctx->get_camera();
-  const auto *level = ctx->get_selected_level();
   const auto &viewport = ctx->_textures->get_main_level_viewport();
 
   if (_should_redraw1) {
@@ -285,11 +312,10 @@ void Tile_Page::draw() noexcept {
   if (_should_redraw_tile1) {
     BeginTextureMode(ctx->_textures->tile_layer1.get());
 
-    // This is necessary to draw white tile previews.
-    // ClearBackground(Color{0, 0, 0, 0});
     ClearBackground(WHITE);
 
-    mr::draw::draw_tile_prevs_layer(
+    mr::sdraw::draw_tile_prevs_layer(
+      ctx->_shaders,
       level->get_const_geo_matrix(),
       level->get_const_tile_matrix(),
       ctx->_tiledex,
@@ -304,121 +330,367 @@ void Tile_Page::draw() noexcept {
     _should_redraw = true;
   }
 
+  if (_should_redraw_tile2) {
+    BeginTextureMode(ctx->_textures->tile_layer2.get());
+
+    ClearBackground(WHITE);
+
+    mr::sdraw::draw_tile_prevs_layer(
+      ctx->_shaders,
+      level->get_const_geo_matrix(),
+      level->get_const_tile_matrix(),
+      ctx->_tiledex,
+      ctx->_materialdex,
+      1,
+      20
+    );
+
+    EndTextureMode();
+
+    _should_redraw_tile1 = false;
+    _should_redraw = true;
+  }
+
+  if (_should_redraw_tile3) {
+    BeginTextureMode(ctx->_textures->tile_layer3.get());
+
+    ClearBackground(WHITE);
+
+    mr::sdraw::draw_tile_prevs_layer(
+      ctx->_shaders,
+      level->get_const_geo_matrix(),
+      level->get_const_tile_matrix(),
+      ctx->_tiledex,
+      ctx->_materialdex,
+      2,
+      20
+    );
+
+    EndTextureMode();
+
+    _should_redraw_tile1 = false;
+    _should_redraw = true;
+  }
+
   if (_should_redraw) {
     BeginTextureMode(ctx->_textures->get_main_level_viewport());
     ClearBackground(Color{200, 200, 200, 255});
-
-    const auto &shader = ctx->_shaders->white_remover_apply_color();
     const auto layer = ctx->level_layer_;
-    BeginShaderMode(shader);
     {
+      // Background
 
       if (layer != 2) {
-        SetShaderValueTexture(
-          shader, 
-          GetShaderLocation(shader, "texture0"), 
-          ctx->_textures->geo_layer3.get().texture
-        );
-        DrawTexture(
-          ctx->_textures->geo_layer3.get().texture, 
-          0, 
-          0, 
-          Color{40, 40, 40, 200}
-        );
+        const auto &color_shader = ctx->_shaders->white_remover_apply_color();
+        BeginShaderMode(color_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer3.get().texture
+          );
+          
+          DrawTexture(
+            ctx->_textures->geo_layer3.get().texture, 
+            0, 
+            0, 
+            Color{50, 50, 50, 255}
+          );
+        }
+        EndShaderMode();
+
+        const auto &bkg_shader = ctx->_shaders->white_remover_apply_alpha();
+        BeginShaderMode(bkg_shader);
+        {
+          SetShaderValueTexture(
+            bkg_shader, 
+            GetShaderLocation(bkg_shader, "texture0"), 
+            ctx->_textures->geo_layer3.get().texture
+          );
+
+          int alpha = 200;
+
+          SetShaderValue(bkg_shader, GetShaderLocation(bkg_shader, "alpha"), &alpha, SHADER_UNIFORM_INT);
+
+          DrawTexture(
+            ctx->_textures->tile_layer3.get().texture, 
+            0, 
+            0, 
+            WHITE
+          );
+        }
+        EndShaderMode();
       }
 
       if (layer != 1) {
-        SetShaderValueTexture(
-          shader, 
-          GetShaderLocation(shader, "texture0"), 
-          ctx->_textures->geo_layer2.get().texture
-        );
-        DrawTexture(
-          ctx->_textures->geo_layer2.get().texture, 
-          0, 
-          0, 
-          Color{20, 20, 20, 200}
-        );
+        const auto &color_shader = ctx->_shaders->white_remover_apply_color();
+        BeginShaderMode(color_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer2.get().texture
+          );
+          
+          DrawTexture(
+            ctx->_textures->geo_layer2.get().texture, 
+            0, 
+            0, 
+            Color{20, 20, 20, 200}
+          );
+        }
+        EndShaderMode();
+
+        const auto &bkg_shader = ctx->_shaders->white_remover_apply_alpha();
+        BeginShaderMode(bkg_shader);
+        {
+          SetShaderValueTexture(
+            bkg_shader, 
+            GetShaderLocation(bkg_shader, "texture0"), 
+            ctx->_textures->geo_layer2.get().texture
+          );
+
+          int alpha = 200;
+
+          SetShaderValue(bkg_shader, GetShaderLocation(bkg_shader, "alpha"), &alpha, SHADER_UNIFORM_INT);
+
+          DrawTexture(
+            ctx->_textures->tile_layer2.get().texture, 
+            0, 
+            0, 
+            WHITE
+          );
+        }
+        EndShaderMode();
       }
 
       if (layer != 0) {
-        SetShaderValueTexture(
-          shader, 
-          GetShaderLocation(shader, "texture0"), 
-          ctx->_textures->geo_layer1.get().texture
-        );
-        DrawTexture(
-          ctx->_textures->geo_layer1.get().texture, 
-          0, 
-          0, 
-          Color{0, 0, 0, 120}
-        );
+        const auto &color_shader = ctx->_shaders->white_remover_apply_color();
+        BeginShaderMode(color_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer1.get().texture
+          );
+          
+          DrawTexture(
+            ctx->_textures->geo_layer1.get().texture, 
+            0, 
+            0, 
+            Color{0, 0, 0, 230}
+          );
+        }
+        EndShaderMode();
+
+        const auto &bkg_shader = ctx->_shaders->white_remover_apply_alpha();
+        BeginShaderMode(bkg_shader);
+        {
+          SetShaderValueTexture(
+            bkg_shader, 
+            GetShaderLocation(bkg_shader, "texture0"), 
+            ctx->_textures->geo_layer1.get().texture
+          );
+
+          int alpha = 230;
+
+          SetShaderValue(bkg_shader, GetShaderLocation(bkg_shader, "alpha"), &alpha, SHADER_UNIFORM_INT);
+
+          DrawTexture(
+            ctx->_textures->tile_layer1.get().texture, 
+            0, 
+            0, 
+            WHITE
+          );
+        }
+        EndShaderMode();
       }
 
       // Foreground
 
       if (layer == 2) {
-        SetShaderValueTexture(
-          shader, 
-          GetShaderLocation(shader, "texture0"), 
-          ctx->_textures->geo_layer3.get().texture
-        );
-        DrawTexture(
-          ctx->_textures->geo_layer3.get().texture, 
-          0, 
-          0, 
-          Color{0, 0, 0, 220}
-        );
+        const auto &color_shader = ctx->_shaders->white_remover_apply_color();
+        BeginShaderMode(color_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer3.get().texture
+          );
+          
+          DrawTexture(
+            ctx->_textures->geo_layer3.get().texture, 
+            0, 
+            0, 
+            Color{0, 0, 0, 220}
+          );
+        }
+        EndShaderMode();
+
+        const auto &bkg_shader = ctx->_shaders->white_remover();
+        BeginShaderMode(bkg_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer3.get().texture
+          );
+
+          DrawTexture(
+            ctx->_textures->tile_layer3.get().texture, 
+            0, 
+            0, 
+            WHITE
+          );
+        }
+        EndShaderMode();
       }
 
       if (layer == 1) {
-        SetShaderValueTexture(
-          shader, 
-          GetShaderLocation(shader, "texture0"), 
-          ctx->_textures->geo_layer2.get().texture
-        );
-        DrawTexture(
-          ctx->_textures->geo_layer2.get().texture, 
-          0, 
-          0, 
-          Color{0, 0, 0, 220}
-        );
+        const auto &color_shader = ctx->_shaders->white_remover_apply_color();
+        BeginShaderMode(color_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer2.get().texture
+          );
+          
+          DrawTexture(
+            ctx->_textures->geo_layer2.get().texture, 
+            0, 
+            0, 
+            Color{0, 0, 0, 220}
+          );
+        }
+        EndShaderMode();
+
+        const auto &bkg_shader = ctx->_shaders->white_remover();
+        BeginShaderMode(bkg_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer2.get().texture
+          );
+
+          DrawTexture(
+            ctx->_textures->tile_layer2.get().texture, 
+            0, 
+            0, 
+            WHITE
+          );
+        }
+        EndShaderMode();
       }
 
       if (layer == 0) {
-        SetShaderValueTexture(
-          shader, 
-          GetShaderLocation(shader, "texture0"), 
-          ctx->_textures->geo_layer1.get().texture
-        );
-        DrawTexture(
-          ctx->_textures->geo_layer1.get().texture, 
-          0, 
-          0, 
-          Color{0, 0, 0, 220}
-        );
+        const auto &color_shader = ctx->_shaders->white_remover_apply_color();
+        BeginShaderMode(color_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer1.get().texture
+          );
+          
+          DrawTexture(
+            ctx->_textures->geo_layer1.get().texture, 
+            0, 
+            0, 
+            Color{0, 0, 0, 220}
+          );
+        }
+        EndShaderMode();
+
+        const auto &bkg_shader = ctx->_shaders->white_remover();
+        BeginShaderMode(bkg_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->geo_layer1.get().texture
+          );
+
+          DrawTexture(
+            ctx->_textures->tile_layer1.get().texture, 
+            0, 
+            0, 
+            WHITE
+          );
+        }
+        EndShaderMode();
       }
     }
-    EndShaderMode();
-
     EndTextureMode();
 
     _should_redraw = false;
   }
 
+  // Over viewport
 
   BeginMode2D(camera);
   {
     DrawTexture(viewport.texture, 0, 0, WHITE);
     
-    // if (ctx->get_config_const().grid.visible) {
-    //   mr::draw_nested_grid(72, 43, Color{130, 130, 130, 200});
-    // }
-
     mr::draw::draw_double_frame(
       level->get_pixel_width(), 
       level->get_pixel_height()
     );
+
+    if (_hovered_cell != nullptr) {
+      switch (_hovered_cell->type) {
+        case TileType::head:
+        {
+          if (_hovered_cell->tile_def != nullptr) {
+            auto offset = _hovered_cell->tile_def->get_head_offset();
+            DrawRectangleLinesEx(
+              Rectangle{
+                (_mtx_mouse_pos.x - offset.x) * 20.0f,
+                (_mtx_mouse_pos.y - offset.y) * 20.0f,
+                _hovered_cell->tile_def->get_width() * 20.0f,
+                _hovered_cell->tile_def->get_height() * 20.0f
+              },
+              2,
+              WHITE
+            );
+          }
+        }
+        break;
+
+        case TileType::body:
+        {
+          if (_hovered_cell->tile_def != nullptr) {
+            auto offset = _hovered_cell->tile_def->get_head_offset();
+            DrawRectangleLinesEx(
+              Rectangle{
+                (_hovered_cell->head_pos_x - offset.x) * 20.0f,
+                (_hovered_cell->head_pos_y - offset.y) * 20.0f,
+                _hovered_cell->tile_def->get_width() * 20.0f,
+                _hovered_cell->tile_def->get_height() * 20.0f
+              },
+              2,
+              WHITE
+            );
+          }
+        }
+        break;
+
+        default:
+        {
+          DrawRectangleLinesEx(
+            Rectangle{
+              _mtx_mouse_pos.x*20.0f,
+              _mtx_mouse_pos.y*20.0f,
+              20.0f,
+              20.0f
+            },
+            2,
+            WHITE
+          );
+        }
+        break;
+      }
+    }
   }
   EndMode2D();
 }
@@ -545,15 +817,91 @@ void Tile_Page::f3() const noexcept {
   f3->print("L ");
   f3->print((int)ctx->level_layer_, true);
 
-  f3->print("Selected ");
-  f3->print(_selected_tile, true);
+  f3->print("Hovered Item ");
+  if (_hovered_tile) f3->print(_hovered_tile->get_name(), true);
+  else f3->print("NULL", true);
 
-  f3->print("Hovered ");
-  f3->print(_hovered_tile, true);
+  f3->print("Selected Item ");
+  if (_selected_tile) f3->print(_selected_tile->get_name(), true);
+  else f3->print("NULL", true);
+
+  f3->print("Hovered Cell ");
+  if (_hovered_cell) {
+    switch (_hovered_cell->type) {
+      case TileType::head:
+      {
+        auto *def = _hovered_cell->tile_def;
+
+        if (def == nullptr)
+        {
+          f3->print("Undefined Tile \"", true);
+          f3->print(_hovered_cell->und_name, true);
+          f3->print("\"", true);
+        }
+        else
+        {
+          f3->print(def->get_name(), true);
+        }
+      }
+      break;
+
+      case TileType::body:
+      {
+        auto *def = _hovered_cell->tile_def;
+
+        if (def == nullptr)
+        {
+          f3->print("Undefined Tile \"", true);
+          f3->print(_hovered_cell->und_name, true);
+          f3->print("\"", true);
+        }
+        else
+        {
+          f3->print(def->get_name(), true);
+          f3->print(
+            std::string(" (")
+            +std::to_string(_hovered_cell->head_pos_x) 
+            +", "
+            +std::to_string(_hovered_cell->head_pos_z) 
+            +", "
+            +std::to_string(_hovered_cell->head_pos_y)
+            +")",
+            true
+          );
+        }
+      }
+      break;
+
+      case TileType::material:
+      {
+        auto *def = _hovered_cell->material_def;
+
+        if (def == nullptr)
+        {
+          f3->print("Undefined Material \"", true);
+          f3->print(_hovered_cell->und_name, true);
+          f3->print("\"", true);
+        }
+        else
+        {
+          f3->print(def->get_name(), true);
+        }
+      }
+      break;
+
+      default:
+      {
+        f3->print("Default Material ");
+      }
+      break;
+    }
+  } else {
+    f3->print("NULL", true);
+  }
 }
 
 Tile_Page::Tile_Page(context *ctx) : 
-    Page(ctx),
+    LevelPage(ctx),
     _should_redraw(true), 
     _should_redraw1(true),
     _should_redraw2(true),
@@ -570,7 +918,8 @@ Tile_Page::Tile_Page(context *ctx) :
     _selected_tile(nullptr),
     _hovered_tile(nullptr),
     _previously_drawn_preview(nullptr),
-    _previously_drawn_texture(nullptr) {}
+    _previously_drawn_texture(nullptr),
+    _hovered_cell(nullptr) {}
 
 Tile_Page::~Tile_Page() {
   if (_tile_preview_rt.id != 0) UnloadRenderTexture(_tile_preview_rt);

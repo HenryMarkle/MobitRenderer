@@ -19,6 +19,30 @@ using std::filesystem::exists;
 
 namespace mr {
 
+LevelCamera::LevelCamera() : 
+  position({0,0}),
+  top_left_angle(0),
+  top_right_angle(0),
+  bottom_right_angle(0),
+  bottom_left_angle(0),
+  top_left_radius(0),
+  top_right_radius(0),
+  bottom_right_radius(0),
+  bottom_left_radius(0) 
+{}
+
+LevelCamera::LevelCamera(Vector2 pos) : 
+  position(pos),
+  top_left_angle(0),
+  top_right_angle(0),
+  bottom_right_angle(0),
+  bottom_left_angle(0),
+  top_left_radius(0),
+  top_right_radius(0),
+  bottom_right_radius(0),
+  bottom_left_radius(0) 
+{}
+
 const string &Level::get_name() const noexcept { return name; }
 void Level::set_name(string new_name) {
   name = new_name;

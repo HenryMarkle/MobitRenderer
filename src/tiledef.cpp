@@ -1,6 +1,7 @@
 #include <string>
 #include <filesystem>
 #include <unordered_set>
+#include <math.h>
 
 #include <raylib.h>
 
@@ -122,12 +123,12 @@ TileDef::TileDef(
     specs(specs), 
     specs2(specs2), 
     specs3(specs3),
-    multilayer(!specs2.empty() || !specs.empty()),
+    multilayer(!specs2.empty() || !specs3.empty()),
     repeat(repeat), 
     texture_path(""), 
     texture(Texture2D{0}), 
     _is_texture_loaded(false),
-    head_offset(mr::ivec2{(int)(width / 2), (int)(height / 2)}) 
+    head_offset(mr::ivec2{(int)ceil(width / 2.0f) - 1, (int)ceil(height / 2.0f) - 1}) 
   {
     _preview_rectangle = Rectangle{
       0, 

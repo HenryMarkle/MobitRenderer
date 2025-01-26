@@ -130,6 +130,7 @@ private:
   Shader _vflip;
   Shader _white_remover;
   Shader _white_remover_apply_color;
+  Shader _white_remover_apply_alpha;
   Shader _white_remover_rgb_recolor;
   Shader _voxel_struct_tinted;
 
@@ -142,6 +143,7 @@ public:
   inline const Shader &vflip() const noexcept { return _vflip; }
   inline const Shader &white_remover() const noexcept { return _white_remover; }
   inline const Shader &white_remover_apply_color() const noexcept { return _white_remover_apply_color; }
+  inline const Shader &white_remover_apply_alpha() const noexcept { return _white_remover_apply_alpha; }
   inline const Shader &white_remover_rgb_recolor() const noexcept { return _white_remover_rgb_recolor; }
   inline const Shader &voxel_struct_tinted() const noexcept { return _voxel_struct_tinted; }
 

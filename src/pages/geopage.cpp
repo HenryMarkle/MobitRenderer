@@ -248,7 +248,7 @@ void Geo_Page::order_level_redraw() noexcept {
   should_redraw = true;
 }
 
-Geo_Page::Geo_Page(context *ctx) : Page(ctx), 
+Geo_Page::Geo_Page(context *ctx) : LevelPage(ctx), 
   should_redraw1(true), 
   should_redraw2(true), 
   should_redraw3(true),

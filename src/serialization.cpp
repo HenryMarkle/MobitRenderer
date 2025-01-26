@@ -654,7 +654,7 @@ GeoFeature get_geo_features(const mp::List *list) {
 
   return features;
 }
-std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::filesystem::path &file_path) {
+std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::filesystem::path &file_path) {
   std::ifstream file(file_path);
 
   if (!file.is_open()) {
@@ -705,6 +705,13 @@ std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::filesystem::path 
       }
       break;
     case 6:
+      try {
+        nodes->cameras = mp::parse(tokens, true);
+      } catch (std::exception &e) {
+        std::string msg = "failed to parse cameras: ";
+        msg.append(e.what());
+        throw parse_failure(msg);
+      }
       break;
     case 7:
       break;
@@ -721,7 +728,7 @@ std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::filesystem::path 
 
   return nodes;
 }
-std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::unique_ptr<ProjectSaveFileLines> &file_lines) {
+std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::unique_ptr<ProjectSaveFileLines> &file_lines) {
   if (file_lines == nullptr)
     return nullptr;
 
@@ -1012,44 +1019,218 @@ void deser_tile_matrix    (const mp::Node *node, Matrix<TileCell> &matrix) {
 }
 
 /// @brief deserializes the cameras with their quads.
-/// @warning Incomplete implemetation.
-/// @param node 
-/// @param cameras 
 void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
   const mp::Props *prop_list = dynamic_cast<const mp::Props *>(node);
 
   if (prop_list == nullptr)
-    throw parse_failure("node is not a property list");
+    throw deserialization_failure("node is not a Property List");
 
-  auto &cameras_node = prop_list->map.at("cameras");
+  auto cameras_node = prop_list->map.find("cameras");
 
-  if (cameras_node == nullptr)
-    throw parse_failure("#cameras not found");
+  if (cameras_node == prop_list->map.end())
+    throw deserialization_failure("#cameras not found");
 
-  auto *cameras_list = dynamic_cast<mp::List *>(cameras_node.get());
+  auto *cameras_list = dynamic_cast<mp::List *>(cameras_node->second.get());
 
   if (cameras_list == nullptr)
-    throw parse_failure("#cameras is malformed (not a linear list)");
+    throw deserialization_failure("#cameras is not a Linear List");
 
-  // four point() are expected
-  for (auto &pos_node : cameras_list->elements) {
-    auto *pos_call = dynamic_cast<mp::GCall *>(pos_node.get());
+  auto quads_node = prop_list->map.find("quads");
+  
+  if (quads_node == prop_list->map.end())
+    throw deserialization_failure("#quads not found");
 
-    if (pos_call == nullptr)
-      throw parse_failure(
-          "#cameras is malformed (position is not a global call)");
+  auto *quads_list = dynamic_cast<mp::List *>(quads_node->second.get());
 
-    if (pos_call->name != "point")
-      throw parse_failure("#cameras is malformed (position is not a point)");
+  if (cameras_list->elements.size() != quads_list->elements.size())
+    throw deserialization_failure("#cameras and #quads mismatch (unequal element size)");
 
-    const auto &args = pos_call->args;
+  std::vector<LevelCamera> _cameras;
+  _cameras.reserve(cameras_list->elements.size());
 
-    if (args.size() != 2)
-      throw parse_failure("#cameras is malformed (position is a point but with "
-                          "invalid length of arguments)");
+  for (size_t e = 0; e < cameras_list->elements.size(); e++) {
+    const mp::Node *camera_node = cameras_list->elements[e].get();
+    const mp::Node *quad_node = quads_list->elements[e].get();
 
-    // TODO: complete this
+    LevelCamera camera;
+
+    try {
+      deser_point(camera_node, camera.position.x, camera.position.y);
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera position at element #")
+        +std::to_string(e)
+        +": "
+        +de.what()
+      );
+    }
+
+    // Quads
+
+    const mp::List *quad_points_node = dynamic_cast<const mp::List*>(quad_node);
+    if (quad_points_node == nullptr) 
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" is not a Linear List"
+      );
+
+    // Top left
+    const mp::List *tl_node = dynamic_cast<const mp::List*>(quad_points_node->elements[0].get());
+    if (tl_node == nullptr)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" top left node is not a Linear List"
+      );
+
+    if (tl_node->elements.size() < 2)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" top left node has insufficient element count (expected at least 2)"
+      );
+
+    try {
+      camera.top_left_angle = deser_int(tl_node->elements[0].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" top left angle: "
+        +de.what()
+      );
+    }
+
+    try {
+      camera.top_left_radius = deser_float(tl_node->elements[1].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" top left angle: "
+        +de.what()
+      );
+    }
+
+    // Top right
+    const mp::List *tr_node = dynamic_cast<const mp::List*>(quad_points_node->elements[1].get());
+    if (tr_node == nullptr)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" top left right is not a Linear List"
+      );
+
+    if (tr_node->elements.size() < 2)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" top right node has insufficient element count (expected at least 2)"
+      );
+
+    try {
+      camera.top_right_angle = deser_int(tr_node->elements[0].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" top right angle: "
+        +de.what()
+      );
+    }
+
+    try {
+      camera.top_right_radius = deser_float(tr_node->elements[1].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" top right angle: "
+        +de.what()
+      );
+    }
+
+    // Bottom right
+    const mp::List *br_node = dynamic_cast<const mp::List*>(quad_points_node->elements[2].get());
+    if (br_node == nullptr)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" bottom right node is not a Linear List"
+      );
+
+    if (br_node->elements.size() < 2)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" bottom right node has insufficient element count (expected at least 2)"
+      );
+
+    try {
+      camera.bottom_right_angle = deser_int(br_node->elements[0].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" bottom right angle: "
+        +de.what()
+      );
+    }
+
+    try {
+      camera.bottom_right_radius = deser_float(br_node->elements[1].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" bottom right angle: "
+        +de.what()
+      );
+    }
+
+    // Bottom left
+    const mp::List *bl_node = dynamic_cast<const mp::List*>(quad_points_node->elements[3].get());
+    if (bl_node == nullptr)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" bottom left node is not a Linear List"
+      );
+
+    if (bl_node->elements.size() < 2)
+      throw deserialization_failure(
+        std::string("camera quad #")
+        +std::to_string(e)
+        +" bottom left node has insufficient element count (expected at least 2)"
+      );
+
+    try {
+      camera.bottom_left_angle = deser_int(bl_node->elements[0].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" bottom left angle: "
+        +de.what()
+      );
+    }
+
+    try {
+      camera.bottom_right_radius = deser_float(bl_node->elements[1].get());
+    } catch (deserialization_failure &de) {
+      throw deserialization_failure(
+        std::string("failed to deserialize camera quad #")
+        +std::to_string(e)
+        +" bottom left angle: "
+        +de.what()
+      );
+    }
+
+    _cameras.push_back(camera);
   }
+
+  cameras = std::move(_cameras);
 }
 
 void deser_size(const mp::Node *line_node, uint16_t &width, uint16_t &height) {
@@ -1093,7 +1274,7 @@ void deser_size(const mp::Node *line_node, uint16_t &width, uint16_t &height) {
 }
 
 std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
-  std::unique_ptr<ProjectSaveFileNodes> nodes = deser_project(path);
+  std::unique_ptr<ProjectSaveFileNodes> nodes = parse_project(path);
 
   uint16_t width, height;
 
@@ -1129,6 +1310,17 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
     );
   }
 
+  // Cameras
+
+  try {
+    deser_cameras(nodes->cameras.get(), level->cameras);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize cameras: ")
+      +de.what()
+    );
+  }
+
   return level;
 }
 
@@ -1155,6 +1347,11 @@ int deser_int(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an Int");
   return int_node->number;
+}
+float deser_float(const mp::Node *node) {
+  const mp::Float *float_node = dynamic_cast<const mp::Float*>(node);
+  if (float_node == nullptr) throw deserialization_failure("node is not a Float");
+  return float_node->number;
 }
 int8_t deser_int8(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
@@ -1323,6 +1520,34 @@ void deser_point(const mp::Node *node, int &x, int &y) {
   x = value_x;
   y = value_y;
 }
+void deser_point(const mp::Node *node, float &x, float &y) {
+  const mp::GCall *gcall_node = dynamic_cast<const mp::GCall*>(node);
+  
+  if (gcall_node == nullptr) throw deserialization_failure("node is not a Global Call");
+  if (gcall_node->name != "point") throw deserialization_failure("global call is not a point");
+  if (gcall_node->args.size() < 2) throw deserialization_failure("point global call has insufficient arguments (expected at least 2)");
+
+  float value_x, value_y;
+
+  try {
+    value_x = deser_float(gcall_node->args[0].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize point argument 1: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  try {
+    value_y = deser_float(gcall_node->args[1].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize point argument 2: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  x = value_x;
+  y = value_y;
+}
 void deser_tilecell(const mp::Node *node, TileCell &cell) {
   const mp::Props *props = dynamic_cast<const mp::Props*>(node);
 
@@ -1406,7 +1631,7 @@ void deser_tilecell(const mp::Node *node, TileCell &cell) {
         );
       }
 
-      cell = TileCell(x, y, z);
+      cell = TileCell(x - 1, y - 1, z - 1);
     }
     break;
 

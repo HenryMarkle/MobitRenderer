@@ -44,8 +44,8 @@ struct ProjectSaveFileNodes {
 // Save file parsers
 
 std::unique_ptr<ProjectSaveFileLines> read_project(const std::filesystem::path &);
-std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::unique_ptr<ProjectSaveFileLines> &);
-std::unique_ptr<ProjectSaveFileNodes> deser_project(const std::filesystem::path &);
+std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::unique_ptr<ProjectSaveFileLines> &);
+std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::filesystem::path &);
 
 void deser_size           (const mp::Node*, uint16_t &width, uint16_t &height);
 void deser_geometry_matrix(const mp::Node*, Matrix<GeoCell>&);
@@ -68,6 +68,8 @@ CustomMaterialDef *deser_materialdef(const mp::Node*);
 
 /// @brief Deserializes an mp::Int node; expects no operators.
 int deser_int(const mp::Node*);
+
+float deser_float(const mp::Node*);
 
 /// @brief Deserializes an mp::Int node; expects no operators.
 /// @returns A casted int to uint8 (unsigned char).
@@ -103,6 +105,7 @@ std::vector<uint8_t> deser_uint8_vec(const mp::Node *node);
 /// @brief Deserializes a 'point' global call.
 /// @param node The underlying pointer must be mp::GCall* and the name must be 'point'.
 void deser_point(const mp::Node *node, int&, int&);
+void deser_point(const mp::Node *node, float&, float&);
 
 void deser_tilecell(const mp::Node*, TileCell&);
 

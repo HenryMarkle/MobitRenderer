@@ -162,16 +162,15 @@ void draw_tile_prev_from_origin(
   int y,
   float scale,
   Color color
-) noexcept {
+) {
   if (def == nullptr || color.a == 0)
     return;
 
   auto &texture = def->get_texture();
-  if (texture.id == 0)
-    return;
+  if (texture.id == 0) return;
 
-  float width = def->calculate_width(scale);
-  float height = def->calculate_height(scale);
+  float width = def->get_width() * scale;
+  float height = def->get_height() * scale;
   ivec2 offset = def->get_head_offset();
 
   DrawTexturePro(
@@ -329,77 +328,6 @@ void draw_tile_tinted(
       Vector2{0, 0}, 0, 
       color
     );
-  }
-}
-
-void draw_tile_prevs_layer(
-  Matrix<GeoCell> const &geomtx,
-  Matrix<TileCell> const &tilemtx, 
-  const TileDex *tiles, 
-  const MaterialDex *materials,
-  uint8_t layer,
-  float scale
-) {
-  if (layer > 2 || tiles == nullptr || materials == nullptr) 
-    return;
-
-  // terrible names. I know.
-
-  const float sxy = scale * 0.1f;
-  const float ss = scale * 0.1f;
-
-  for (uint16_t x = 0; x < tilemtx.get_width(); x++) {
-    for (uint16_t y = 0; y < tilemtx.get_height(); y++) {
-      const auto *cell = tilemtx.get_const_ptr(x, y, layer);
-      if (cell == nullptr) continue;
-
-      switch (cell->type) {
-        case TileType::head:
-        {
-          auto *def = cell->tile_def;
-          if (def == nullptr) break;
-
-          if (def->is_multilayer()) {
-            draw_tile_prev_from_origin(
-              def, 
-              x*scale, 
-              y*scale, 
-              scale,
-              def->get_color(),
-              layer
-            );
-          }
-          else {
-            draw_tile_prev_from_origin(
-              def, 
-              x*scale, 
-              y*scale, 
-              scale,
-              def->get_color()
-            );
-          }
-
-        }
-        break;
-
-        case TileType::material:
-        {
-          auto *def = cell->material_def;
-          if (def == nullptr) break;
-
-          auto &geocell = geomtx.get_const(x, y, layer);
-
-          draw_geo_shape(
-            geocell.type, 
-            x + sxy,
-            y + sxy,
-            ss,
-            def->get_color()
-          );
-        }
-        break;
-      }
-    }
   }
 }
 

@@ -19,7 +19,7 @@
 namespace mr::pages {
 
 Start_Page::Start_Page(context *ctx)
-    : Page(ctx), explorer_(ctx->directories, ctx->_textures),
+    : LevelPage(ctx), explorer_(ctx->directories, ctx->_textures),
       loaded_level(nullptr), project_load_thread(nullptr),
       loaded_project_was_handled(true), explorer_file_clicked(false) {
   explorer_.set_filters({".txt"});
@@ -41,6 +41,7 @@ void Start_Page::process() {
       try {
         const std::filesystem::path path_copy = *file;
         this->loaded_level = deser_level(path_copy);
+        define_tile_matrix(this->loaded_level->get_tile_matrix(), ctx->_tiledex, ctx->_materialdex);
         this->loaded_level->set_path(*file);
       } catch (const deserialization_failure &pf) {
         std::cout << "exception: " << pf.what() << std::endl;

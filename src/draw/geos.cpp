@@ -8,7 +8,13 @@ namespace mr {
 
 namespace draw {
 
-void draw_geo_shape(GeoType type, float x, float y, float scale, Color color) {
+void draw_geo_shape(
+  GeoType type, 
+  float x, 
+  float y, 
+  float scale, 
+  Color color
+) {
   switch (type) {
     case GeoType::solid:
     DrawRectangleRec(

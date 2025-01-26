@@ -66,9 +66,12 @@ public:
   inline int get_width() const noexcept { return width; }
   inline int get_height() const noexcept { return height; }
   inline int get_buffer() const noexcept { return buffer; }
+  
+  inline int get_buffered_width() const noexcept { return width + 2*buffer; }
+  inline int get_buffered_height() const noexcept { return height + 2*buffer; }
 
-  inline int calculate_width(int scale = 1) const { return (width + (buffer * 2)) * scale; }
-  inline int calculate_height(int scale = 1) const { return (height + (buffer * 2)) * scale; }
+  inline int calculate_width(int scale = 20) const { return (width + (buffer * 2)) * scale; }
+  inline int calculate_height(int scale = 20) const { return (height + (buffer * 2)) * scale; }
 
   inline ivec2 get_head_offset() const noexcept { return head_offset; }
 

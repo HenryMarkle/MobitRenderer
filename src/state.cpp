@@ -49,8 +49,8 @@ dirs::dirs() {
   assets = executable / "Assets";
   #endif
 
-  // data = executable / "Data";
-  // assets = executable / "Assets";
+  data = executable / ".." / ".." / ".." / "Data";
+  assets = executable / ".." / ".." / ".." / "assets";
 
   projects = executable / "Projects";
   levels = executable / "Levels";
@@ -170,6 +170,9 @@ void shaders::reload_all() {
 
   auto white_remover_apply_color_path = _shaders_dir / "white_remover_apply_color.frag";
   _white_remover_apply_color = LoadShader(nullptr, white_remover_apply_color_path.string().c_str());
+  
+  auto white_remover_apply_alpha_path = _shaders_dir / "white_remover_apply_alpha.frag";
+  _white_remover_apply_alpha = LoadShader(nullptr, white_remover_apply_alpha_path.string().c_str());
 
   auto white_remover_rgb_recolor_path = _shaders_dir / "white_remover_rgb_recolor.frag";
   _white_remover_rgb_recolor = LoadShader(nullptr, white_remover_rgb_recolor_path.string().c_str());
@@ -186,12 +189,14 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _vflip = other._vflip;
   _white_remover = other._white_remover;
   _white_remover_apply_color = other._white_remover_apply_color;
+  _white_remover_apply_alpha = other._white_remover_apply_alpha;
   _white_remover_rgb_recolor = other._white_remover_rgb_recolor;
   _voxel_struct_tinted = other._voxel_struct_tinted;
 
   other._vflip = Shader{0};
   other._white_remover = Shader{0};
   other._white_remover_apply_color = Shader{0};
+  other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
   other._voxel_struct_tinted = Shader{0};
 
@@ -203,12 +208,14 @@ shaders::shaders(shaders &&other) noexcept :
   _vflip(other._vflip), 
   _white_remover(other._white_remover), 
   _white_remover_apply_color(other._white_remover_apply_color),
+  _white_remover_apply_alpha(other._white_remover_apply_alpha),
   _white_remover_rgb_recolor(other._white_remover_rgb_recolor),
   _voxel_struct_tinted(other._voxel_struct_tinted)
 {
   other._vflip = Shader{0};
   other._white_remover = Shader{0};
   other._white_remover_apply_color = Shader{0};
+  other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
   other._voxel_struct_tinted = Shader{0};
 }
@@ -218,6 +225,7 @@ shaders::shaders(std::filesystem::path shaders_dir) :
   _vflip(Shader{0}), 
   _white_remover(Shader{0}),
   _white_remover_apply_color(Shader{0}),
+  _white_remover_apply_alpha(Shader{0}),
   _white_remover_rgb_recolor(Shader{0}),
   _voxel_struct_tinted(Shader{0}) { }
 

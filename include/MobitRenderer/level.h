@@ -17,22 +17,44 @@ typedef uint32_t levelpixelsize;
 struct LevelCamera {
   Vector2 position;
 
-  int top_left_angle, top_right_angle, bottom_right_angle, bottom_left_angle;
-  float top_left_radius, top_right_radius, bottom_right_radius,
-      bottom_left_radius;
+  int   top_left_angle,  top_right_angle,  bottom_right_angle,  bottom_left_angle;
+  float top_left_radius, top_right_radius, bottom_right_radius, bottom_left_radius;
 
-  inline void reset_angles() {
+  inline void reset_angles() noexcept {
     top_left_angle = top_right_angle = bottom_right_angle = bottom_left_angle =
         0;
   }
-  inline void reset_radius() {
+
+  inline void reset_radius() noexcept {
     top_left_radius = top_right_radius = bottom_right_radius =
         bottom_left_radius = 0;
   }
-  inline void reset() {
+
+  inline void reset() noexcept {
     reset_angles();
     reset_radius();
   }
+
+  inline const Rectangle get_outer_rect() const noexcept {
+    return Rectangle{
+      position.x,
+      position.y,
+      1400.0f,
+      800.0f
+    };
+  }
+
+  inline const Rectangle get_inner_rect() const noexcept {
+    return Rectangle{
+      position.x + 190,
+      position.y + 20,
+      51 * 20.0f,
+      39 * 20.0f
+    };
+  }
+
+  LevelCamera();
+  LevelCamera(Vector2);
 };
 
 struct EffectConfig {

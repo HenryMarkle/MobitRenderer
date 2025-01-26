@@ -14,6 +14,7 @@
 
 namespace mr::pages {
 
+/// @brief An abstract class representing a page to draw on screen.
 class Page {
 protected:
   context *ctx;
@@ -34,13 +35,28 @@ public:
   /// @brief Draws debug information
   virtual void f3() const noexcept;
 
-  /// @brief Resets data that need to be reset every frame.
-  virtual void reset_frame_data() noexcept;
-
-  /// @brief Propagates texture buffer refreshing.
-  virtual void order_level_redraw() noexcept;
-
   virtual ~Page() = default;
+};
+
+/// @brief Represents a page that reviews a level
+class LevelPage : public Page {
+
+protected:
+
+bool _is_mouse_in_mtx_bounds;
+mr::ivec2 _mtx_mouse_pos;
+
+void update_mtx_mouse_pos() noexcept;
+
+LevelPage(context*);
+
+public:
+
+/// @brief Propagates texture buffer refreshing.
+virtual void order_level_redraw() noexcept;
+
+virtual ~LevelPage() = default;
+
 };
 
 /// @brief Stores and manages pages.
@@ -49,26 +65,26 @@ public:
 /// Do not keep the Page* pointers that were passed to this
 /// class beyond the life delete of this class.
 class Pager {
-  std::vector<Page *> pages;
+  std::vector<LevelPage *> pages;
   uint8_t current_page, previous_page;
 
-  Page *current_page_ptr, *previous_page_ptr;
+  LevelPage *current_page_ptr, *previous_page_ptr;
 
 public:
-  void push_page(Page *) noexcept;
+  void push_page(LevelPage *) noexcept;
   uint8_t get_current_page_index() const noexcept;
   uint8_t get_previous_page_index() const noexcept;
 
-  Page *get_current_page() const noexcept;
-  Page *get_previous_page() const noexcept;
+  LevelPage *get_current_page() const noexcept;
+  LevelPage *get_previous_page() const noexcept;
   void select_page(uint8_t) noexcept;
 
   Pager();
-  Pager(std::initializer_list<Page *>);
+  Pager(std::initializer_list<LevelPage *>);
   ~Pager();
 };
 
-class Start_Page : public Page {
+class Start_Page : public LevelPage {
 private:
   ProjectExplorer explorer_;
   std::unique_ptr<std::thread> project_load_thread;
@@ -88,7 +104,7 @@ public:
   virtual ~Start_Page() override;
 };
 
-class Main_Page : public Page {
+class Main_Page : public LevelPage {
 private:
   bool should_redraw;
 
@@ -105,7 +121,7 @@ public:
   virtual ~Main_Page() override;
 };
 
-class Geo_Page : public Page {
+class Geo_Page : public LevelPage {
 private:
   bool 
     should_redraw, 
@@ -128,7 +144,7 @@ public:
   virtual ~Geo_Page() override;
 };
 
-class Tile_Page : public Page {
+class Tile_Page : public LevelPage {
 private:
   bool 
     _should_redraw, 
@@ -157,9 +173,12 @@ RenderTexture2D _tile_specs_rt;
 TileDef 
   *_selected_tile, 
   *_hovered_tile,
+  
   *_previously_drawn_texture,
   *_previously_drawn_preview,
   *_previously_drawn_specs;
+  
+TileCell *_hovered_cell;
 
 void _redraw_tile_preview_rt() noexcept;
 void _redraw_tile_texture_rt() noexcept;

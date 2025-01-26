@@ -99,7 +99,7 @@ void Main_Page::order_level_redraw() noexcept {
   should_redraw = true;
 }
 
-Main_Page::Main_Page(context *ctx) : Page(ctx), should_redraw(true) {}
+Main_Page::Main_Page(context *ctx) : LevelPage(ctx), should_redraw(true) {}
 
 Main_Page::~Main_Page() {}
 

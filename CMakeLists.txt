@@ -34,6 +34,7 @@ include_directories(include)                    # headers
 
 file(GLOB MAIN_SOURCES src/*.cpp)               # sources
 file(GLOB MAIN_DRAW_SOURCES src/draw/*.cpp)     # sources
+file(GLOB MAIN_SDRAW_SOURCES src/sdraw/*.cpp)   # sources
 file(GLOB MAIN_PAGE_SOURCES src/pages/*.cpp)    # sources
 
 if(WIN32)
@@ -48,6 +49,7 @@ add_executable(
   ${PLATFORM_IMPL_SOURCES}
   ${MAIN_SOURCES} 
   ${MAIN_DRAW_SOURCES}
+  ${MAIN_SDRAW_SOURCES}
   ${MAIN_PAGE_SOURCES}
 )
 

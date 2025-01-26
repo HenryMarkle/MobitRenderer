@@ -214,7 +214,7 @@ void draw_tile_prev_from_origin(
   int y,
   float scale, 
   Color color
-) noexcept;
+);
 
 /// @brief Draws a tile preview from the origin (x - origin.x, y - origin.y).
 /// @param x The matrix' X coordinates.
@@ -337,16 +337,6 @@ void draw_geo_and_poles_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Colo
 /// @param color The brush color.
 /// @param scale The size of each cell in pixels.
 void draw_geo_features_layer(Matrix<GeoCell> const& matrix, const GE_Textures &atlas, uint8_t layer, Color color, float scale = 20.0f);
-
-/// @brief Draws an entire layer of a tile matrix (previews)
-void draw_tile_prevs_layer(
-  Matrix<GeoCell> const &geomtx, 
-  Matrix<TileCell> const &tilemtx, 
-  const TileDex *tiles, 
-  const MaterialDex *materials,
-  uint8_t layer,
-  float scale
-);
 
 }; // namespace draw
 
