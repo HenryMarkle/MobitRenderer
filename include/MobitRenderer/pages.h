@@ -220,6 +220,12 @@ Camera_Page(context*);
 
 };
 
+class Light_Page : public LevelPage {};
+class Effects_Page : public LevelPage {};
+class Props_Page : public LevelPage {};
+class Render_Page : public LevelPage {};
+class AutoRender_Page : public LevelPage {};
+
 class pager {
 
 private:

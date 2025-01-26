@@ -61,6 +61,9 @@ public:
   const std::filesystem::path &get_props() const;
   const std::filesystem::path &get_cast() const;
 
+  void set_data(std::filesystem::path, bool include_cast = true);
+  void set_levels(std::filesystem::path);
+
   inline bool is_ok() const noexcept { return ok; } 
   inline bool is_executable_found() const noexcept { return executable_found; }
   
@@ -74,10 +77,6 @@ public:
   inline bool is_props_found() const noexcept { return props_found; }
   inline bool is_cast_found() const noexcept { return cast_found; }
   
-  inline bool is_projects_found() const noexcept { return projects_found; }
-  inline bool is_levels_found() const noexcept { return levels_found; }
-  inline bool is_logs_found() const noexcept { return logs_found; }
-
   dirs();
   dirs(const std::filesystem::path &);
 };

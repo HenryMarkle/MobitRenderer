@@ -37,6 +37,30 @@ const std::filesystem::path &dirs::get_tiles() const { return tiles; }
 const std::filesystem::path &dirs::get_props() const { return props; }
 const std::filesystem::path &dirs::get_cast() const { return cast; }
 
+void dirs::set_data(std::filesystem::path dir, bool include_cast) {
+  if (!std::filesystem::is_directory(dir))
+      throw std::invalid_argument(dir.string()+" is not a directory");
+  
+  data = dir;
+  props = data / "Props";
+  tiles = data / "Graphics";
+  materials = data / "Materials";
+  if (include_cast) cast = data / "Cast";
+
+  data_found = std::filesystem::exists(data);
+  props_found = std::filesystem::exists(props);
+  tiles_found = std::filesystem::exists(tiles);
+  materials_found = std::filesystem::exists(materials);
+  if (include_cast) cast_found = std::filesystem::exists(cast);
+}
+void dirs::set_levels(std::filesystem::path dir) {
+  if (!std::filesystem::is_directory(dir))
+      throw std::invalid_argument(dir.string()+" is not a directory");
+  
+  levels = dir;
+  levels_found = std::filesystem::exists(levels);
+}
+
 dirs::dirs() {
 
   executable = mr::get_executable_dir();
@@ -91,10 +115,6 @@ dirs::dirs() {
   props_found = exists(props);
   cast_found = exists(cast);
 
-  projects_found = exists(projects);
-  levels_found = exists(levels);
-  logs_found = exists(logs);
-  
   ok = executable_found && 
     assets_found &&
     shaders_found &&
