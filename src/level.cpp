@@ -28,7 +28,15 @@ LevelCamera::LevelCamera() :
   top_left_radius(0),
   top_right_radius(0),
   bottom_right_radius(0),
-  bottom_left_radius(0) 
+  bottom_left_radius(0),
+  _tl_origin({0, 0}),
+  _tr_origin({0, 0}),
+  _br_origin({0, 0}),
+  _bl_origin({0, 0}),
+  _tl_point({0, 0}),
+  _tr_point({0, 0}),
+  _br_point({0, 0}),
+  _bl_point({0, 0})
 {}
 
 LevelCamera::LevelCamera(Vector2 pos) : 
@@ -40,8 +48,21 @@ LevelCamera::LevelCamera(Vector2 pos) :
   top_left_radius(0),
   top_right_radius(0),
   bottom_right_radius(0),
-  bottom_left_radius(0) 
-{}
+  bottom_left_radius(0),
+  _tl_origin({0, 0}),
+  _tr_origin({0, 0}),
+  _br_origin({0, 0}),
+  _bl_origin({0, 0}),
+  _tl_point({0, 0}),
+  _tr_point({0, 0}),
+  _br_point({0, 0}),
+  _bl_point({0, 0})
+{
+  _calculate_tl();
+  _calculate_tr();
+  _calculate_br();
+  _calculate_bl();
+}
 
 const string &Level::get_name() const noexcept { return name; }
 void Level::set_name(string new_name) {

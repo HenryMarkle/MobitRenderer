@@ -94,14 +94,14 @@ private:
   bool loaded_project_was_handled;
 
 public:
-  virtual void process() override;
-  virtual void draw() noexcept override;
-  virtual void windows() noexcept override;
-  virtual void order_level_redraw() noexcept override;
+  void process() override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void order_level_redraw() noexcept override;
 
   Start_Page(context*);
 
-  virtual ~Start_Page() override;
+  ~Start_Page() override;
 };
 
 class Main_Page : public LevelPage {
@@ -111,14 +111,14 @@ private:
 public:
   void order_redraw() noexcept;
 
-  virtual void process() override;
-  virtual void draw() noexcept override;
-  virtual void windows() noexcept override;
-  virtual void order_level_redraw() noexcept override;
+  void process() override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void order_level_redraw() noexcept override;
 
   Main_Page(context*);
 
-  virtual ~Main_Page() override;
+  ~Main_Page() override;
 };
 
 class Geo_Page : public LevelPage {
@@ -133,15 +133,15 @@ private:
     should_redraw_feature3;
 
 public:
-  virtual void process() override;
-  virtual void draw() noexcept override;
-  virtual void windows() noexcept override;
-  virtual void order_level_redraw() noexcept override;
-  virtual void f3() const noexcept;
+  void process() override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void order_level_redraw() noexcept override;
+  void f3() const noexcept;
 
   Geo_Page(context*);
 
-  virtual ~Geo_Page() override;
+  ~Geo_Page() override;
 };
 
 class Tile_Page : public LevelPage {
@@ -185,15 +185,39 @@ void _redraw_tile_texture_rt() noexcept;
 void _redraw_tile_specs_rt() noexcept;
 
 public:
-  virtual void process() override;
-  virtual void draw() noexcept override;
-  virtual void windows() noexcept override;
-  virtual void order_level_redraw() noexcept override;
-  virtual void f3() const noexcept;
+  void process() override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void order_level_redraw() noexcept override;
+  void f3() const noexcept;
 
   Tile_Page(context*);
 
-  virtual ~Tile_Page() override;
+  ~Tile_Page() override;
+};
+
+class Camera_Page : public LevelPage {
+
+private:
+
+bool 
+  _should_redraw1,
+  _should_redraw2,
+  _should_redraw3,
+  _should_redraw;
+
+public:
+
+void process() override;
+void draw() noexcept override;
+void windows() noexcept override;
+void f3() const noexcept override;
+
+void order_level_redraw() noexcept override;
+
+Camera_Page(context*);
+~Camera_Page() override;
+
 };
 
 class pager {
@@ -204,6 +228,7 @@ Start_Page _start_page;
 Main_Page _main_page;
 Geo_Page _geo_page;
 Tile_Page _tile_page;
+Camera_Page _camera_page;
 
 int _selected, _previous;
 

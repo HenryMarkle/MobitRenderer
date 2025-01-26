@@ -44,13 +44,17 @@ dirs::dirs() {
   #ifdef IS_DEBUG_BUILD
   data = executable / ".." / ".." / "Data";
   assets = executable / ".." / ".." / "assets";
+
+  // VS Code's annoying configuration
+  if (!exists(data) && !exists(assets)) {
+    data = executable / ".." / ".." / ".." / "Data";
+    assets = executable / ".." / ".." / ".." / "assets";
+  }
   #else
   data = executable / "Data";
   assets = executable / "Assets";
   #endif
 
-  data = executable / ".." / ".." / ".." / "Data";
-  assets = executable / ".." / ".." / ".." / "assets";
 
   projects = executable / "Projects";
   levels = executable / "Levels";

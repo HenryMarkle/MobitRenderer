@@ -891,7 +891,7 @@ void Tile_Page::f3() const noexcept {
 
       default:
       {
-        f3->print("Default Material ");
+        f3->print("Default Material ", true);
       }
       break;
     }

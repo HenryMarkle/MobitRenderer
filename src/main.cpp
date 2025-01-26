@@ -291,7 +291,7 @@ int main() {
           auto goto_main = ImGui::MenuItem("Main", nullptr, current_page == 1, true);
           auto goto_geo = ImGui::MenuItem("Geometry", nullptr, current_page == 2, true);
           auto goto_tiles = ImGui::MenuItem("Tiles", nullptr, current_page == 3, true);
-          ImGui::MenuItem("Cameras", nullptr, current_page == 4, false);
+          auto goto_cameras = ImGui::MenuItem("Cameras", nullptr, current_page == 4, true);
           ImGui::MenuItem("Light", nullptr, current_page == 5, false);
           ImGui::MenuItem("Dimensions", nullptr, current_page == 6, false);
           ImGui::MenuItem("Effects", nullptr, current_page == 7, false);
@@ -304,6 +304,8 @@ int main() {
             pager->select(2);
           } else if (goto_tiles) {
             pager->select(3);
+          } else if (goto_cameras) {
+            pager->select(4);
           }
         }
 

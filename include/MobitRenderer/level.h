@@ -1,5 +1,6 @@
 #pragma once
 
+#include <math.h>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -14,25 +15,133 @@ namespace mr {
 typedef uint16_t levelsize;
 typedef uint32_t levelpixelsize;
 
-struct LevelCamera {
-  Vector2 position;
+class LevelCamera {
+
+private:
+  static const int pixel_width = 1400;
+  static const int pixel_height = 800;
 
   int   top_left_angle,  top_right_angle,  bottom_right_angle,  bottom_left_angle;
   float top_left_radius, top_right_radius, bottom_right_radius, bottom_left_radius;
 
+  Vector2 position;
+
+  Vector2 _tl_origin, _tr_origin, _br_origin, _bl_origin;
+  Vector2 _tl_point,  _tr_point,  _br_point,  _bl_point;
+
+  inline void _calculate_tl(int radius_scale = 100) {
+    _tl_origin = position;
+    
+    const float scaled_radius = top_left_radius * radius_scale;
+    const float rotated_angle = (top_left_angle - 90) * PI / 180.0f;
+
+    _tl_point = Vector2{
+      _tl_origin.x + scaled_radius * (float)cos(rotated_angle),
+      _tl_origin.y + scaled_radius * (float)sin(rotated_angle)
+    }; 
+  }
+  inline void _calculate_tr(int radius_scale = 100) {
+    _tr_origin = Vector2{position.x + pixel_width, position.y};
+    
+    const float scaled_radius = top_right_radius * radius_scale;
+    const float rotated_angle = (top_right_angle - 90) * PI / 180.0f;
+
+    _tr_point = Vector2{
+      _tr_origin.x + scaled_radius * (float)cos(rotated_angle),
+      _tr_origin.y + scaled_radius * (float)sin(rotated_angle)
+    }; 
+  }
+  inline void _calculate_br(int radius_scale = 100) {
+    _br_origin = Vector2 {position.x + pixel_width, position.y + pixel_height};
+    
+    const float scaled_radius = bottom_right_radius * radius_scale;
+    const float rotated_angle = (bottom_right_angle - 90) * PI / 180.0f;
+
+    _br_point = Vector2{
+      _br_origin.x + scaled_radius * (float)cos(rotated_angle),
+      _br_origin.y + scaled_radius * (float)sin(rotated_angle)
+    }; 
+  }
+  inline void _calculate_bl(int radius_scale = 100) {
+    _bl_origin = Vector2 {position.x, position.y + pixel_height};
+    
+    const float scaled_radius = bottom_left_radius * radius_scale;
+    const float rotated_angle = (bottom_left_angle - 90) * PI / 180.0f;
+
+    _bl_point = Vector2{
+      _bl_origin.x + scaled_radius * (float)cos(rotated_angle),
+      _bl_origin.y + scaled_radius * (float)sin(rotated_angle)
+    }; 
+  }
+
+public:
+
+  inline const Vector2 &get_position() const { return position; }
+  inline void set_position(Vector2 v) { 
+    position = v; 
+
+    _calculate_tl();
+    _calculate_tr();
+    _calculate_br();
+    _calculate_bl();
+  }
+
+  inline const int get_top_left_angle() const { return top_left_angle; }
+  inline const int get_top_right_angle() const { return top_right_angle; }
+  inline const int get_bottom_right_angle() const { return bottom_right_angle; }
+  inline const int get_bottom_left_angle() const { return bottom_left_angle; }
+  
+  inline void set_top_left_angle(int angle) { top_left_angle = angle; _calculate_tl(); }
+  inline void set_top_right_angle(int angle) { top_right_angle = angle; _calculate_tr(); }
+  inline void set_bottom_right_angle(int angle) { bottom_right_angle = angle; _calculate_br(); }
+  inline void set_bottom_left_angle(int angle) { bottom_left_angle = angle; _calculate_bl(); }
+
+  inline const float get_top_left_radius() const { return top_left_radius; }
+  inline const float get_top_right_radius() const { return top_right_radius; }
+  inline const float get_bottom_right_radius() const { return bottom_right_radius; }
+  inline const float get_bottom_left_radius() const { return bottom_left_radius; }
+
+  inline void set_top_left_radius(float radius) { top_left_radius = radius; _calculate_tl(); }
+  inline void set_top_right_radius(float radius) { top_right_radius = radius; _calculate_tr(); }
+  inline void set_bottom_right_radius(float radius) { bottom_right_radius = radius; _calculate_br(); }
+  inline void set_bottom_left_radius(float radius) { bottom_left_radius = radius; _calculate_bl(); }
+
+  inline Vector2 get_top_left_origin() const noexcept { return _tl_origin; }
+  inline Vector2 get_top_right_origin() const noexcept { return _tr_origin; }
+  inline Vector2 get_bottom_right_origin() const noexcept { return _br_origin; }
+  inline Vector2 get_bottom_left_origin() const noexcept { return _bl_origin; }
+
+  inline Vector2 get_top_left_point() const noexcept { return _tl_point; }
+  inline Vector2 get_top_right_point() const noexcept { return _tr_point; }
+  inline Vector2 get_bottom_right_point() const noexcept { return _br_point; }
+  inline Vector2 get_bottom_left_point() const noexcept { return _bl_point; }
+
   inline void reset_angles() noexcept {
     top_left_angle = top_right_angle = bottom_right_angle = bottom_left_angle =
         0;
-  }
 
+    _calculate_tl();
+    _calculate_tr();
+    _calculate_br();
+    _calculate_bl();
+  }
   inline void reset_radius() noexcept {
     top_left_radius = top_right_radius = bottom_right_radius =
         bottom_left_radius = 0;
+  
+    _calculate_tl();
+    _calculate_tr();
+    _calculate_br();
+    _calculate_bl();
   }
-
   inline void reset() noexcept {
-    reset_angles();
-    reset_radius();
+    top_left_angle = top_right_angle = bottom_right_angle = bottom_left_angle = 0;
+    top_left_radius = top_right_radius = bottom_right_radius = bottom_left_radius = 0;
+  
+    _calculate_tl();
+    _calculate_tr();
+    _calculate_br();
+    _calculate_bl();
   }
 
   inline const Rectangle get_outer_rect() const noexcept {

@@ -1053,9 +1053,11 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
     const mp::Node *quad_node = quads_list->elements[e].get();
 
     LevelCamera camera;
+    Vector2 position;
 
     try {
-      deser_point(camera_node, camera.position.x, camera.position.y);
+      deser_point(camera_node, position.x, position.y);
+      camera.set_position(position);
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera position at element #")
@@ -1092,18 +1094,18 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
       );
 
     try {
-      camera.top_left_angle = deser_int(tl_node->elements[0].get());
+      camera.set_top_left_angle(deser_int(tl_node->elements[0].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
         +std::to_string(e)
-        +" top left angle: "
+        +" top left radius: "
         +de.what()
       );
     }
 
     try {
-      camera.top_left_radius = deser_float(tl_node->elements[1].get());
+      camera.set_top_left_radius(deser_float(tl_node->elements[1].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
@@ -1130,7 +1132,7 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
       );
 
     try {
-      camera.top_right_angle = deser_int(tr_node->elements[0].get());
+      camera.set_top_right_angle(deser_int(tr_node->elements[0].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
@@ -1141,12 +1143,12 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
     }
 
     try {
-      camera.top_right_radius = deser_float(tr_node->elements[1].get());
+      camera.set_top_right_radius(deser_float(tr_node->elements[1].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
         +std::to_string(e)
-        +" top right angle: "
+        +" top right radius: "
         +de.what()
       );
     }
@@ -1168,7 +1170,7 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
       );
 
     try {
-      camera.bottom_right_angle = deser_int(br_node->elements[0].get());
+      camera.set_bottom_right_angle(deser_int(br_node->elements[0].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
@@ -1179,12 +1181,12 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
     }
 
     try {
-      camera.bottom_right_radius = deser_float(br_node->elements[1].get());
+      camera.set_bottom_right_radius(deser_float(br_node->elements[1].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
         +std::to_string(e)
-        +" bottom right angle: "
+        +" bottom right radius: "
         +de.what()
       );
     }
@@ -1206,7 +1208,7 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
       );
 
     try {
-      camera.bottom_left_angle = deser_int(bl_node->elements[0].get());
+      camera.set_bottom_left_angle(deser_int(bl_node->elements[0].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
@@ -1217,12 +1219,12 @@ void deser_cameras(const mp::Node *node, std::vector<LevelCamera> &cameras) {
     }
 
     try {
-      camera.bottom_right_radius = deser_float(bl_node->elements[1].get());
+      camera.set_bottom_left_radius(deser_float(bl_node->elements[1].get()));
     } catch (deserialization_failure &de) {
       throw deserialization_failure(
         std::string("failed to deserialize camera quad #")
         +std::to_string(e)
-        +" bottom left angle: "
+        +" bottom left radius: "
         +de.what()
       );
     }
