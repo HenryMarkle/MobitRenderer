@@ -64,6 +64,19 @@ LevelCamera::LevelCamera(Vector2 pos) :
   _calculate_bl();
 }
 
+BufferGeos::BufferGeos() : 
+  left(6), top(3), right(6), bottom(5) 
+{}
+
+BufferGeos::BufferGeos(
+  levelsize left, 
+  levelsize top, 
+  levelsize right, 
+  levelsize bottom
+) :
+  left(left), top(top), right(right), bottom(bottom) 
+{}
+
 const string &Level::get_name() const noexcept { return name; }
 void Level::set_name(string new_name) {
   name = new_name;

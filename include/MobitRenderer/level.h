@@ -189,6 +189,27 @@ struct Effect {
   Effect(const Effect &) = delete;
 };
 
+struct BufferGeos {
+  levelsize left, top, right, bottom;
+
+  inline Rectangle get_rect(float scale = 20.0f) const noexcept {
+    return Rectangle {
+      left * scale,
+      top * scale,
+      (bottom - top) * scale,
+      (right - left) * scale
+    };
+  }
+
+  BufferGeos();
+  BufferGeos(
+    levelsize left, 
+    levelsize top, 
+    levelsize right, 
+    levelsize bottom
+  );
+};
+
 /// @brief Stores data of a level project
 /// @attention Resizing and destruction requires OpenGL context.
 class Level {
@@ -204,13 +225,16 @@ private:
   Matrix<TileCell> tile_matrix;
   std::vector<Effect> effects;
 
+
   RenderTexture2D lightmap;
 
 public:
 
-  int8_t water;
+  BufferGeos buffer_geos;
+  int water;
   bool light, terrain, front_water;
   std::vector<LevelCamera> cameras;
+  int seed;
 
   const std::string &get_name() const noexcept;
 

@@ -48,12 +48,16 @@ std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::unique_ptr<Projec
 std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::filesystem::path &);
 
 void deser_size           (const mp::Node*, uint16_t &width, uint16_t &height);
+void deser_buffer_geos    (const mp::Node*, BufferGeos&);
+void deser_seed           (const mp::Node*, int&);
+void deser_water          (const mp::Node*, int&, bool&);
+void deser_light          (const mp::Node*, bool&);
+void deser_terrain_medium (const mp::Node*, bool&);
 void deser_geometry_matrix(const mp::Node*, Matrix<GeoCell>&);
 
 /// @brief Deserializes a tile matrix from a syntax tree node.
-/// @note The function expects receiving the #tilMatrix node and the node the entire line.
+/// @note The function expects receiving the #tlMatrix node and the node the entire line.
 void deser_tile_matrix    (const mp::Node*, Matrix<TileCell>&);
-
 void deser_cameras        (const mp::Node*, std::vector<mr::LevelCamera>&);
 
 std::unique_ptr<Level> deser_level(const std::filesystem::path&);
@@ -65,6 +69,9 @@ TileDef* deser_tiledef(const mp::Node*);
 CustomMaterialDef *deser_materialdef(const mp::Node*);
 
 // Deserialization utilities
+
+/// @brief Deserializes an mp::Int or an mp::Float node; expects no operators.
+bool deser_bool(const mp::Node*);
 
 /// @brief Deserializes an mp::Int node; expects no operators.
 int deser_int(const mp::Node*);
@@ -78,6 +85,10 @@ int8_t deser_int8(const mp::Node*);
 /// @brief Deserializes an mp::Int node; expects no operators.
 /// @returns A casted int to uint8 (unsigned char).
 uint8_t deser_uint8(const mp::Node*);
+
+/// @brief Deserializes an mp::Int node; expects no operators.
+/// @returns A casted int to uint8 (unsigned short).
+uint16_t deser_uint16(const mp::Node*);
 
 /// @brief Deserializes a string node.
 std::string deser_string(const mp::Node*);

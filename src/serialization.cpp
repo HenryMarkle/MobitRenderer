@@ -694,6 +694,13 @@ std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::filesystem::path 
     case 3:
       break;
     case 4:
+      try {
+        nodes->terrain_settings = mp::parse(tokens, true);
+      } catch (std::exception &e) {
+        std::string msg = "failed to parse terrain settings: ";
+        msg.append(e.what());
+        throw parse_failure(msg);
+      }
       break;
     case 5:
       try {
@@ -714,6 +721,11 @@ std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::filesystem::path 
       }
       break;
     case 7:
+      try {
+        nodes->water = mp::parse(tokens, true);
+      } catch (std::exception &e) {
+        throw parse_failure(std::string("failed to parse water: ")+e.what());
+      }
       break;
     case 8:
       break;
@@ -1275,6 +1287,152 @@ void deser_size(const mp::Node *line_node, uint16_t &width, uint16_t &height) {
   height = height_int->number;
 }
 
+void deser_buffer_geos(const mp::Node *line_node, BufferGeos &geos) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(line_node);
+  if (props == nullptr) 
+    throw deserialization_failure("line node is not a Property List");
+
+  const auto extra_iter = props->map.find("extratiles");
+  if (extra_iter == props->map.end())
+    throw deserialization_failure("#extraTiles property not found");
+  
+  const auto *node = extra_iter->second.get(); 
+
+  const mp::List *list = dynamic_cast<const mp::List*>(node);
+
+  if (list == nullptr) 
+    throw deserialization_failure("node is not a Linear List");
+
+  if (list->elements.size() < 4)
+    throw deserialization_failure("list has insufficient elements (expected at least 4)");
+
+  BufferGeos bg;
+
+  try {
+    bg.left = deser_uint16(list->elements[0].get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize extra tiles #1 element (left): ")+de.what()
+    );
+  }
+
+  try {
+    bg.top = deser_uint16(list->elements[1].get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize extra tiles #2 element (top): ")+de.what()
+    );
+  }
+
+  try {
+    bg.right = deser_uint16(list->elements[2].get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize extra tiles #3 element (right): ")+de.what()
+    );
+  }
+
+  try {
+    bg.bottom = deser_uint16(list->elements[3].get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize extra tiles #4 element (bottom): ")+de.what()
+    );
+  }
+
+  geos = bg;
+}
+
+void deser_seed(const mp::Node *line_node, int &seed) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(line_node);
+  if (props == nullptr) 
+    throw deserialization_failure("line node is not a Property List");
+
+  const auto seed_iter = props->map.find("tileseed");
+  if (seed_iter == props->map.end())
+    throw deserialization_failure("#tileSeed property not found");
+  
+  const auto *node = seed_iter->second.get(); 
+
+  try {
+    seed = deser_int(node);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize #tileSeed node: ")+de.what()
+    );
+  }
+}
+
+void deser_water(const mp::Node *line_node, int &level, bool &in_front) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(line_node);
+  if (props == nullptr) 
+    throw deserialization_failure("line node is not a Property List");
+
+  const auto level_iter = props->map.find("waterlevel");
+  if (level_iter == props->map.end())
+    throw deserialization_failure("#waterLevel property not found");
+  
+  const auto infront_iter = props->map.find("waterinfront");
+  if (infront_iter == props->map.end())
+    throw deserialization_failure("#waterInFront property not found");
+  
+  int level_v;
+  bool infront_v;
+
+  try {
+    level_v = deser_int(level_iter->second.get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize #waterLevel property: ")+de.what()
+    );
+  }
+
+  try {
+    infront_v = deser_bool(infront_iter->second.get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize #waterInFront property: ")+de.what()
+    );
+  }
+
+  level = level_v;
+  in_front = infront_v;
+}
+
+void deser_light(const mp::Node *line_node, bool &light) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(line_node);
+  if (props == nullptr) 
+    throw deserialization_failure("line node is not a Property List");
+
+  const auto light_iter = props->map.find("light");
+  if (light_iter == props->map.end())
+    throw deserialization_failure("#light property not found");
+  
+  try {
+    light = deser_bool(light_iter->second.get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize #light property: ")+de.what()
+    );
+  }
+}
+
+void deser_terrain_medium(const mp::Node *line_node, bool &setting) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(line_node);
+  if (props == nullptr) 
+    throw deserialization_failure("line node is not a Property List");
+
+  const auto terr_iter = props->map.find("defaultterrain");
+  if (terr_iter == props->map.end())
+    throw deserialization_failure("#defaultTerrain property not found");
+  
+  try {
+    setting = deser_bool(terr_iter->second.get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(std::string("failed to deserialize #defaultTerrain property: ")+de.what());
+  }
+}
+
 std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
   std::unique_ptr<ProjectSaveFileNodes> nodes = parse_project(path);
 
@@ -1291,6 +1449,46 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
   } catch (deserialization_failure &gde) {
     throw deserialization_failure(
       std::string("failed to deserialize the geometry matrix: ")+gde.what()
+    );
+  }
+
+  // Seed
+
+  try {
+    deser_seed(nodes->seed_and_sizes.get(), level->seed);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize seed: ")+de.what()
+    );
+  }
+
+  // Light
+
+  try {
+    deser_light(nodes->seed_and_sizes.get(), level->light);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize light: ")+de.what()
+    );
+  }
+
+  // Terrain
+
+  try {
+    deser_terrain_medium(nodes->terrain_settings.get(), level->terrain);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize default terrain: ")+de.what()
+    );
+  } 
+
+  // Extra geometry tiles
+
+  try {
+    deser_buffer_geos(nodes->seed_and_sizes.get(), level->buffer_geos);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize extra tiles: ")+de.what()
     );
   }
 
@@ -1323,6 +1521,16 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
     );
   }
 
+  // Water
+
+  try {
+    deser_water(nodes->water.get(), level->water, level->front_water);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize water: ")+de.what()
+    );
+  }
+
   return level;
 }
 
@@ -1345,6 +1553,20 @@ std::shared_ptr<config> load_config(const std::filesystem::path &path) {
   return nullptr;
 }
 
+bool deser_bool(const mp::Node *node) {
+  const auto *int_node = dynamic_cast<const mp::Int*>(node);
+
+  if (int_node != nullptr) {
+    return int_node->number != 0;
+  }
+
+  const auto *float_node = dynamic_cast<const mp::Float*>(node);
+
+  if (float_node == nullptr)
+    throw deserialization_failure("node is not Int or Float");
+
+  return float_node->number != 0;
+}
 int deser_int(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an Int");
@@ -1364,6 +1586,11 @@ uint8_t deser_uint8(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an uint8");
   return (uint8_t)int_node->number;
+}
+uint16_t deser_uint16(const mp::Node *node) {
+  const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
+  if (int_node == nullptr) throw deserialization_failure("node is not an uint16");
+  return (uint16_t)int_node->number;
 }
 std::string deser_string(const mp::Node *node) {
   const mp::String *str_node = dynamic_cast<const mp::String*>(node);
