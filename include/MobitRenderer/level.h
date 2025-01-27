@@ -192,15 +192,6 @@ struct Effect {
 struct BufferGeos {
   levelsize left, top, right, bottom;
 
-  inline Rectangle get_rect(float scale = 20.0f) const noexcept {
-    return Rectangle {
-      left * scale,
-      top * scale,
-      (bottom - top) * scale,
-      (right - left) * scale
-    };
-  }
-
   BufferGeos();
   BufferGeos(
     levelsize left, 
@@ -224,7 +215,6 @@ private:
   Matrix<GeoCell> geo_matrix;
   Matrix<TileCell> tile_matrix;
   std::vector<Effect> effects;
-
 
   RenderTexture2D lightmap;
 

@@ -240,6 +240,19 @@ void Geo_Page::draw() noexcept {
 
   mr::draw::draw_double_frame(level->get_pixel_width(), level->get_pixel_height());
 
+  const auto &features_border = level->buffer_geos;
+
+  DrawRectangleLinesEx(
+    Rectangle {
+      features_border.left * 20.0f,
+      features_border.top * 20.0f,
+      (level->get_width() - features_border.right - features_border.left) * 20.0f,
+      (level->get_height() - features_border.bottom - features_border.top) * 20.0f,
+    },
+    4,
+    WHITE
+  );
+
   EndMode2D();
 }
 void Geo_Page::windows() noexcept {}

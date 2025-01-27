@@ -637,6 +637,19 @@ void Tile_Page::draw() noexcept {
       level->get_pixel_height()
     );
 
+    const auto &features_border = level->buffer_geos;
+
+    DrawRectangleLinesEx(
+      Rectangle {
+        features_border.left * 20.0f,
+        features_border.top * 20.0f,
+        (level->get_width() - features_border.right - features_border.left) * 20.0f,
+        (level->get_height() - features_border.bottom - features_border.top) * 20.0f,
+      },
+      4,
+      WHITE
+  );
+
     if (_hovered_cell != nullptr) {
       switch (_hovered_cell->type) {
         case TileType::head:

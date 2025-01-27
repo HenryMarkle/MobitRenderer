@@ -126,6 +126,19 @@ void Camera_Page::draw() noexcept {
 
     DrawTexture(viewport.texture, 0, 0, WHITE);
 
+    const auto &features_border = level->buffer_geos;
+
+    DrawRectangleLinesEx(
+        Rectangle {
+            features_border.left * 20.0f,
+            features_border.top * 20.0f,
+            (level->get_width() - features_border.right - features_border.left) * 20.0f,
+            (level->get_height() - features_border.bottom - features_border.top) * 20.0f,
+        },
+        4,
+        WHITE
+    );
+
     auto &cameras = level->cameras;
 
     for (size_t c = 0; c < cameras.size(); c++) {

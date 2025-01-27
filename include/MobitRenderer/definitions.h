@@ -10,12 +10,9 @@
 #include <raylib.h>
 
 #include <MobitRenderer/managed.h>
+#include <MobitRenderer/vec.h>
 
 namespace mr {
-
-typedef struct IVector2 {
-  int x, y;
-} ivec2;
 
 struct TileDefCategory {
   std::string name;
@@ -304,5 +301,10 @@ public:
 
 };
 
+class PropDef {};
+struct Prop {
+  std::string und_name;
+  PropDef *def;
+};
 
 }; // namespace mr

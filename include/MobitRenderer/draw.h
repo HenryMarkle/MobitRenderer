@@ -13,6 +13,7 @@
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/atlas.h>
+#include <MobitRenderer/quad.h>
 #include <MobitRenderer/dex.h>
 
 namespace mr {
@@ -64,18 +65,13 @@ public:
 
 }; // namespace debug
 
-struct iquad {
-  ivec2 topright, topleft, bottomleft, bottomright;
-};
-
-struct fquad {
-  Vector2 topright, topleft, bottomleft, bottomright;
-};
-
 namespace draw {
 
 void draw_texture(const Texture2D &texture, const iquad &quad);
 void draw_texture(const Texture2D *texture, const iquad *quad);
+
+void draw_texture(const Texture2D &texture, const quad &quad);
+void draw_texture(const Texture2D *texture, const quad *quad);
 
 void draw_grid(levelsize width, levelsize height, Color color = GRAY, int scale = 20, int thickness = 1) noexcept;
 void draw_nested_grid(levelsize width, levelsize height, Color color, int scale = 20, int thickness = 1) noexcept;
