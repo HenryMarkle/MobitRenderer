@@ -534,9 +534,8 @@ class VariedSoft : public PropDef {
 
 public:
 
-  const bool round, self_shade, colorize;
+  const bool round, self_shade, colorize, random;
   const uint8_t variations;
-  const bool random;
   const uint32_t pixel_width, pixel_height;
   const uint32_t smooth_shading; // cannot be zero
   const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;

@@ -15,10 +15,20 @@ void PropDef::load_texture() {
     if (loaded) return;
 
     #ifdef IS_DEBUG_BUILD
-    if (std::filesystem::exists(texture_path)) texture = LoadTexture(texture_path.string().c_str());
+    if (std::filesystem::exists(texture_path)) {
+        auto img = LoadImage(texture_path.string().c_str());
+        ImageCrop(&img, Rectangle{0, 1, (float)img.width, (float)img.height - 1});
+
+        texture = LoadTextureFromImage(img);
+        UnloadImage(img);
+    }
     else std::cout << "Warning: texture path not found: " << texture_path << std::endl;
     #else
-    texture = LoadTexture(texture_path.string().c_str());
+    auto img = LoadImage(texture_path.string().c_str());
+    ImageCrop(&img, Rectangle{0, 1, (float)img.width, (float)img.height - 1});
+
+    texture = LoadTextureFromImage(img);
+    UnloadImage(img);
     #endif
 
     loaded = true;
