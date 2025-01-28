@@ -67,11 +67,11 @@ public:
 
 namespace draw {
 
-void draw_texture(const Texture2D &texture, const iquad &quad);
-void draw_texture(const Texture2D *texture, const iquad *quad);
+void draw_texture(const Texture2D &texture, const IQuad &quad);
+void draw_texture(const Texture2D *texture, const IQuad *quad);
 
-void draw_texture(const Texture2D &texture, const quad &quad);
-void draw_texture(const Texture2D *texture, const quad *quad);
+void draw_texture(const Texture2D &texture, const Quad &quad);
+void draw_texture(const Texture2D *texture, const Quad *quad);
 
 void draw_grid(levelsize width, levelsize height, Color color = GRAY, int scale = 20, int thickness = 1) noexcept;
 void draw_nested_grid(levelsize width, levelsize height, Color color, int scale = 20, int thickness = 1) noexcept;

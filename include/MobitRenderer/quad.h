@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <stdexcept>
 
 #include <raylib.h>
 #include <raymath.h>
@@ -9,22 +10,22 @@
 
 namespace mr {
 
-struct iquad {
+struct IQuad {
     IVector2 topright, topleft, bottomleft, bottomright;
 
-    iquad();
-    iquad(IVector2, IVector2, IVector2, IVector2);
+    IQuad();
+    IQuad(IVector2, IVector2, IVector2, IVector2);
   
-    inline iquad operator+(IVector2 v) const noexcept {
-        return iquad(
+    inline IQuad operator+(IVector2 v) const noexcept {
+        return IQuad(
             topleft + v, 
             topright + v, 
             bottomright + v, 
             bottomleft + v
         );
     }
-    inline iquad operator+(Vector2 v) const noexcept {
-        return iquad(
+    inline IQuad operator+(Vector2 v) const noexcept {
+        return IQuad(
             topleft + v, 
             topright + v, 
             bottomright + v, 
@@ -32,16 +33,16 @@ struct iquad {
         );
     }
   
-    inline iquad operator-(IVector2 v) const noexcept {
-        return iquad(
+    inline IQuad operator-(IVector2 v) const noexcept {
+        return IQuad(
             topleft - v, 
             topright - v, 
             bottomright - v, 
             bottomleft - v
         );
     }
-    inline iquad operator-(Vector2 v) const noexcept {
-        return iquad(
+    inline IQuad operator-(Vector2 v) const noexcept {
+        return IQuad(
             topleft - v, 
             topright - v, 
             bottomright - v, 
@@ -58,7 +59,7 @@ struct iquad {
         if (i == 2) return bottomright;
         if (i == 3) return bottomleft;
 
-        throw std::out_of_range("iquad index cannot be larger than 3");
+        throw std::out_of_range("IQuad index cannot be larger than 3");
     }
 
     /// @brief Returns a vertex depends on an index, which is
@@ -70,41 +71,51 @@ struct iquad {
         if (i == 2) return bottomright;
         if (i == 3) return bottomleft;
 
-        throw std::out_of_range("iquad index cannot be negative or larger than 3");
+        throw std::out_of_range("IQuad index cannot be negative or larger than 3");
     }
 
     /// @brief Returns the center point of the quad.
     inline IVector2 center() const noexcept { return (topleft + topright + bottomright + bottomleft) / 4; }
 
+    /// @brief Returns a quad rotated around 
+    /// a point by a given angle degree, 
+    /// without modifying the current struct.
+    IQuad rotated_around(float degrees, IVector2 point) const noexcept;
+
+    /// @brief Rotates the current quad around 
+    /// a point by a given angle degree, 
+    /// without modifying the current struct.
+    void rotate_around(float degrees, IVector2 point) noexcept;
+
     /// @brief Returns a rotated quad by a given angle degree, 
     /// without modifying the current struct.
-    iquad rotated(float degrees) const noexcept;
+    inline IQuad rotated(float degrees) const noexcept { return rotated_around(degrees, center()); }
     
     /// @brief Rotates the current quad 
     /// by a given angle degree.
-    void rotate(float degrees) noexcept;
+    void rotate(float degrees) noexcept { rotate_around(degrees, center()); }
 
     /// @brief Returns a rectangle that encloses
     /// all the vertices.
     Rectangle enclose() const noexcept;
 };
 
-struct quad {
+struct Quad {
     Vector2 topright, topleft, bottomleft, bottomright;
 
-    quad();
-    quad(Vector2, Vector2, Vector2, Vector2);
+    Quad();
+    Quad(Vector2, Vector2, Vector2, Vector2);
 
-    inline quad operator+(IVector2 v) const noexcept {
-        return quad(
+    inline Quad operator+(IVector2 v) const noexcept {
+        return Quad(
             Vector2 { topleft.x + v.x, topleft.y + v.y }, 
             Vector2 { topright.x + v.x, topright.y + v.y }, 
             Vector2 { bottomright.x + v.x, bottomright.y + v.y }, 
             Vector2 { bottomleft.x + v.x, bottomleft.y + v.y }
         );
     }
-    inline quad operator+(Vector2 v) const noexcept {
-        return quad(
+    inline Quad operator+(Vector2 v) const noexcept {
+        return Quad(
             Vector2Add(topleft, v),
             Vector2Add(topright, v),
             Vector2Add(bottomright, v),
@@ -112,16 +123,16 @@ struct quad {
         );
     }
   
-    inline quad operator-(IVector2 v) const noexcept {
-        return quad(
+    inline Quad operator-(IVector2 v) const noexcept {
+        return Quad(
             Vector2 { topleft.x - v.x, topleft.y - v.y }, 
             Vector2 { topright.x - v.x, topright.y - v.y }, 
             Vector2 { bottomright.x - v.x, bottomright.y - v.y }, 
             Vector2 { bottomleft.x - v.x, bottomleft.y - v.y }
         );
     }
-    inline quad operator-(Vector2 v) const noexcept {
-        return quad(
+    inline Quad operator-(Vector2 v) const noexcept {
+        return Quad(
             Vector2Subtract(topleft, v),
             Vector2Subtract(topright, v),
             Vector2Subtract(bottomright, v),
@@ -138,7 +149,7 @@ struct quad {
         if (i == 2) return bottomright;
         if (i == 3) return bottomleft;
 
-        throw std::out_of_range("quad index cannot be larger than 3");
+        throw std::out_of_range("Quad index cannot be larger than 3");
     }
 
     /// @brief Returns a vertex depends on an index, which is
@@ -150,30 +161,30 @@ struct quad {
         if (i == 2) return bottomright;
         if (i == 3) return bottomleft;
 
-        throw std::out_of_range("quad index cannot be larger than 3");
+        throw std::out_of_range("Quad index cannot be larger than 3");
     }
 
-    /// @brief Returns the center point of the quad.
+    /// @brief Returns the center point of the Quad.
     inline Vector2 center() const noexcept { return (topleft + topright + bottomright + bottomleft) / 4.0f; }
 
-    /// @brief Returns a quad rotated around 
+    /// @brief Returns a Quad rotated around 
     /// a point by a given angle degree, 
     /// without modifying the current struct.
-    quad rotated_around(float degrees, Vector2 point) const noexcept;
+    Quad rotated_around(float degrees, Vector2 point) const noexcept;
 
-    /// @brief Rotates the current quad around 
+    /// @brief Rotates the current Quad around 
     /// a point by a given angle degree, 
     /// without modifying the current struct.
     void rotate_around(float degrees, Vector2 point) noexcept;
 
-    /// @brief Returns a quad rotated around 
+    /// @brief Returns a Quad rotated around 
     /// its center by a given angle degree, 
     /// without modifying the current struct.
-    inline quad rotated(float degrees) const noexcept { return rotated_around(degrees, center()); }
+    inline Quad rotated(float degrees) const noexcept { return rotated_around(degrees, center()); }
     
-    /// @brief Rotates the current quad 
+    /// @brief Rotates the current Quad 
     /// by a given angle degree.
-    void rotate(float degrees) noexcept;
+    inline void rotate(float degrees) noexcept { rotate_around(degrees, center()); }
 
     /// @brief Returns a rectangle that encloses
     /// all the vertices.

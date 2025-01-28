@@ -30,12 +30,13 @@ if (WIN32)
 endif()
 
 # Main files
-include_directories(include)                    # headers
+include_directories(include)                              # headers
 
-file(GLOB MAIN_SOURCES src/*.cpp)               # sources
-file(GLOB MAIN_DRAW_SOURCES src/draw/*.cpp)     # sources
-file(GLOB MAIN_SDRAW_SOURCES src/sdraw/*.cpp)   # sources
-file(GLOB MAIN_PAGE_SOURCES src/pages/*.cpp)    # sources
+file(GLOB MAIN_SOURCES src/*.cpp)                         # sources
+file(GLOB MAIN_DRAW_SOURCES src/draw/*.cpp)               # sources
+file(GLOB MAIN_SDRAW_SOURCES src/sdraw/*.cpp)             # sources
+file(GLOB MAIN_PAGE_SOURCES src/pages/*.cpp)              # sources
+file(GLOB MAIN_SERDE_SOURCES src/serialization/*.cpp)     # sources
 
 if(WIN32)
 file(GLOB PLATFORM_IMPL_SOURCES src/platform/windows/*.cpp)
@@ -51,6 +52,7 @@ add_executable(
   ${MAIN_DRAW_SOURCES}
   ${MAIN_SDRAW_SOURCES}
   ${MAIN_PAGE_SOURCES}
+  ${MAIN_SERDE_SOURCES}
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")

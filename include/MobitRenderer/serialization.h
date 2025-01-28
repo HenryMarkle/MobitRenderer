@@ -15,7 +15,7 @@
 #include <MobitRenderer/dex.h>
 #include <MobitParser/nodes.h>
 
-namespace mr {
+namespace mr::serde {
 
 struct ProjectSaveFileLines {
   std::string geometry;
@@ -65,8 +65,11 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path&);
 // Init line parsers
 
 TileDefCategory deser_tiledef_category(const mp::Node*);
-TileDef* deser_tiledef(const mp::Node*);
+TileDef *deser_tiledef(const mp::Node*);
 CustomMaterialDef *deser_materialdef(const mp::Node*);
+
+PropDefCategory deser_propdef_category(const mp::Node*);
+PropDef *deser_propdef(const mp::Node*);
 
 // Deserialization utilities
 

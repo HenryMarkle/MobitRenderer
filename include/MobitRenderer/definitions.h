@@ -10,6 +10,7 @@
 #include <raylib.h>
 
 #include <MobitRenderer/managed.h>
+#include <MobitRenderer/quad.h>
 #include <MobitRenderer/vec.h>
 
 namespace mr {
@@ -301,10 +302,514 @@ public:
 
 };
 
-class PropDef {};
+struct PropDefCategory {
+  std::string name;
+  Color color;
+};
+
+enum class PropType : uint8_t { 
+  standard, 
+  varied_standard, 
+  soft, 
+  varied_soft,
+  colored_soft,
+  soft_effect,
+  decal,
+  varied_decal,
+  _long,
+  rope,
+  antimatter
+};
+
+class PropDef {
+
+protected:
+  
+  std::filesystem::path texture_path;
+  
+  bool loaded;
+  Texture2D texture;
+
+public:
+
+  const uint8_t depth; // 0 - 29
+  const PropType type;
+  const std::string name;
+  const std::unordered_set<std::string> tags;
+
+  inline const std::filesystem::path &get_texture_path() const noexcept { return texture_path; }
+  inline void set_texture_path(const std::filesystem::path &path) noexcept { texture_path = path; }
+  
+  inline bool is_loaded() const noexcept { return loaded; }
+  void load_texture();
+  void unload_texture();
+  inline void reload_texture() { unload_texture(); load_texture(); }
+
+  PropDef &operator=(PropDef&&) noexcept = delete;
+  PropDef &operator=(PropDef const&) = delete;
+
+  PropDef(uint8_t depth, std::string &&name, PropType type);
+  PropDef(uint8_t depth, std::string &&name, PropType type, std::unordered_set<std::string> &&tags);
+  PropDef(PropDef&&) noexcept = delete;
+  PropDef(PropDef const&) = delete;
+  
+  virtual ~PropDef();
+};
+
+enum class PropColorTreatment { standard, bevel };
+
+class Standard : public PropDef {
+
+public:
+
+  const uint16_t width, height;
+  const std::vector<uint8_t> repeat;
+  const PropColorTreatment color_treatment;
+  const int bevel;
+
+  Standard &operator=(Standard&&) noexcept = delete;
+  Standard &operator=(Standard const&) = delete;
+
+  Standard(
+    uint8_t depth, 
+    std::string &&name, 
+    uint16_t width, 
+    uint16_t height, 
+    std::vector<uint8_t> &&repeat,
+    PropColorTreatment color_treatment,
+    int bevel
+  );
+  Standard(
+    uint8_t depth, 
+    std::string &&name, 
+    std::unordered_set<std::string> &&tags,
+    uint16_t width, 
+    uint16_t height, 
+    std::vector<uint8_t> &&repeat,
+    PropColorTreatment color_treatment,
+    int bevel
+  );
+
+  Standard(Standard&&) noexcept = delete;
+  Standard(Standard const&) = delete;
+};
+
+class VariedStandard : public PropDef {
+
+public:
+
+  const uint16_t width, height;
+  const std::vector<uint8_t> repeat;
+  const uint8_t variations;
+  const bool random;
+  const PropColorTreatment color_treatment;
+  const bool colorize;
+  const int bevel;
+
+  VariedStandard &operator=(VariedStandard&&) noexcept = delete;
+  VariedStandard &operator=(VariedStandard const&) = delete;
+
+  VariedStandard(
+    uint8_t depth, 
+    std::string &&name, 
+    uint16_t width, 
+    uint16_t height, 
+    std::vector<uint8_t> &&repeat,
+    uint8_t variations,
+    bool random,
+    PropColorTreatment color_treatment,
+    bool colorize,
+    int bevel
+  );
+  VariedStandard(
+    uint8_t depth, 
+    std::string &&name, 
+    std::unordered_set<std::string> &&tags,
+    uint16_t width, 
+    uint16_t height, 
+    std::vector<uint8_t> &&repeat,
+    uint8_t variations,
+    bool random,
+    PropColorTreatment color_treatment,
+    bool colorize,
+    int bevel
+  );
+
+  VariedStandard(VariedStandard&&) noexcept = delete;
+  VariedStandard(VariedStandard const&) = delete;
+};
+
+class Decal : public PropDef {
+
+public:
+
+  Decal &operator=(Decal&&) noexcept = delete;
+  Decal &operator=(Decal const&) = delete;
+
+  Decal(uint8_t depth, std::string &&name);
+  Decal(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags);
+  Decal(Decal&&) noexcept = delete;
+  Decal(Decal const&) = delete;
+
+};
+
+class VariedDecal : public PropDef {
+
+public:
+
+  /// @brief The width of a single variation in pixels.
+  const uint32_t pixel_width;
+  
+  /// @brief The height of a single variation in pixels.
+  const uint32_t pixel_height;
+  
+  const uint8_t variations;
+  const bool random;
+
+  VariedDecal &operator=(VariedDecal&&) noexcept = delete;
+  VariedDecal &operator=(VariedDecal const&) = delete;
+
+  VariedDecal(
+    uint8_t depth, 
+    std::string &&name, 
+    uint32_t pixel_width,
+    uint32_t pixel_height,
+    uint8_t variations,
+    bool random
+  );
+  VariedDecal(
+    uint8_t depth, 
+    std::string &&name, 
+    std::unordered_set<std::string> &&tags,
+    uint32_t pixel_width,
+    uint32_t pixel_height,
+    uint8_t variations,
+    bool random
+  );
+
+  VariedDecal(VariedDecal&&) noexcept = delete;
+  VariedDecal(VariedDecal const&) = delete;
+};
+
+class Soft : public PropDef {
+
+public:
+
+  const bool round, self_shade;
+  const uint32_t smooth_shading; // cannot be zero
+  const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
+
+
+  Soft &operator=(Soft&&) noexcept = delete;
+  Soft &operator=(Soft const&) = delete;
+
+  Soft(
+    uint8_t depth, 
+    std::string &&name,
+    uint32_t smooth_shading,
+    float contour_exp, 
+    float highlight_border, 
+    float depth_affect_hilites, 
+    float shadow_border,
+    bool round, 
+    bool self_shade
+  );
+  Soft(
+    uint8_t depth, 
+    std::string &&name, 
+    std::unordered_set<std::string> &&tags,
+    uint32_t smooth_shading,
+    float contour_exp, 
+    float highlight_border, 
+    float depth_affect_hilites, 
+    float shadow_border,
+    bool round, 
+    bool self_shade
+  );
+  Soft(Soft&&) noexcept = delete;
+  Soft(Soft const&) = delete;
+};
+
+class VariedSoft : public PropDef {
+
+public:
+
+  const bool round, self_shade, colorize;
+  const uint8_t variations;
+  const bool random;
+  const uint32_t pixel_width, pixel_height;
+  const uint32_t smooth_shading; // cannot be zero
+  const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
+
+  VariedSoft &operator=(VariedSoft&&) noexcept = delete;
+  VariedSoft &operator=(VariedSoft const&) = delete;
+
+  VariedSoft(
+    uint8_t depth, 
+    std::string &&name, 
+    uint32_t pixel_width,
+    uint32_t pixel_height,
+    uint8_t variations,
+    bool random,
+    bool colorize,
+    uint32_t smooth_shading,
+    float contour_exp, 
+    float highlight_border, 
+    float depth_affect_hilites, 
+    float shadow_border,
+    bool round, 
+    bool self_shade
+  );
+  VariedSoft(
+    uint8_t depth, 
+    std::string &&name, 
+    std::unordered_set<std::string> &&tags,
+    uint32_t pixel_width,
+    uint32_t pixel_height,
+    uint8_t variations,
+    bool random,
+    bool colorize,
+    uint32_t smooth_shading,
+    float contour_exp, 
+    float highlight_border, 
+    float depth_affect_hilites, 
+    float shadow_border,
+    bool round, 
+    bool self_shade
+  );
+
+  VariedSoft(VariedSoft&&) noexcept = delete;
+  VariedSoft(VariedSoft const&) = delete;
+
+};
+
+class ColoredSoft : public PropDef {
+
+public:
+
+  const bool round, self_shade, colorize;
+  const uint32_t smooth_shading; // cannot be zero
+  const uint32_t pixel_width, pixel_height;
+  const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
+
+  ColoredSoft &operator=(ColoredSoft&&) noexcept = delete;
+  ColoredSoft &operator=(ColoredSoft const&) = delete;
+
+  ColoredSoft(
+    uint8_t depth, 
+    std::string &&name, 
+    uint32_t pixel_width,
+    uint32_t pixel_height,
+    bool colorize,
+    uint32_t smooth_shading,
+    float contour_exp, 
+    float highlight_border, 
+    float depth_affect_hilites, 
+    float shadow_border,
+    bool round, 
+    bool self_shade
+  );
+  ColoredSoft(
+    uint8_t depth, 
+    std::string &&name, 
+    std::unordered_set<std::string> &&tags,
+    uint32_t pixel_width,
+    uint32_t pixel_height,
+    bool colorize,
+    uint32_t smooth_shading,
+    float contour_exp, 
+    float highlight_border, 
+    float depth_affect_hilites, 
+    float shadow_border,
+    bool round, 
+    bool self_shade
+  );
+  ColoredSoft(ColoredSoft&&) noexcept = delete;
+  ColoredSoft(ColoredSoft const&) = delete;
+
+};
+
+class SoftEffect : public PropDef {
+  public:
+
+  SoftEffect &operator=(SoftEffect&&) noexcept = delete;
+  SoftEffect &operator=(SoftEffect const&) = delete;
+
+  SoftEffect(uint8_t depth, std::string &&name);
+  SoftEffect(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags);
+  SoftEffect(SoftEffect&&) noexcept = delete;
+  SoftEffect(SoftEffect const&) = delete;
+};
+
+class Long : public PropDef {
+
+public:
+
+  Long &operator=(Long&&) noexcept = delete;
+  Long &operator=(Long const&) = delete;
+
+  Long(uint8_t depth, std::string &&name);
+  Long(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags);
+  Long(Long&&) noexcept = delete;
+  Long(Long const&) = delete;
+};
+
+class Rope : public PropDef {
+
+public:
+
+  const int segment_length;
+  const int collision_depth;
+  const float segment_radius;
+  const float gravity;
+  const float friction, air_friction;
+  const bool stiff;
+  const float edge_direction;
+  const float rigid;
+  const float self_push, source_push;
+
+  Rope &operator=(Rope&&) noexcept = delete;
+  Rope &operator=(Rope const&) = delete;
+
+  Rope(uint8_t depth, std::string &&name,
+    int segment_length, int collision_depth, float segment_radius, float gravity, float friction, float air_friction,
+    bool stiff, float edge_direction, float rigid, float self_push, float source_push
+  );
+
+  Rope(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags,
+    int segment_length, int collision_depth, float segment_radius, float gravity, float friction, float air_friction,
+    bool stiff, float edge_direction, float rigid, float self_push, float source_push
+  );
+
+  Rope(Rope&&) noexcept = delete;
+  Rope(Rope const&) = delete;
+
+};
+
+class Antimatter : public PropDef {
+
+public:
+
+  const float contour_exp;
+
+  Antimatter &operator=(Antimatter&&) noexcept = delete;
+  Antimatter &operator=(Antimatter const&) = delete;
+
+  Antimatter(uint8_t depth, std::string &&name, float contour_exp);
+  Antimatter(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags, float contour_exp);
+  Antimatter(Antimatter&&) noexcept = delete;
+  Antimatter(Antimatter const&) = delete;
+
+};
+
+enum class RopeRelease : int8_t { left = -1, none = 0, right = 1 };
+
+struct PropSettings {
+  int render_order, seed, render_time;
+
+  int variation;
+
+  int custom_depth;
+  bool apply_color;
+  
+  RopeRelease release;
+  float thickness;
+  std::vector<Vector2> segments;
+
+  PropSettings(int render_order, int seed, int render_time);
+
+  static PropSettings standard(int render_order, int seed, int render_time);
+  static PropSettings varied_standard(int render_order, int seed, int render_time, int variation);
+  static PropSettings long_(int render_order, int seed, int render_time);
+  static PropSettings soft(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    int custom_depth
+  );
+  static PropSettings varied_soft(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    int variation, 
+    int custom_depth, 
+    bool apply_color = false
+  );
+  static PropSettings colored_soft(
+    int render_order, 
+    int seed, 
+    int render_time
+  );
+  static PropSettings soft_effect(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    int custom_depth
+  );
+  static PropSettings decal(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    int custom_depth
+  );
+  static PropSettings varied_decal(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    int variation, 
+    int custom_depth
+  );
+  static PropSettings rope(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    RopeRelease release,
+    std::vector<Vector2> const &segments,
+    float thickness,
+    bool apply_color = false
+  );
+  static PropSettings rope(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    RopeRelease release,
+    std::vector<Vector2> &&segments,
+    float thickness,
+    bool apply_color = false
+  );
+  static PropSettings antimatter(
+    int render_order, 
+    int seed, 
+    int render_time, 
+    int custom_depth
+  );
+};
+
 struct Prop {
+  
+// private:
+
   std::string und_name;
-  PropDef *def;
+  PropDef *prop_def;
+  TileDef *tile_def;
+  Quad quad;
+  std::unique_ptr<PropSettings> settings;
+
+// public:
+
+//   inline const std::string &get_name() const noexcept { return und_name; }
+//   inline void define(PropDef *def) noexcept { prop_def = def; tile_def = nullptr; }
+//   inline void define(TileDef *def) noexcept { prop_def = nullptr; tile_def = def; }
+//   inline Quad &get_quad() noexcept { return quad; }
+//   inline PropSettings *get_settings() noexcept { return settings.get(); }
+//   inline void set_settings(PropSettings &&_settings) { settings = std::make_unique<PropSettings>(_settings); }
+//   inline PropDef *get_prop_def() noexcept { return prop_def; }
+//   inline TileDef *get_tile_def() noexcept { return tile_def; }
+
+  Prop(std::string const&, Quad const&);
+  Prop(std::string&&, Quad const&);
+  Prop(PropDef*, Quad const&);
+  Prop(TileDef*, Quad const&);
 };
 
 }; // namespace mr

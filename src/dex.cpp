@@ -70,7 +70,7 @@ void TileDex::register_from(path const&file, CastLibs const*libs) {
             try {
                 auto tokens = mp::tokenize_line(init);
                 auto category_node = mp::parse(tokens);
-                auto category = mr::deser_tiledef_category(category_node.get());
+                auto category = mr::serde::deser_tiledef_category(category_node.get());
             
                 _categories.push_back(category);
                 _category_colors[category.name] = category.color;
@@ -117,7 +117,7 @@ void TileDex::register_from(path const&file, CastLibs const*libs) {
 
             try {
                 auto def_node = mp::parse(tokens);
-                auto tiledef = deser_tiledef(def_node.get());
+                auto tiledef = mr::serde::deser_tiledef(def_node.get());
 
                 if (_tiles.find(tiledef->get_name()) != _tiles.end()) {
                     continue;

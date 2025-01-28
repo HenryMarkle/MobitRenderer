@@ -9,7 +9,7 @@ namespace mr {
 
 namespace draw {
 
-void draw_texture(const Texture2D *texture, const iquad *quad) {
+void draw_texture(const Texture2D *texture, const IQuad *quad) {
   rlSetTexture(texture->id);
 
   rlBegin(RL_QUADS);
@@ -71,11 +71,11 @@ void draw_texture(const Texture2D *texture, const iquad *quad) {
   rlSetTexture(0);
 }
 
-void draw_texture(const Texture2D &texture, const iquad &quad) {
+void draw_texture(const Texture2D &texture, const IQuad &quad) {
   draw_texture(&texture, &quad);
 }
 
-void draw_texture(const Texture2D *texture, const quad *quad) {
+void draw_texture(const Texture2D *texture, const Quad *quad) {
   rlSetTexture(texture->id);
 
   rlBegin(RL_QUADS);
@@ -137,7 +137,7 @@ void draw_texture(const Texture2D *texture, const quad *quad) {
   rlSetTexture(0);
 }
 
-void draw_texture(const Texture2D &texture, const quad &quad) {
+void draw_texture(const Texture2D &texture, const Quad &quad) {
   draw_texture(&texture, &quad);
 }
 
