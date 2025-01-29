@@ -32,10 +32,9 @@ const std::unordered_map<std::string, TileDef*> &TileDex::tiles() const noexcept
 const std::vector<TileDefCategory> &TileDex::categories() const noexcept { return _categories; }
 const std::vector<std::vector<TileDef*>> &TileDex::sorted_tiles() const noexcept { return _sorted_tiles; }
 const std::unordered_map<std::string, std::vector<TileDef*>> &TileDex::category_tiles() const noexcept { return _category_tiles; }
-const std::unordered_map<std::string, Color> &TileDex::colors() const noexcept { return _category_colors; }
 
 void TileDex::register_from(path const&file, CastLibs const*libs) {
-    if (!exists(file)) return;
+    if (!exists(file)) throw dex_error(std::string("file does not exist: "+file.string()));
 
     path init_dir = file.parent_path();
 
@@ -73,7 +72,6 @@ void TileDex::register_from(path const&file, CastLibs const*libs) {
                 auto category = mr::serde::deser_tiledef_category(category_node.get());
             
                 _categories.push_back(category);
-                _category_colors[category.name] = category.color;
                 _category_tiles[category.name] = std::vector<TileDef*>();
                 _sorted_tiles.push_back(std::vector<TileDef*>());
 
@@ -120,6 +118,11 @@ void TileDex::register_from(path const&file, CastLibs const*libs) {
                 auto tiledef = mr::serde::deser_tiledef(def_node.get());
 
                 if (_tiles.find(tiledef->get_name()) != _tiles.end()) {
+
+                    #ifdef IS_DEBUG_BUILD
+                    std::cout << "Warning: skipped duplicate tile definition \"" << tiledef->get_name() << '"' << std::endl;
+                    #endif
+                    
                     continue;
 
                     // init.close();
@@ -202,26 +205,11 @@ void TileDex::unload_all() {
     _categories.clear();
     _sorted_tiles.clear();
     _category_tiles.clear();
-    _category_colors.clear();
 }
 
-TileDex &TileDex::operator=(TileDex &&other) noexcept {
-    if (this == &other)
-        return *this;
 
-    _tiles = std::move(other._tiles);
-    _category_tiles = std::move(other._category_tiles);
-    _category_colors = std::move(other._category_colors);
+TileDex::TileDex() : _tiles({}), _category_tiles({}) {}
 
-    return *this;
-}
-
-TileDex::TileDex() : _tiles({}), _category_tiles({}), _category_colors({}) {}
-TileDex::TileDex(TileDex &&other) noexcept {
-    _tiles = std::move(other._tiles);
-    _category_tiles = std::move(other._category_tiles);
-    _category_colors = std::move(other._category_colors);
-}
 TileDex::~TileDex() {
     unload_all();
 }
@@ -339,5 +327,263 @@ MaterialDex::~MaterialDex() {
 }
 
 MaterialDex::MaterialDex() {}
+
+PropDef *PropDex::prop(const std::string &name) const noexcept {
+    auto prop_iter = _props.find(name);
+    if (prop_iter == _props.end()) return nullptr;
+    return prop_iter->second;
+}
+
+const std::unordered_map<std::string, PropDef*> &PropDex::props() const noexcept {
+    return _props;
+}
+
+const std::vector<PropDefCategory> &PropDex::categories() const noexcept {
+    return _categories;
+}
+
+const std::vector<std::vector<PropDef*>> &PropDex::sorted_props() const noexcept {
+    return _sorted_props;
+}
+
+const std::unordered_map<std::string, std::vector<PropDef*>> &PropDex::category_props() const noexcept {
+    return _category_props;
+}
+
+void PropDex::register_from(std::filesystem::path const &file, CastLibs const *libs) {
+    if (!exists(file)) throw dex_error(std::string("file does not exist: "+file.string()));
+
+    path init_dir = file.parent_path();
+
+    std::ifstream init(file);
+    if (!init.is_open()) {
+        std::string msg("failed to open tile init file '");
+        msg.append(file.string());
+        msg.append("'");
+
+        throw std::runtime_error(msg.c_str());
+    }
+
+    int counter = 0;
+    PropDefCategory current_category = {"", Color{0}};
+    bool category_parsed = false;
+
+
+    while (init.peek() && init.peek() != EOF) {
+        counter++;
+
+        while (init.peek() == '\n') init.get();
+
+        // category
+        if (init.peek() == '-') {
+            init.get();
+
+            // Skip comments
+            if (init.peek() == '-') {
+                while (init.get() != '\n') {}
+                continue;
+            }
+
+            try {
+                auto tokens = mp::tokenize_line(init);
+                auto category_node = mp::parse(tokens);
+                auto category = mr::serde::deser_propdef_category(category_node.get());
+            
+                _categories.push_back(category);
+                _category_props[category.name] = std::vector<PropDef*>();
+                _sorted_props.push_back(std::vector<PropDef*>());
+
+                current_category = category;
+                category_parsed = true;
+            } 
+            catch (mp::parse_failure &pe) {
+                std::ostringstream msg;
+                msg 
+                    << "failed to parse prop init category at line "
+                    << counter
+                    << ": "
+                    << pe.what();
+                
+                init.close();
+
+                throw std::runtime_error(msg.str());
+            } 
+            catch (deserialization_failure &e) {
+                std::ostringstream msg;
+                msg 
+                    << "failed to deserialize prop init category at line "
+                    << counter
+                    << ": "
+                    << e.what();
+                
+                init.close();
+
+                throw std::runtime_error(msg.str());
+            }
+        }
+        // prop
+        else {
+            if (!category_parsed) {
+                init.close();
+                throw std::runtime_error("failed to parse prop init: must begin with a category");
+            }
+        
+            std::vector<mp::token> tokens;
+            if (!mp::tokenize_line(init, tokens)) break;
+
+            try {
+                auto def_node = mp::parse(tokens);
+                auto propdef = mr::serde::deser_propdef(def_node.get());
+
+                if (_props.find(propdef->name) != _props.end()) {
+                    
+                    #ifdef IS_DEBUG_BUILD
+                    std::cout << "Warning: skipped duplicate prop definition \"" << propdef->name << '"' << std::endl;
+                    #endif
+
+                    continue;
+
+                    // init.close();
+                    // std::ostringstream msg;
+                    // msg 
+                    //     << "duplicate tile definition at line " 
+                    //     << counter 
+                    //     << " '" 
+                    //     << tiledef->get_name() 
+                    //     << "'";
+                    // throw dex_error(msg.str());
+                }
+
+                auto &tags = propdef->tags;
+
+                if (tags.find("INTERNAL") != tags.end()) {
+                    if (libs == nullptr) 
+                        throw dex_error(
+                            std::string("tile '"+propdef->name+"' resource is internal but CastLibs* argument was nullptr")
+                        );
+                
+                    try {
+                        auto *member = libs->member_or_throw(propdef->name);
+                        propdef->set_texture_path(member->get_texture_path());
+                    } catch (std::runtime_error &e) {
+                        throw dex_error(
+                            std::string("tile '"+propdef->name+"' internal resouce was not found")
+                        );
+                    }
+                } 
+                else {
+                    propdef->set_texture_path(init_dir / (propdef->name + ".png"));
+                }
+
+                propdef->set_category(current_category.name);
+                propdef->set_color(current_category.color);
+
+                _props[propdef->name] = propdef;
+                _sorted_props[_categories.size() - 1].push_back(propdef);
+                _category_props[current_category.name].push_back(propdef);
+            }
+            catch (mp::parse_failure &pe) {
+                std::ostringstream msg;
+                msg 
+                    << "failed to parse tile init at line "
+                    << counter
+                    << ": "
+                    << pe.what();
+                
+                init.close();
+
+                throw deserialization_failure(msg.str());
+            }
+            catch (deserialization_failure &e) {
+                std::ostringstream msg;
+                msg 
+                    << "failed to deserialize tile init at line "
+                    << counter
+                    << ": "
+                    << e.what();
+                
+                init.close();
+
+                throw std::runtime_error(msg.str());
+            }
+        }
+    }
+
+    init.close();
+}
+
+void PropDex::register_tiles(const TileDex *dex) {
+    for (size_t c = 0; c < dex->categories().size(); c++) {
+        const auto &category = dex->categories()[c];
+        const auto &tiles = dex->sorted_tiles()[c];
+
+        std::vector<TileDef*> tiles_as_props;
+
+        for (size_t t = 0; t < tiles.size(); t++) {
+            auto *tile = tiles[t];
+
+            const auto prop_iter = _props.find(tile->get_name());
+            if (prop_iter != _props.end()) 
+            {
+                #ifdef IS_DEBUG_BUILD
+                std::cout 
+                    << "Warning: skipped duplicate tile-as-prop definition \"" 
+                    << tile->get_name() 
+                    << "\" (conflicting with a prop definition)" 
+                << std::endl;
+                #endif
+                // throw dex_error(std::string("duplicate tile/prop definition identifier \""+tile->get_name()+"\""));
+            }
+
+            const auto &tags = tile->get_tags();
+
+            auto not_trash_flag = tags.find("notTrashProp");
+            auto not_prop_flag = tags.find("notProp");
+
+            if (not_prop_flag == tags.end() && not_prop_flag == tags.end()) {
+                if (_tiles.find(tile->get_name()) != _tiles.end())
+                {
+                    #ifdef IS_DEBUG_BUILD
+                    std::cout << "Warning: skipped duplicate tile-as-prop definition \"" << tile->get_name() << '"' << std::endl;
+                    #endif
+                    // throw dex_error("duplicate tile definition identifier \""+tile->get_name()+"\"");
+                }
+
+                _tiles[tile->get_name()] = tile;
+                tiles_as_props.push_back(tile);
+            }
+        }
+
+        if (!tiles_as_props.empty()) {
+            _tile_categories.push_back(category);
+            _category_tiles[category.name] = tiles_as_props;
+            _sorted_tiles.push_back(tiles_as_props);
+        }
+    }
+
+    
+}
+
+void PropDex::unload_textures() {
+    for (auto &pair : _props) pair.second->unload_texture();
+}
+
+void PropDex::unload_all() {
+    for (auto &pair : _props) delete pair.second;
+
+    _props.clear();
+    _categories.clear();
+    _sorted_props.clear();
+    _category_props.clear();
+    _tiles.clear();
+    _tile_categories.clear();
+    _sorted_tiles.clear();
+    _category_tiles.clear();
+}
+
+PropDex::PropDex() {}
+PropDex::~PropDex() {
+    unload_all();
+}
 
 };

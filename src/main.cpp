@@ -100,6 +100,11 @@ int main(int argc, char* argv[]) {
   tiledex->register_from(directories->get_cast() / "Drought_393439_Drought Needed Init.txt", castlibs);
   ctx->_tiledex = tiledex;
 
+  logger->info("loading props");
+  auto *propdex = new mr::PropDex();
+  propdex->register_from(directories->get_props() / "Init.txt", castlibs);
+  ctx->_propdex = propdex;
+
   logger->info("loading materials");
 
   auto *materialdex = new mr::MaterialDex();
@@ -314,8 +319,9 @@ int main(int argc, char* argv[]) {
 
   delete pager;
   delete ctx;
-  delete tiledex;
   delete materialdex;
+  delete propdex;
+  delete tiledex;
   delete castlibs;
   delete shaders;
   delete textures;

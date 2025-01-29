@@ -41,10 +41,10 @@ void PropDef::unload_texture() {
 
 
 PropDef::PropDef(uint8_t depth, std::string &&name, PropType type) :
-    depth(depth), name(std::move(name)), type(type), tags({}), loaded(false)
+    depth(depth), name(std::move(name)), type(type), tags({}), loaded(false), color({255, 0, 0, 255})
 {}
 PropDef::PropDef(uint8_t depth, std::string &&name, PropType type, std::unordered_set<std::string> &&tags) :
-    depth(depth), name(std::move(name)), type(type), tags(std::move(tags)), loaded(false)
+    depth(depth), name(std::move(name)), type(type), tags(std::move(tags)), loaded(false), color({255, 0, 0, 255})
 {}
 
 PropDef::~PropDef() {

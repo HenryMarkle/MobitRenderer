@@ -260,6 +260,7 @@ public:
   textures *_textures;
 
   TileDex *_tiledex;
+  PropDex *_propdex;
   MaterialDex *_materialdex;
 
   CastLibs *_castlibs;

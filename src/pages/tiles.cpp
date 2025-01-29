@@ -90,7 +90,7 @@ void Tile_Page::_redraw_tile_texture_rt() noexcept {
           },
           Vector2{0, 0},
           0,
-          ctx->_tiledex->colors().at(_selected_tile->get_category())
+          _selected_tile->get_color()
         );
       }
       EndShaderMode();
@@ -128,7 +128,7 @@ void Tile_Page::_redraw_tile_texture_rt() noexcept {
           },
           Vector2{0, 0},
           0,
-          ctx->_tiledex->colors().at(_selected_tile->get_category())
+          _selected_tile->get_color()
         );
 
         // draw_tile_tinted(_selected_tile, 0, 0, 20, ctx->_tiledex->colors().at(_selected_tile->get_category()));

@@ -324,7 +324,10 @@ enum class PropType : uint8_t {
 class PropDef {
 
 protected:
-  
+
+  std::string category;
+  Color color;
+
   std::filesystem::path texture_path;
   
   bool loaded;
@@ -336,6 +339,12 @@ public:
   const PropType type;
   const std::string name;
   const std::unordered_set<std::string> tags;
+
+  inline const std::string &get_category() const noexcept { return category; }
+  inline void set_category(std::string name) noexcept { category = name; }
+  inline void set_name(std::string &name) noexcept { category = name; }
+  inline Color get_color() const noexcept { return color; }
+  inline void set_color(Color c) noexcept { color = c; }
 
   inline const std::filesystem::path &get_texture_path() const noexcept { return texture_path; }
   inline void set_texture_path(const std::filesystem::path &path) noexcept { texture_path = path; }
