@@ -376,12 +376,12 @@ mr::Soft            *deser_soft_prop            (const mp::Props *node) {
     const auto depth_iter            = map.find("depth");
     const auto tags_iter             = map.find("tags");
     const auto round_iter            = map.find("round");
-    const auto self_shade_iter       = map.find("selfShade");
-    const auto smooth_shading_iter   = map.find("smoothShading");
-    const auto contour_exp_iter      = map.find("contourExp");
-    const auto highlight_border_iter = map.find("highLightBorder");
-    const auto depth_aff_iter        = map.find("depthAffectHilites");
-    const auto shadow_border_iter    = map.find("shadowBorder");
+    const auto self_shade_iter       = map.find("selfshade");
+    const auto smooth_shading_iter   = map.find("smoothshading");
+    const auto contour_exp_iter      = map.find("contourexp");
+    const auto highlight_border_iter = map.find("highlightborder");
+    const auto depth_aff_iter        = map.find("depthaffecthilites");
+    const auto shadow_border_iter    = map.find("shadowborder");
 
     if (depth_iter != notfound)            deser_depth_or_throw(depth_iter->second.get(), depth);
     if (tags_iter != notfound)             deser_tags_or_throw(tags_iter->second.get(), tags);
@@ -420,20 +420,20 @@ mr::VariedSoft      *deser_varied_soft_prop     (const mp::Props *node) {
     // Required
     deser_nm_or_throw(node, name);
 
-    const auto pixel_size_iter = map.find("pxlSize");
-    if (pixel_size_iter != notfound) throw mr::deserialization_failure("missing required property #pxlSize");       
+    const auto pixel_size_iter = map.find("pxlsize");
+    if (pixel_size_iter == notfound) throw mr::deserialization_failure("missing required property #pxlSize");       
     deser_pixel_size_or_throw(pixel_size_iter->second.get(), pixel_width, pixel_height);
     
     // Optional
     const auto depth_iter            = map.find("depth");
     const auto tags_iter             = map.find("tags");
     const auto round_iter            = map.find("round");
-    const auto self_shade_iter       = map.find("selfShade");
-    const auto smooth_shading_iter   = map.find("smoothShading");
-    const auto contour_exp_iter      = map.find("contourExp");
-    const auto highlight_border_iter = map.find("highLightBorder");
-    const auto depth_aff_iter        = map.find("depthAffectHilites");
-    const auto shadow_border_iter    = map.find("shadowBorder");
+    const auto self_shade_iter       = map.find("selfshade");
+    const auto smooth_shading_iter   = map.find("smoothshading");
+    const auto contour_exp_iter      = map.find("contourexp");
+    const auto highlight_border_iter = map.find("highlightborder");
+    const auto depth_aff_iter        = map.find("depthaffecthilites");
+    const auto shadow_border_iter    = map.find("shadowborder");
     const auto random_iter           = map.find("random");
     const auto colorize_iter         = map.find("colorize");
     const auto variations_iter       = map.find("vars");
@@ -482,20 +482,20 @@ mr::ColoredSoft     *deser_colored_soft_prop    (const mp::Props *node) {
     // Required
     deser_nm_or_throw(node, name);
 
-    const auto pixel_size_iter = map.find("pxlSize");
-    if (pixel_size_iter != notfound) throw mr::deserialization_failure("missing required property #pxlSize");       
+    const auto pixel_size_iter = map.find("pxlsize");
+    if (pixel_size_iter == notfound) throw mr::deserialization_failure("missing required property #pxlSize");       
     deser_pixel_size_or_throw(pixel_size_iter->second.get(), pixel_width, pixel_height);
 
     // Optional
     const auto depth_iter            = map.find("depth");
     const auto tags_iter             = map.find("tags");
     const auto round_iter            = map.find("round");
-    const auto self_shade_iter       = map.find("selfShade");
-    const auto smooth_shading_iter   = map.find("smoothShading");
-    const auto contour_exp_iter      = map.find("contourExp");
-    const auto highlight_border_iter = map.find("highLightBorder");
-    const auto depth_aff_iter        = map.find("depthAffectHilites");
-    const auto shadow_border_iter    = map.find("shadowBorder");
+    const auto self_shade_iter       = map.find("selfshade");
+    const auto smooth_shading_iter   = map.find("smoothshading");
+    const auto contour_exp_iter      = map.find("contourexp");
+    const auto highlight_border_iter = map.find("highlightborder");
+    const auto depth_aff_iter        = map.find("depthaffecthilites");
+    const auto shadow_border_iter    = map.find("shadowborder");
     const auto colorize_iter         = map.find("colorize");
 
     if (depth_iter != notfound)            deser_depth_or_throw(depth_iter->second.get(), depth);
@@ -582,7 +582,7 @@ mr::VariedDecal     *deser_varied_decal_prop    (const mp::Props *node) {
     // Required
     deser_nm_or_throw(node, name);
 
-    const auto pixel_size_iter       = map.find("pxlSize");
+    const auto pixel_size_iter       = map.find("pxlsize");
     if (pixel_size_iter == notfound) throw mr::deserialization_failure("missing required property #pxlSize");
     deser_pixel_size_or_throw(pixel_size_iter->second.get(), pixel_width, pixel_height);
 
@@ -622,7 +622,7 @@ mr::Antimatter      *deser_antimatter_prop      (const mp::Props *node) {
     // Optional
     const auto depth_iter           = map.find("depth");
     const auto tags_iter            = map.find("tags");
-    const auto contour_exp_iter      = map.find("contourExp");
+    const auto contour_exp_iter      = map.find("contourexp");
 
     if (depth_iter != notfound)           deser_depth_or_throw(depth_iter->second.get(), depth);
     if (tags_iter != notfound)            deser_tags_or_throw(tags_iter->second.get(), tags);

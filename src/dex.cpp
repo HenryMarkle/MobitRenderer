@@ -372,7 +372,7 @@ void PropDex::register_from(std::filesystem::path const &file, CastLibs const *l
     while (init.peek() && init.peek() != EOF) {
         counter++;
 
-        while (init.peek() == '\n') init.get();
+        while (init.peek() == '\n') { counter++; init.get();}
 
         // category
         if (init.peek() == '-') {
@@ -459,7 +459,7 @@ void PropDex::register_from(std::filesystem::path const &file, CastLibs const *l
                 if (tags.find("INTERNAL") != tags.end()) {
                     if (libs == nullptr) 
                         throw dex_error(
-                            std::string("tile '"+propdef->name+"' resource is internal but CastLibs* argument was nullptr")
+                            std::string("prop '"+propdef->name+"' resource is internal but CastLibs* argument was nullptr")
                         );
                 
                     try {
@@ -467,7 +467,7 @@ void PropDex::register_from(std::filesystem::path const &file, CastLibs const *l
                         propdef->set_texture_path(member->get_texture_path());
                     } catch (std::runtime_error &e) {
                         throw dex_error(
-                            std::string("tile '"+propdef->name+"' internal resouce was not found")
+                            std::string("prop '"+propdef->name+"' internal resouce was not found")
                         );
                     }
                 } 
@@ -485,7 +485,7 @@ void PropDex::register_from(std::filesystem::path const &file, CastLibs const *l
             catch (mp::parse_failure &pe) {
                 std::ostringstream msg;
                 msg 
-                    << "failed to parse tile init at line "
+                    << "failed to parse prop init at line "
                     << counter
                     << ": "
                     << pe.what();
@@ -497,7 +497,7 @@ void PropDex::register_from(std::filesystem::path const &file, CastLibs const *l
             catch (deserialization_failure &e) {
                 std::ostringstream msg;
                 msg 
-                    << "failed to deserialize tile init at line "
+                    << "failed to deserialize prop init at line "
                     << counter
                     << ": "
                     << e.what();

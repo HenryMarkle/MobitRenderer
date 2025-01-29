@@ -41,12 +41,24 @@ bool deser_bool(const mp::Node *node) {
 }
 int deser_int(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
-  if (int_node == nullptr) throw deserialization_failure("node is not an Int");
+  if (int_node == nullptr) {
+    
+    const mp::Float *float_node = dynamic_cast<const mp::Float*>(node);
+    if (float_node == nullptr) throw deserialization_failure("node is not an Int or a Float");
+
+    return (int)float_node->number;
+  }
   return int_node->number;
 }
 float deser_float(const mp::Node *node) {
   const mp::Float *float_node = dynamic_cast<const mp::Float*>(node);
-  if (float_node == nullptr) throw deserialization_failure("node is not a Float");
+  if (float_node == nullptr) {
+    const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
+
+    if (int_node == nullptr) throw deserialization_failure("node is not a Float or an Int");
+
+    return (float)int_node->number;
+  }
   return float_node->number;
 }
 int8_t deser_int8(const mp::Node *node) {
