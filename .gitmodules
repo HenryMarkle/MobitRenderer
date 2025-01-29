@@ -1,7 +1,3 @@
-[submodule "libs/MobitParser"]
-	path = libs/MobitParser
-	url = https://github.com/HenryMarkle/MobitParser
-  branch = main
 [submodule "Data"]
 	path = Data
 	url = git@github.com:SlimeCubed/Drizzle.Data.git
