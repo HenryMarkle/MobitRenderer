@@ -130,7 +130,8 @@ public:
     /// @attention The path's parent directory must contain the prop textures.
     void register_from(std::filesystem::path const&file, CastLibs const*libs = nullptr);
 
-    void register_tiles(const TileDex *);
+    void register_embedded(const CastLibs*);
+    void register_tiles(const TileDex*);
 
     /// @brief Unloads all textures of props. 
     /// Must be called before CloseWindow().

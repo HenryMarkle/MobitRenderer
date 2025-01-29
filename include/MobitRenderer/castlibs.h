@@ -107,8 +107,18 @@ public:
     }
 
     CastLib(
-        std::string const&name,
+        std::string const &name,
         std::filesystem::path const &directory
+    );
+
+    CastLib(
+        std::string&&,
+        std::filesystem::path const&
+    );
+
+    CastLib(
+        const char*,
+        std::filesystem::path const&
     );
 
     ~CastLib();
@@ -119,15 +129,18 @@ class CastLibs {
 
 private:
 
-    CastLib editor, internal, drought, dry, msc;
+    std::filesystem::path cast_dir;
+    bool registered;
+    std::unordered_map<std::string, CastLib*> _libs;
 
 public:
 
-    inline CastLib &get_editor() noexcept { return editor; }
-    inline CastLib &get_internal() noexcept { return internal; }
-    inline CastLib &get_drought() noexcept { return drought; }
-    inline CastLib &get_dry() noexcept { return dry; }
-    inline CastLib &get_msc() noexcept { return msc; }
+    inline const std::filesystem::path &get_cast_dir() const noexcept { return cast_dir; }
+    inline void set_cast_dir(std::filesystem::path &dir) { cast_dir = dir; }
+    inline bool are_libs_registered() const noexcept { return registered; }
+    CastLib *lib(std::string const&) const noexcept;
+    CastLib *lib_or_throw(std::string const&) const;
+    inline const std::unordered_map<std::string, CastLib*> &libs() const noexcept { return _libs; }    
 
     /// @brief Looks up a member in all libraries.
     /// @return returns the first instance with a matching name. 
@@ -138,34 +151,18 @@ public:
     /// @throw std::runtime_error if the member is not found in any library.
     CastMember *member_or_throw(const std::string &name) const;
 
-    inline void load_all() {
-        editor.load_members();
-        internal.load_members();
-        drought.load_members();
-        dry.load_members();
-        msc.load_members();
-    }
-    
-    inline void unload_all() {
-        editor.unload_members();
-        internal.unload_members();
-        drought.unload_members();
-        dry.unload_members();
-        msc.unload_members();
-    }
+    void load_all_members();
+    void unload_all_members();
+    void reload_all_members();
 
-    inline void reload_all() {
-        editor.reload_members();
-        internal.reload_members();
-        drought.reload_members();
-        dry.reload_members();
-        msc.reload_members();
-    }
+    void unregister_all();
+    void register_all();
 
     CastLibs &operator=(CastLibs&&) noexcept = delete;
     CastLibs &operator=(CastLibs const&) = delete;
 
     CastLibs(std::filesystem::path const &cast_dir);
+    CastLibs(std::filesystem::path &&cast_dir);
     CastLibs(CastLibs&&) noexcept = delete;
     CastLibs(CastLibs const&) = delete;
     ~CastLibs();

@@ -90,7 +90,8 @@ int main(int argc, char* argv[]) {
   logger->info("loading cast libraries");
 
   auto *castlibs = new mr::CastLibs(directories->get_cast());
-  castlibs->load_all();
+  castlibs->register_all();
+  castlibs->load_all_members();
   ctx->_castlibs = castlibs;
 
   logger->info("loading tiles");
@@ -620,7 +621,8 @@ int _auto_render_window(int argc, char* argv[]) {
   logger->info("loading Cast libraries");
 
   auto *castlibs = new mr::CastLibs(directories->get_cast());
-  castlibs->load_all();
+  castlibs->register_all();
+  castlibs->load_all_members();
 
   logger->info("loading tiles");
 
