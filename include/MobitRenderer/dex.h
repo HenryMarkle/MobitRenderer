@@ -124,6 +124,12 @@ public:
     /// that are ordered by registering orderer.
     const std::unordered_map<std::string, std::vector<PropDef*>> &category_props() const noexcept;
 
+    TileDef *tile(const std::string&) const noexcept;
+    const std::unordered_map<std::string, TileDef*> &tiles() const noexcept;
+    const std::vector<TileDefCategory> &tile_categories() const noexcept;
+    const std::vector<std::vector<TileDef*>> &sorted_tiles() const noexcept;
+    const std::unordered_map<std::string, std::vector<TileDef*>> &category_tiles() const noexcept;
+
     /// @brief Registers props from an Init text file.
     /// @param file The path to the Init.txt file.
     /// @param libs A pointer to the Cast libraries for internal props.

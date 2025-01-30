@@ -55,7 +55,7 @@ Pager::~Pager() {
 }
 
 void pager::select(int index) noexcept {
-  if (index < 0 || index > 4) return;
+  if (index < 0 || index > 8) return;
   _previous = _selected;
   _selected = index;
 
@@ -65,6 +65,7 @@ void pager::select(int index) noexcept {
     case 2: _geo_page.order_level_redraw(); break;
     case 3: _tile_page.order_level_redraw(); break;
     case 4: _camera_page.order_level_redraw(); break;
+    case 8: _props_page.order_level_redraw(); break;
   }
 }
 
@@ -78,6 +79,7 @@ void pager::current_process() {
     case 2: _geo_page.process(); break;
     case 3: _tile_page.process(); break;
     case 4: _camera_page.process(); break;
+    case 8: _props_page.process(); break;
   }
 }
 void pager::current_draw() noexcept {
@@ -87,6 +89,7 @@ void pager::current_draw() noexcept {
     case 2: _geo_page.draw(); break;
     case 3: _tile_page.draw(); break;
     case 4: _camera_page.draw(); break;
+    case 8: _props_page.draw(); break;
   }
 }
 void pager::current_windows() noexcept {
@@ -96,6 +99,7 @@ void pager::current_windows() noexcept {
     case 2: _geo_page.windows(); break;
     case 3: _tile_page.windows(); break;
     case 4: _camera_page.windows(); break;
+    case 8: _props_page.windows(); break;
   }
 }
 void pager::current_f3() const noexcept {
@@ -105,6 +109,7 @@ void pager::current_f3() const noexcept {
     case 2: _geo_page.f3(); break;
     case 3: _tile_page.f3(); break;
     case 4: _camera_page.f3(); break;
+    case 8: _props_page.f3(); break;
   }
 }
 
@@ -115,7 +120,8 @@ pager::pager(context *ctx) :
   _main_page(Main_Page(ctx)),
   _geo_page(Geo_Page(ctx)),
   _tile_page(Tile_Page(ctx)),
-  _camera_page(Camera_Page(ctx)) {}
+  _camera_page(Camera_Page(ctx)),
+  _props_page(Props_Page(ctx)) {}
 
 pager::~pager() {}
 

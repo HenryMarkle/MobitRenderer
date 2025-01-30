@@ -350,6 +350,16 @@ const std::unordered_map<std::string, std::vector<PropDef*>> &PropDex::category_
     return _category_props;
 }
 
+TileDef *PropDex::tile(const std::string &name) const noexcept {
+    auto iter = _tiles.find(name);
+    if (iter == _tiles.end()) return nullptr;
+    return iter->second;
+}
+const std::unordered_map<std::string, TileDef*> &PropDex::tiles() const noexcept { return _tiles; }
+const std::vector<TileDefCategory> &PropDex::tile_categories() const noexcept { return _tile_categories; }
+const std::vector<std::vector<TileDef*>> &PropDex::sorted_tiles() const noexcept { return _sorted_tiles; }
+const std::unordered_map<std::string, std::vector<TileDef*>> &PropDex::category_tiles() const noexcept { return _category_tiles; }
+
 void PropDex::register_from(std::filesystem::path const &file, CastLibs const *libs) {
     if (!exists(file)) throw dex_error(std::string("file does not exist: "+file.string()));
 

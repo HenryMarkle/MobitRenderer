@@ -104,6 +104,7 @@ int main(int argc, char* argv[]) {
   logger->info("loading props");
   auto *propdex = new mr::PropDex();
   propdex->register_from(directories->get_props() / "Init.txt", castlibs);
+  propdex->register_tiles(tiledex);
   ctx->_propdex = propdex;
 
   logger->info("loading materials");
@@ -239,7 +240,7 @@ int main(int argc, char* argv[]) {
           ImGui::MenuItem("Light", nullptr, current_page == 5, false);
           ImGui::MenuItem("Dimensions", nullptr, current_page == 6, false);
           ImGui::MenuItem("Effects", nullptr, current_page == 7, false);
-          ImGui::MenuItem("Props", nullptr, current_page == 8, false);
+          auto goto_props = ImGui::MenuItem("Props", nullptr, current_page == 8, true);
           ImGui::MenuItem("Settings", nullptr, current_page == 9, false);
 
           if (goto_main) {
@@ -250,6 +251,9 @@ int main(int argc, char* argv[]) {
             pager->select(3);
           } else if (goto_cameras) {
             pager->select(4);
+          }
+          else if (goto_props) {
+            pager->select(8);
           }
         }
 

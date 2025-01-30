@@ -222,7 +222,39 @@ Camera_Page(context*);
 
 class Light_Page : public LevelPage {};
 class Effects_Page : public LevelPage {};
-class Props_Page : public LevelPage {};
+class Props_Page : public LevelPage {
+
+private:
+
+  bool _hovering_on_window;
+
+  bool _should_redraw;
+
+  TileDef 
+    *_selected_tile, 
+    *_hovered_tile;
+  
+  PropDef 
+    *_selected_prop, 
+    *_hovered_prop;
+
+  size_t 
+    _selected_tile_category_index, 
+    _selected_tile_index,
+    _selected_prop_category_index,
+    _selected_prop_index;
+
+public:
+
+  void process() noexcept override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void f3() const noexcept;
+
+  Props_Page(context*);
+  ~Props_Page();
+
+};
 class Render_Page : public LevelPage {};
 class AutoRender_Page : public LevelPage {};
 
@@ -235,6 +267,8 @@ Main_Page _main_page;
 Geo_Page _geo_page;
 Tile_Page _tile_page;
 Camera_Page _camera_page;
+
+Props_Page _props_page;
 
 int _selected, _previous;
 
