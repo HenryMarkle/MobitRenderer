@@ -543,6 +543,7 @@ void PropDex::register_tiles(const TileDex *dex) {
                 << std::endl;
                 #endif
                 // throw dex_error(std::string("duplicate tile/prop definition identifier \""+tile->get_name()+"\""));
+                continue;
             }
 
             const auto &tags = tile->get_tags();
@@ -557,6 +558,7 @@ void PropDex::register_tiles(const TileDex *dex) {
                     std::cout << "Warning: skipped duplicate tile-as-prop definition \"" << tile->get_name() << '"' << std::endl;
                     #endif
                     // throw dex_error("duplicate tile definition identifier \""+tile->get_name()+"\"");
+                    continue;
                 }
 
                 _tiles[tile->get_name()] = tile;

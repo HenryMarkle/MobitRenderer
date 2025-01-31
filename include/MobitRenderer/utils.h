@@ -7,5 +7,6 @@ namespace mr::utils {
 
 void unload_shader(Shader&);
 void unload_texture(Texture2D&);
+void unload_rendertexture(RenderTexture2D&);
 
 };

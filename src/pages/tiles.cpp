@@ -11,19 +11,17 @@
 #include <MobitRenderer/sdraw.h>
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/pages.h>
+#include <MobitRenderer/utils.h>
 
 namespace mr::pages {
 
 void Tile_Page::_redraw_tile_preview_rt() noexcept {
-  if (
-    _hovered_tile == nullptr || 
-    _hovered_tile == _previously_drawn_preview
-  ) return;
+  if (_hovered_tile == _previously_drawn_preview) return;
 
   _previously_drawn_preview = _hovered_tile;
 
-  if (_tile_preview_rt.id != 0) 
-    UnloadRenderTexture(_tile_preview_rt);
+  mr::utils::unload_rendertexture(_tile_preview_rt);
+  if (_hovered_tile == nullptr) return;
 
   _tile_preview_rt = LoadRenderTexture(
     _hovered_tile->get_width() * 16, 
@@ -46,15 +44,13 @@ void Tile_Page::_redraw_tile_preview_rt() noexcept {
   EndTextureMode();
 }
 void Tile_Page::_redraw_tile_texture_rt() noexcept {
-  if (
-    _selected_tile == nullptr || 
-    _selected_tile == _previously_drawn_texture
-  ) return;
+  if (_selected_tile == _previously_drawn_texture) return;
 
   _previously_drawn_texture = _selected_tile;
 
-  if (_tile_texture_rt.id != 0) 
-    UnloadRenderTexture(_tile_texture_rt);
+  mr::utils::unload_rendertexture(_tile_texture_rt);
+
+  if (_selected_tile == nullptr) return;
 
   _tile_texture_rt = LoadRenderTexture(
     _selected_tile->calculate_width(20), 
@@ -139,15 +135,13 @@ void Tile_Page::_redraw_tile_texture_rt() noexcept {
   EndTextureMode();
 }
 void Tile_Page::_redraw_tile_specs_rt() noexcept {
-  if (
-    _selected_tile == nullptr || 
-    _selected_tile == _previously_drawn_specs
-  ) return;
+  if (_selected_tile == _previously_drawn_specs) return;
 
   _previously_drawn_specs = _selected_tile;
 
-  if (_tile_specs_rt.id != 0) 
-    UnloadRenderTexture(_tile_specs_rt);
+  mr::utils::unload_rendertexture(_tile_specs_rt);
+
+  if (_selected_tile == nullptr) return;
 
   _tile_specs_rt = LoadRenderTexture(
     _selected_tile->calculate_width(10), 

@@ -232,17 +232,24 @@ private:
 
   TileDef 
     *_selected_tile, 
-    *_hovered_tile;
+    *_hovered_tile,
+    *_previously_drawn_tile_texture;
   
   PropDef 
     *_selected_prop, 
-    *_hovered_prop;
+    *_hovered_prop,
+    *_previously_drawn_prop_texture;
 
   size_t 
     _selected_tile_category_index, 
     _selected_tile_index,
     _selected_prop_category_index,
     _selected_prop_index;
+
+  RenderTexture2D _tile_texture_rt, _prop_texture_rt;
+
+  void _redraw_tile_preview_rt() noexcept;
+  void _redraw_prop_preview_rt() noexcept;
 
 public:
 

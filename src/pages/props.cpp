@@ -1,12 +1,109 @@
 #include <raylib.h>
 #include <imgui.h>
+#include <rlImGui.h>
 
 #include <MobitRenderer/pages.h>
+#include <MobitRenderer/utils.h>
 
 namespace mr::pages {
 
 void Props_Page::process() noexcept {
   _hovering_on_window = false;
+}
+
+void Props_Page::_redraw_tile_preview_rt() noexcept {
+    if (_hovered_tile == _previously_drawn_tile_texture) return;
+
+    _previously_drawn_tile_texture = _hovered_tile;
+
+    mr::utils::unload_rendertexture(_tile_texture_rt);
+
+    if (_hovered_tile == nullptr) return;
+
+    _tile_texture_rt = LoadRenderTexture(
+        _hovered_tile->calculate_width(20), 
+        _hovered_tile->calculate_height(20)
+    );
+
+    BeginTextureMode(_tile_texture_rt);
+    {
+        ClearBackground(Color{0, 0, 0, 0});
+        
+        const auto &texture = _hovered_tile->get_loaded_texture();
+        
+        if (_hovered_tile->get_type() == TileDefType::box) {
+        const auto &shader = ctx->_shaders->white_remover_rgb_recolor();
+
+        BeginShaderMode(shader);
+        {
+            SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
+
+            DrawTexturePro(
+            texture,
+            Rectangle{
+                0,
+                1.0f * _hovered_tile->get_width() * _hovered_tile->get_height() * 20,
+                1.0f * _hovered_tile->calculate_width(20),
+                1.0f * _hovered_tile->calculate_height(20)
+            },
+            Rectangle{
+                0,
+                0,
+                1.0f * _hovered_tile->calculate_width(20),
+                1.0f * _hovered_tile->calculate_height(20)
+            },
+            Vector2{0, 0},
+            0,
+            _hovered_tile->get_color()
+            );
+        }
+        EndShaderMode();
+        } else {
+        const auto &shader = ctx->_shaders->voxel_struct_tinted();
+        BeginShaderMode(shader);
+        {
+            SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
+            
+            auto layers = _hovered_tile->get_repeat().size();
+            SetShaderValue(shader, GetShaderLocation(shader, "layers"), &layers, SHADER_UNIFORM_INT);
+
+            float height = _hovered_tile->calculate_height(20)*1.0f / _hovered_tile->get_texture().height;
+            SetShaderValue(shader, GetShaderLocation(shader, "height"), &height, SHADER_UNIFORM_FLOAT);
+            
+            float width = _hovered_tile->calculate_width(20)*1.0f / _hovered_tile->get_texture().width;
+            SetShaderValue(shader, GetShaderLocation(shader, "width"), &width, SHADER_UNIFORM_FLOAT);
+            
+            auto depth = 2;
+            SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_INT);
+            
+            DrawTexturePro(
+            texture,
+            Rectangle{
+                0, 
+                0, 
+                (float)_hovered_tile->get_texture().width, 
+                (float)_hovered_tile->get_texture().height
+            },
+            Rectangle{
+                0, 
+                0, 
+                (float)_hovered_tile->calculate_width(20),
+                (float)_hovered_tile->calculate_height(20)
+            },
+            Vector2{0, 0},
+            0,
+            _hovered_tile->get_color()
+            );
+
+            // draw_tile_tinted(_selected_tile, 0, 0, 20, ctx->_tiledex->colors().at(_selected_tile->get_category()));
+        }
+        EndShaderMode();
+        }
+    }
+    EndTextureMode();
+}
+void Props_Page::_redraw_prop_preview_rt() noexcept {
+
 }
 
 void Props_Page::draw() noexcept {
@@ -70,9 +167,10 @@ void Props_Page::windows() noexcept {
 
                 if (ImGui::IsItemHovered()) {
                     _hovered_tile = tiledef;
+                    _redraw_tile_preview_rt();
 
                     ImGui::BeginTooltip();
-                    // rlImGuiImageRenderTexture(&_tile_preview_rt);
+                    rlImGuiImageRenderTexture(&_tile_texture_rt);
                     ImGui::EndTooltip();
                 }
             }
@@ -168,8 +266,15 @@ Props_Page::Props_Page(context *ctx) :
     _selected_prop(nullptr), _hovered_prop(nullptr),
     _selected_tile_index(0), _selected_tile_category_index(0),
     _selected_prop_index(0), _selected_prop_category_index(0),
-    _hovering_on_window(true), _should_redraw(true)
+    _hovering_on_window(true), _should_redraw(true),
+    _previously_drawn_tile_texture(nullptr),
+    _previously_drawn_prop_texture(nullptr),
+    _tile_texture_rt({0}),
+    _prop_texture_rt({0})
 {}
-Props_Page::~Props_Page() {}
+Props_Page::~Props_Page() {
+    mr::utils::unload_rendertexture(_tile_texture_rt);
+    mr::utils::unload_rendertexture(_prop_texture_rt);
+}
 
 };
