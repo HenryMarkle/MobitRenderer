@@ -1,29 +1,29 @@
 {
-    "version": 8,
-    "configurePresets": [
-        {
-            "name": "GCC 14.2.1 x86_64-pc-linux-gnu",
-            "displayName": "GCC 14.2.1 x86_64-pc-linux-gnu",
-            "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_C_COMPILER": "/usr/bin/gcc",
-                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "mingw64-devkit",
-            "hidden": false,
-            "generator": "MinGW Makefiles",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "cacheVariables": {
-              "CMAKE_C_COMPILER": "C:/w64devkit/bin/gcc.exe",
-              "CMAKE_CXX_COMPILER": "C:/w64devkit/bin/g++.exe",
-              "CMAKE_BUILD_TYPE": "Debug",
-              "CMAKE_MAKE_PROGRAM": "C:/w64devkit/bin/make.exe"
-            }
-        }
-    ]
+  "version": 8,
+  "configurePresets": [
+    {
+      "name": "GCC 14.2.1 x86_64-pc-linux-gnu",
+      "displayName": "GCC 14.2.1 x86_64-pc-linux-gnu",
+      "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "mingw64-devkit",
+      "hidden": false,
+      "generator": "MinGW Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "C:/w64devkit/bin/gcc.exe",
+        "CMAKE_CXX_COMPILER": "C:/w64devkit/bin/g++.exe",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MAKE_PROGRAM": "C:/w64devkit/bin/make.exe"
+      }
+    }
+  ]
 }

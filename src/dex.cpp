@@ -551,7 +551,7 @@ void PropDex::register_tiles(const TileDex *dex) {
             auto not_trash_flag = tags.find("notTrashProp");
             auto not_prop_flag = tags.find("notProp");
 
-            if (not_prop_flag == tags.end() && not_prop_flag == tags.end()) {
+            if (tile->get_type() == TileDefType::voxel_struct && not_prop_flag == tags.end() && not_prop_flag == tags.end()) {
                 if (_tiles.find(tile->get_name()) != _tiles.end())
                 {
                     #ifdef IS_DEBUG_BUILD

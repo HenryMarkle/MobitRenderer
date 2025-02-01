@@ -300,6 +300,19 @@ Antimatter::Antimatter(uint8_t depth, std::string &&name, std::unordered_set<std
     PropDef(depth, std::move(name), PropType::antimatter, std::move(tags)), contour_exp(contour_exp)
 {}
 
+PropSettings::PropSettings() :
+    render_order(0),
+    seed(0),
+    render_time(0),
+
+    variation(0),
+    custom_depth(0),
+    apply_color(false),
+
+    release(RopeRelease::none),
+    thickness(1.0f),
+    segments({}) 
+{}
 PropSettings::PropSettings(int render_order, int seed, int render_time) :
     render_order(render_order),
     seed(seed),
@@ -425,36 +438,28 @@ PropSettings PropSettings::antimatter(
     return settings;
 }
 
-Prop::Prop(std::string const &name, Quad const &quad) : 
+Prop::Prop(std::shared_ptr<std::string> name, Quad const &quad) : 
     und_name(name), 
     prop_def(nullptr), 
     tile_def(nullptr), 
-    quad(quad), 
-    settings(nullptr) 
+    quad(quad),
+    settings(PropSettings())
 {}
 
-Prop::Prop(std::string &&name, Quad const &quad) :
-    und_name(std::move(name)), 
-    prop_def(nullptr), 
-    tile_def(nullptr), 
-    quad(quad), 
-    settings(nullptr) 
-{}
-
-Prop::Prop(PropDef *def, Quad const &quad) :
-    und_name(""), 
+Prop::Prop(std::shared_ptr<std::string> name, PropDef *def, Quad const &quad) :
+    und_name(name), 
     prop_def(def), 
     tile_def(nullptr), 
-    quad(quad), 
-    settings(nullptr) 
+    quad(quad),
+    settings(PropSettings())
 {}
 
-Prop::Prop(TileDef *def, Quad const &quad) :
-    und_name(""), 
+Prop::Prop(std::shared_ptr<std::string> name, TileDef *def, Quad const &quad) :
+    und_name(name), 
     prop_def(nullptr), 
     tile_def(def), 
-    quad(quad), 
-    settings(nullptr) 
+    quad(quad),
+    settings(PropSettings())
 {}
 
 };

@@ -713,17 +713,14 @@ public:
 enum class RopeRelease : int8_t { left = -1, none = 0, right = 1 };
 
 struct PropSettings {
-  int render_order, seed, render_time;
-
-  int variation;
-
-  int custom_depth;
-  bool apply_color;
+  std::vector<Vector2> segments;
+  int render_order, seed, render_time, variation, custom_depth;
+  float thickness;
   
   RopeRelease release;
-  float thickness;
-  std::vector<Vector2> segments;
+  bool apply_color;
 
+  PropSettings();
   PropSettings(int render_order, int seed, int render_time);
 
   static PropSettings standard(int render_order, int seed, int render_time);
@@ -797,11 +794,11 @@ struct Prop {
   
 // private:
 
-  std::string und_name;
+  std::shared_ptr<std::string> und_name;
+  PropSettings settings;
   PropDef *prop_def;
   TileDef *tile_def;
   Quad quad;
-  std::unique_ptr<PropSettings> settings;
 
 // public:
 
@@ -814,10 +811,9 @@ struct Prop {
 //   inline PropDef *get_prop_def() noexcept { return prop_def; }
 //   inline TileDef *get_tile_def() noexcept { return tile_def; }
 
-  Prop(std::string const&, Quad const&);
-  Prop(std::string&&, Quad const&);
-  Prop(PropDef*, Quad const&);
-  Prop(TileDef*, Quad const&);
+  Prop(std::shared_ptr<std::string> name, Quad const &quad);
+  Prop(std::shared_ptr<std::string> name, PropDef*, Quad const &quad);
+  Prop(std::shared_ptr<std::string> name, TileDef*, Quad const &quad);
 };
 
 }; // namespace mr
