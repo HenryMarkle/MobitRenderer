@@ -22,21 +22,6 @@
 
 namespace mr {
 
-const std::filesystem::path &dirs::get_executable() const { return executable; }
-
-const std::filesystem::path &dirs::get_assets() const { return assets; }
-const std::filesystem::path &dirs::get_projects() const { return projects; }
-const std::filesystem::path &dirs::get_levels() const { return levels; }
-const std::filesystem::path &dirs::get_data() const { return data; }
-const std::filesystem::path &dirs::get_logs() const { return logs; }
-
-const std::filesystem::path &dirs::get_shaders() const { return shaders; }
-const std::filesystem::path &dirs::get_fonts() const { return fonts; }
-const std::filesystem::path &dirs::get_materials() const { return materials; }
-const std::filesystem::path &dirs::get_tiles() const { return tiles; }
-const std::filesystem::path &dirs::get_props() const { return props; }
-const std::filesystem::path &dirs::get_cast() const { return cast; }
-
 void dirs::set_data(std::filesystem::path dir, bool include_cast) {
   if (!std::filesystem::is_directory(dir))
       throw std::invalid_argument(dir.string()+" is not a directory");
@@ -67,34 +52,39 @@ dirs::dirs() {
 
   #ifdef IS_DEBUG_BUILD
   data = executable / ".." / ".." / "Data";
+  datapacks = executable / ".." / ".." / "DataPacks";
   assets = executable / ".." / ".." / "Assets";
 
   // VS Code's annoying configuration
   if (!exists(data) && !exists(assets)) {
     data = executable / ".." / ".." / ".." / "Data";
+    datapacks = executable / ".." / ".." / ".." / "DataPacks";
     assets = executable / ".." / ".." / ".." / "Assets";
   }
   #else
   data = executable / "Data";
+  datapacks = executable / "DataPacks";
   assets = executable / "Assets";
   #endif
 
+  tilepacks = datapacks / "Tiles";
+  proppacks = datapacks / "Props";
+  materialpacks = datapacks / "Materials";
 
   projects = executable / "Projects";
   levels = executable / "Levels";
   logs = executable / "Logs";
 
-  if (!exists(projects)) {
-    std::filesystem::create_directory(projects);
-  }
+  if (!exists(projects)) std::filesystem::create_directory(projects);
+  if (!exists(levels)) std::filesystem::create_directory(levels);
+  if (!exists(logs)) std::filesystem::create_directory(logs);
 
-  if (!exists(levels)) {
-    std::filesystem::create_directory(levels);
-  }
-
-  if (!exists(logs)) {
-    std::filesystem::create_directory(logs);
-  }
+  #ifdef FEATURE_DATAPACKS
+  if (!exists(datapacks)) std::filesystem::create_directory(datapacks);
+  if (!exists(tilepacks)) std::filesystem::create_directory(tilepacks);
+  if (!exists(proppacks)) std::filesystem::create_directory(proppacks);
+  if (!exists(materialpacks)) std::filesystem::create_directory(materialpacks);
+  #endif
 
   shaders = assets / "Shaders";
   fonts = assets / "Fonts";

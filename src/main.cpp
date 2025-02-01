@@ -104,6 +104,7 @@ int main(int argc, char* argv[]) {
   logger->info("loading props");
   auto *propdex = new mr::PropDex();
   propdex->register_from(directories->get_props() / "Init.txt", castlibs);
+  // propdex->register_from(directories->get_props() / "trees.txt", castlibs);
   propdex->register_tiles(tiledex);
   ctx->_propdex = propdex;
 
@@ -112,6 +113,34 @@ int main(int argc, char* argv[]) {
   auto *materialdex = new mr::MaterialDex();
   materialdex->load_internals();
   ctx->_materialdex = materialdex;
+
+  #ifdef FEATURE_DATAPACKS
+  if (directories->is_datapacks_found()) { // Data packs
+    logger->info("loading data packs");
+
+    for (auto &entry : std::filesystem::directory_iterator(directories->get_tilepacks())) {
+      if (!entry.is_directory()) continue;
+      
+      auto init_path = entry.path() / "Init.txt";
+
+      if (!std::filesystem::exists(init_path)) continue;
+
+      logger->info("loading tile pack init {}", init_path.string().c_str());
+      tiledex->register_from(init_path, castlibs);
+    }
+
+    for (auto &entry : std::filesystem::directory_iterator(directories->get_proppacks())) {
+      if (!entry.is_directory()) continue;
+      
+      auto init_path = entry.path() / "Init.txt";
+
+      if (!std::filesystem::exists(init_path)) continue;
+
+      logger->info("loading prop pack init {}", init_path.string().c_str());
+      tiledex->register_from(init_path, castlibs);
+    }
+  }
+  #endif
 
   logger->info("initializing window");
 
