@@ -37,6 +37,8 @@ void Start_Page::process() {
     sb << "begin loading level " << file->stem();
     ctx->logger->info(sb.str());
 
+    // Really. Bad. Code.
+
     project_load_thread = std::make_unique<std::thread>([this, file]() {
       try {
         const std::filesystem::path path_copy = *file;
@@ -74,14 +76,7 @@ void Start_Page::process() {
 
       auto lightmap_path = parent / sb.str();
 
-      if (std::filesystem::exists(lightmap_path)) {
-        const char * lightmap_path_ctr = (const char*)lightmap_path.c_str();
-        auto lightmap = LoadTexture(lightmap_path_ctr);
-
-        loaded_level->load_lightmap(lightmap);
-
-        UnloadTexture(lightmap);
-      }
+      loaded_level->load_lightmap();
 
       ctx->_textures->resize_all_level_buffers(
         loaded_level->get_width()  * 20, 

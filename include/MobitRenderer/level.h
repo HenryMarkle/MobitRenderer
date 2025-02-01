@@ -264,12 +264,10 @@ public:
   std::vector<Effect> &get_effects();
 
   /// @note Requires a GL context.
-  void load_lightmap(const Texture2D &);
+  void load_lightmap();
+
   /// @note Requires a GL context.
   void unload_lightmap();
-
-  void begin_lightmap_mode();
-  void end_lightmap_mode();
 
   const Matrix<GeoCell> &get_const_geo_matrix() const;
   const Matrix<TileCell> &get_const_tile_matrix() const;

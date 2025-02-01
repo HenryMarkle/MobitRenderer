@@ -32,25 +32,20 @@ void Props_Page::_redraw_tile_preview_rt() noexcept {
     if (_hovered_tile->get_type() == TileDefType::box) {
       const auto &shader = ctx->_shaders->white_remover_rgb_recolor();
 
-      BeginShaderMode(shader);
-      {
-        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"),
-                              texture);
-
-        DrawTexturePro(texture,
-                       Rectangle{0,
-                                 1.0f * _hovered_tile->get_width() *
-                                     _hovered_tile->get_height() * 20,
-                                 1.0f * _hovered_tile->calculate_width(20),
-                                 1.0f * _hovered_tile->calculate_height(20)},
-                       Rectangle{0, 0,
-                                 1.0f * _hovered_tile->calculate_width(20),
-                                 1.0f * _hovered_tile->calculate_height(20)},
-                       Vector2{0, 0}, 0, _hovered_tile->get_color());
-      }
-      EndShaderMode();
+      DrawTexturePro(texture,
+        Rectangle{0,
+                  1.0f * _hovered_tile->get_width() *
+                      _hovered_tile->get_height() * 20,
+                  1.0f * _hovered_tile->calculate_width(20),
+                  1.0f * _hovered_tile->calculate_height(20)},
+        Rectangle{0, 0,
+                  1.0f * _hovered_tile->calculate_width(20),
+                  1.0f * _hovered_tile->calculate_height(20)},
+        Vector2{0, 0}, 0, 
+        WHITE
+      );
     } else {
-      const auto &shader = ctx->_shaders->voxel_struct_tinted();
+      const auto &shader = ctx->_shaders->voxel_struct();
       BeginShaderMode(shader);
       {
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"),
@@ -81,9 +76,6 @@ void Props_Page::_redraw_tile_preview_rt() noexcept {
             Rectangle{0, 0, (float)_hovered_tile->calculate_width(20),
                       (float)_hovered_tile->calculate_height(20)},
             Vector2{0, 0}, 0, _hovered_tile->get_color());
-
-        // draw_tile_tinted(_selected_tile, 0, 0, 20,
-        // ctx->_tiledex->colors().at(_selected_tile->get_category()));
       }
       EndShaderMode();
     }

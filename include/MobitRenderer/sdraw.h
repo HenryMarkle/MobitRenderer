@@ -37,8 +37,8 @@ void draw_tile_prevs_layer(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_prop_preview(
-    const PropDef &def,
-    const PropSettings &settings,
+    const PropDef *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -57,8 +57,8 @@ void draw_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_standard_prop_preview(
-    const Standard &def,
-    const PropSettings &settings,
+    const Standard *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -69,8 +69,8 @@ void draw_standard_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_varied_standard_prop_preview(
-    const VariedStandard &def,
-    const PropSettings &settings,
+    const VariedStandard *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -81,8 +81,8 @@ void draw_varied_standard_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_soft_prop_preview(
-    const Soft &def,
-    const PropSettings &settings,
+    const Soft *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -93,8 +93,8 @@ void draw_soft_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_varied_soft_prop_preview(
-    const VariedSoft &def,
-    const PropSettings &settings,
+    const VariedSoft *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -105,8 +105,8 @@ void draw_varied_soft_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_colored_soft_prop_preview(
-    const ColoredSoft &def,
-    const PropSettings &settings,
+    const ColoredSoft *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -117,8 +117,8 @@ void draw_colored_soft_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_soft_effect_prop_preview(
-    const SoftEffect &def,
-    const PropSettings &settings,
+    const SoftEffect *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -129,8 +129,8 @@ void draw_soft_effect_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_decal_prop_preview(
-    const Decal &def,
-    const PropSettings &settings,
+    const Decal *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -141,8 +141,8 @@ void draw_decal_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_varied_decal_prop_preview(
-    const VariedDecal &def,
-    const PropSettings &settings,
+    const VariedDecal *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -153,8 +153,8 @@ void draw_varied_decal_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_long_prop_preview(
-    const Long &def,
-    const PropSettings &settings,
+    const Long *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -165,8 +165,8 @@ void draw_long_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_rope_prop_preview(
-    const Rope &def,
-    const PropSettings &settings,
+    const Rope *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;
@@ -177,8 +177,8 @@ void draw_rope_prop_preview(
 /// @param _shaders The shaders manager class.
 /// @param quad The target quad vertices of the prop. 
 void draw_antimatter_prop_preview(
-    const Antimatter &def,
-    const PropSettings &settings,
+    const Antimatter *def,
+    const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad
 ) noexcept;

@@ -166,15 +166,18 @@ dirs::dirs(const std::filesystem::path &executable_directory) {
 }
 
 void shaders::unload_all() {
+  if (!loaded) return;
   mr::utils::unload_shader(_vflip);
   mr::utils::unload_shader(_white_remover);
   mr::utils::unload_shader(_white_remover_apply_color);
   mr::utils::unload_shader(_white_remover_rgb_recolor);
+  mr::utils::unload_shader(_voxel_struct);
   mr::utils::unload_shader(_voxel_struct_tinted);
+  loaded = false;
 }
 
-void shaders::reload_all() {
-  unload_all();
+void shaders::load_all() {
+  if (loaded) return;
 
   auto vflip_path = _shaders_dir / "vflip.frag";
   _vflip = LoadShader(nullptr, vflip_path.string().c_str());
@@ -191,12 +194,24 @@ void shaders::reload_all() {
   auto white_remover_rgb_recolor_path = _shaders_dir / "white_remover_rgb_recolor.frag";
   _white_remover_rgb_recolor = LoadShader(nullptr, white_remover_rgb_recolor_path.string().c_str());
 
+  auto voxel_struct_path = _shaders_dir / "voxel_struct.frag";
+  _voxel_struct = LoadShader(nullptr, voxel_struct_path.string().c_str());
+
   auto voxel_struct_tinted_path = _shaders_dir / "voxel_struct_tinted.frag";
   _voxel_struct_tinted = LoadShader(nullptr, voxel_struct_tinted_path.string().c_str());
+
+  loaded = true;
+}
+
+void shaders::reload_all() {
+  unload_all();
+  load_all();
 }
 
 shaders &shaders::operator=(shaders &&other) noexcept {
   if (&other == this) return *this;
+
+  loaded = other.loaded;
 
   _shaders_dir = other._shaders_dir;
 
@@ -205,6 +220,7 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _white_remover_apply_color = other._white_remover_apply_color;
   _white_remover_apply_alpha = other._white_remover_apply_alpha;
   _white_remover_rgb_recolor = other._white_remover_rgb_recolor;
+  _voxel_struct = other._voxel_struct;
   _voxel_struct_tinted = other._voxel_struct_tinted;
 
   other._vflip = Shader{0};
@@ -212,7 +228,9 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   other._white_remover_apply_color = Shader{0};
   other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
+  other._voxel_struct = Shader{0};
   other._voxel_struct_tinted = Shader{0};
+  other.loaded = false;
 
   return *this;
 }
@@ -224,23 +242,29 @@ shaders::shaders(shaders &&other) noexcept :
   _white_remover_apply_color(other._white_remover_apply_color),
   _white_remover_apply_alpha(other._white_remover_apply_alpha),
   _white_remover_rgb_recolor(other._white_remover_rgb_recolor),
-  _voxel_struct_tinted(other._voxel_struct_tinted)
+  _voxel_struct(other._voxel_struct),
+  _voxel_struct_tinted(other._voxel_struct_tinted),
+  loaded(other.loaded)
 {
+  other.loaded = false;
   other._vflip = Shader{0};
   other._white_remover = Shader{0};
   other._white_remover_apply_color = Shader{0};
   other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
+  other._voxel_struct = Shader{0};
   other._voxel_struct_tinted = Shader{0};
 }
 
 shaders::shaders(std::filesystem::path shaders_dir) : 
+  loaded(false),
   _shaders_dir(shaders_dir), 
   _vflip(Shader{0}), 
   _white_remover(Shader{0}),
   _white_remover_apply_color(Shader{0}),
   _white_remover_apply_alpha(Shader{0}),
   _white_remover_rgb_recolor(Shader{0}),
+  _voxel_struct(Shader{0}),
   _voxel_struct_tinted(Shader{0}) { }
 
 shaders::~shaders() { 

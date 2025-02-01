@@ -151,19 +151,27 @@ private:
   Shader _white_remover_apply_color;
   Shader _white_remover_apply_alpha;
   Shader _white_remover_rgb_recolor;
+  Shader _voxel_struct;
   Shader _voxel_struct_tinted;
+
+  bool loaded;
 
 public:
   /// @attention Requires OpenGL context.
   void unload_all();
   /// @attention Requires OpenGL context.
+  void load_all();
+  /// @attention Requires OpenGL context.
   void reload_all();
+
+  inline bool is_loaded() const noexcept { return loaded; }
 
   inline const Shader &vflip() const noexcept { return _vflip; }
   inline const Shader &white_remover() const noexcept { return _white_remover; }
   inline const Shader &white_remover_apply_color() const noexcept { return _white_remover_apply_color; }
   inline const Shader &white_remover_apply_alpha() const noexcept { return _white_remover_apply_alpha; }
   inline const Shader &white_remover_rgb_recolor() const noexcept { return _white_remover_rgb_recolor; }
+  inline const Shader &voxel_struct() const noexcept { return _voxel_struct; }
   inline const Shader &voxel_struct_tinted() const noexcept { return _voxel_struct_tinted; }
 
   shaders &operator=(shaders const&) = delete;

@@ -12,6 +12,7 @@
 
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/matrix.h>
+#include <MobitRenderer/utils.h>
 
 using std::string;
 using std::filesystem::path;
@@ -118,25 +119,33 @@ Matrix<GeoCell> &Level::get_geo_matrix() { return geo_matrix; }
 Matrix<TileCell> &Level::get_tile_matrix() { return tile_matrix; }
 std::vector<Effect> &Level::get_effects() { return effects; }
 
-void Level::load_lightmap(const Texture2D &texture) {
-  if (lightmap.id != 0)
-    UnloadRenderTexture(lightmap);
+void Level::load_lightmap() {
+  mr::utils::unload_rendertexture(lightmap);
 
-  lightmap = LoadRenderTexture(texture.width, texture.height);
+  if (std::filesystem::exists(lightmap_path)) {
+    auto texture = LoadTexture(lightmap_path.string().c_str());
 
+    lightmap = LoadRenderTexture(texture.width, texture.height);
+
+    BeginTextureMode(lightmap);
+    ClearBackground(WHITE);
+    DrawTexture(texture, 0, 0, WHITE);
+    EndTextureMode();
+
+    UnloadTexture(texture);
+
+    return;
+  }
+
+  lightmap = LoadRenderTexture(pxwidth + 300, pxheight + 300);
   BeginTextureMode(lightmap);
   ClearBackground(WHITE);
-  DrawTexture(texture, 0, 0, WHITE);
   EndTextureMode();
 }
+
 void Level::unload_lightmap() {
-  if (lightmap.id != 0) {
-    UnloadRenderTexture(lightmap);
-    lightmap.id = 0;
-  }
+  mr::utils::unload_rendertexture(lightmap);
 }
-void Level::begin_lightmap_mode() { BeginTextureMode(lightmap); }
-void Level::end_lightmap_mode() { EndTextureMode(); }
 
 const Matrix<GeoCell> &Level::get_const_geo_matrix() const {
   return geo_matrix;
@@ -206,8 +215,7 @@ Level::Level(uint16_t width, uint16_t height,
       geo_matrix(std::move(geo_matrix)), lightmap(RenderTexture2D{0}) {}
 
 Level::~Level() {
-  if (lightmap.id != 0)
-    UnloadRenderTexture(this->lightmap);
+  unload_lightmap();
 }
 
 };

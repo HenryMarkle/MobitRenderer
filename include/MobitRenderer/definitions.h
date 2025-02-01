@@ -354,6 +354,8 @@ public:
   void unload_texture();
   inline void reload_texture() { unload_texture(); load_texture(); }
 
+  inline const Texture2D &get_texture() const noexcept { return texture; }
+
   PropDef &operator=(PropDef&&) noexcept = delete;
   PropDef &operator=(PropDef const&) = delete;
 

@@ -72,7 +72,65 @@ void draw_texture(const Texture2D *texture, const IQuad *quad) {
 }
 
 void draw_texture(const Texture2D &texture, const IQuad &quad) {
-  draw_texture(&texture, &quad);
+  rlSetTexture(texture.id);
+
+  rlBegin(RL_QUADS);
+
+  rlColor4ub(255, 255, 255, 255);
+
+  bool flipx = quad.topleft.x > quad.topright.x && quad.bottomleft.x > quad.bottomright.x;
+  bool flipy = quad.topleft.y > quad.bottomleft.y && quad.topright.y > quad.bottomright.y;
+  
+
+  int vtrx = flipx ? quad.topleft.x : quad.topright.x;
+  int vtry = flipy ? quad.bottomright.y : quad.topright.y;
+
+  int vtlx = flipx ? quad.topright.x : quad.topleft.x;
+  int vtly = flipy ? quad.bottomleft.y : quad.topleft.y;
+
+  int vblx = flipx ? quad.bottomright.x : quad.bottomleft.x;
+  int vbly = flipy ? quad.topleft.y : quad.bottomleft.y;
+
+  int vbrx = flipx ? quad.bottomleft.x : quad.bottomright.x;
+  int vbry = flipy ? quad.topright.y : quad.bottomright.y;
+
+
+  int ttrx = flipx ? 0 : 1.0f;
+  int ttry = flipy ? 1.0f : 0;
+
+  int ttlx = flipx ? 1.0f : 0;
+  int ttly = flipy ? 1.0f : 0;
+
+  int tblx = flipx ? 1.0f : 0;
+  int tbly = flipy ? 0 : 1.0f;
+
+  int tbrx = flipx ? 0 : 1.0f;
+  int tbry = flipy ? 0 : 1.0f;
+
+
+  // top right
+  rlTexCoord2f(ttrx, ttry);
+  rlVertex2i(vtrx, vtry);
+
+  // top left
+  rlTexCoord2f(ttlx, ttly);
+  rlVertex2i(vtlx, vtly);
+  
+  // bottom left
+  rlTexCoord2f(tblx, tbly);
+  rlVertex2i(vblx, vbly);
+
+  // bottom right
+  rlTexCoord2f(tbrx, tbry);
+  rlVertex2i(vbrx, vbry);
+
+
+  // top right
+  rlTexCoord2f(ttrx, ttry);
+  rlVertex2i(vtrx, vtry);
+
+
+  rlSetTexture(0);
 }
 
 void draw_texture(const Texture2D *texture, const Quad *quad) {
@@ -138,9 +196,128 @@ void draw_texture(const Texture2D *texture, const Quad *quad) {
 }
 
 void draw_texture(const Texture2D &texture, const Quad &quad) {
-  draw_texture(&texture, &quad);
+  rlSetTexture(texture.id);
+
+  rlBegin(RL_QUADS);
+
+  rlColor4ub(255, 255, 255, 255);
+
+  bool flipx = quad.topleft.x > quad.topright.x && quad.bottomleft.x > quad.bottomright.x;
+  bool flipy = quad.topleft.y > quad.bottomleft.y && quad.topright.y > quad.bottomright.y;
+  
+
+  int vtrx = flipx ? quad.topleft.x : quad.topright.x;
+  int vtry = flipy ? quad.bottomright.y : quad.topright.y;
+
+  int vtlx = flipx ? quad.topright.x : quad.topleft.x;
+  int vtly = flipy ? quad.bottomleft.y : quad.topleft.y;
+
+  int vblx = flipx ? quad.bottomright.x : quad.bottomleft.x;
+  int vbly = flipy ? quad.topleft.y : quad.bottomleft.y;
+
+  int vbrx = flipx ? quad.bottomleft.x : quad.bottomright.x;
+  int vbry = flipy ? quad.topright.y : quad.bottomright.y;
+
+
+  int ttrx = flipx ? 0 : 1.0f;
+  int ttry = flipy ? 1.0f : 0;
+
+  int ttlx = flipx ? 1.0f : 0;
+  int ttly = flipy ? 1.0f : 0;
+
+  int tblx = flipx ? 1.0f : 0;
+  int tbly = flipy ? 0 : 1.0f;
+
+  int tbrx = flipx ? 0 : 1.0f;
+  int tbry = flipy ? 0 : 1.0f;
+
+
+  // top right
+  rlTexCoord2f(ttrx, ttry);
+  rlVertex2i(vtrx, vtry);
+
+  // top left
+  rlTexCoord2f(ttlx, ttly);
+  rlVertex2i(vtlx, vtly);
+  
+  // bottom left
+  rlTexCoord2f(tblx, tbly);
+  rlVertex2i(vblx, vbly);
+
+  // bottom right
+  rlTexCoord2f(tbrx, tbry);
+  rlVertex2i(vbrx, vbry);
+
+
+  // top right
+  rlTexCoord2f(ttrx, ttry);
+  rlVertex2i(vtrx, vtry);
+
+
+  rlSetTexture(0);
 }
 
+void draw_texture(const Texture2D &texture, const Quad &quad, Color color) {
+    rlSetTexture(texture.id);
+
+    rlBegin(RL_QUADS);
+
+    rlColor4ub(color.r, color.g, color.b, color.a);
+
+    bool flipx = quad.topleft.x > quad.topright.x && quad.bottomleft.x > quad.bottomright.x;
+    bool flipy = quad.topleft.y > quad.bottomleft.y && quad.topright.y > quad.bottomright.y;
+    
+
+    int vtrx = flipx ? quad.topleft.x : quad.topright.x;
+    int vtry = flipy ? quad.bottomright.y : quad.topright.y;
+
+    int vtlx = flipx ? quad.topright.x : quad.topleft.x;
+    int vtly = flipy ? quad.bottomleft.y : quad.topleft.y;
+
+    int vblx = flipx ? quad.bottomright.x : quad.bottomleft.x;
+    int vbly = flipy ? quad.topleft.y : quad.bottomleft.y;
+
+    int vbrx = flipx ? quad.bottomleft.x : quad.bottomright.x;
+    int vbry = flipy ? quad.topright.y : quad.bottomright.y;
+
+
+    int ttrx = flipx ? 0 : 1.0f;
+    int ttry = flipy ? 1.0f : 0;
+
+    int ttlx = flipx ? 1.0f : 0;
+    int ttly = flipy ? 1.0f : 0;
+
+    int tblx = flipx ? 1.0f : 0;
+    int tbly = flipy ? 0 : 1.0f;
+
+    int tbrx = flipx ? 0 : 1.0f;
+    int tbry = flipy ? 0 : 1.0f;
+
+
+    // top right
+    rlTexCoord2f(ttrx, ttry);
+    rlVertex2i(vtrx, vtry);
+
+    // top left
+    rlTexCoord2f(ttlx, ttly);
+    rlVertex2i(vtlx, vtly);
+    
+    // bottom left
+    rlTexCoord2f(tblx, tbly);
+    rlVertex2i(vblx, vbly);
+
+    // bottom right
+    rlTexCoord2f(tbrx, tbry);
+    rlVertex2i(vbrx, vbry);
+
+
+    // top right
+    rlTexCoord2f(ttrx, ttry);
+    rlVertex2i(vtrx, vtry);
+
+
+    rlSetTexture(0);
+}
 
 void draw_grid(levelsize width, levelsize height, Color color, int scale, int thickness) noexcept {
     for (levelsize x = 1; x < width; x++) {

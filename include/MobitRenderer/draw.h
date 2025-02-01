@@ -73,6 +73,8 @@ void draw_texture(const Texture2D *texture, const IQuad *quad);
 void draw_texture(const Texture2D &texture, const Quad &quad);
 void draw_texture(const Texture2D *texture, const Quad *quad);
 
+void draw_texture(const Texture2D &texture, const Quad &quad, Color color);
+
 void draw_grid(levelsize width, levelsize height, Color color = GRAY, int scale = 20, int thickness = 1) noexcept;
 void draw_nested_grid(levelsize width, levelsize height, Color color, int scale = 20, int thickness = 1) noexcept;
 
@@ -248,16 +250,16 @@ void draw_mtx_tile(const TileDef *def, int x, int y, float scale);
 void draw_mtx_tile_from_origin(const TileDef *def, int x, int y, float scale);
 
 /// @brief Draws a tile texture from the top left corner.
-/// @param x The matrix' X coordinates.
-/// @param Y The matrix' Y coordinates.
+/// @param x The screen's X coordinates.
+/// @param Y The screen's Y coordinates.
 /// @param scale The scale of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
 void draw_tile(const TileDef *def, int x, int y, float scale);
 
 /// @brief Draws a tile texture from the origin (x - origin.x, y - origin.y).
-/// @param x The matrix' X coordinates.
-/// @param Y The matrix' Y coordinates.
+/// @param x The screen's X coordinates.
+/// @param Y The screen's Y coordinates.
 /// @param scale The scale of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
 /// and before EndDrawing()).
@@ -284,8 +286,8 @@ void draw_mtx_tile_tinted(const TileDef *def, int x, int y, float scale, Color t
 void draw_mtx_tile_from_origin_tinted(const TileDef *def, int x, int y, float scale, Color tint);
 
 /// @brief Draws a tile tinted texture from the top left corner.
-/// @param x The matrix' X coordinates.
-/// @param Y The matrix' Y coordinates.
+/// @param x The screen's X coordinates.
+/// @param Y The screen's Y coordinates.
 /// @param scale The scale of the tile.
 /// @param tint The color of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
@@ -293,8 +295,8 @@ void draw_mtx_tile_from_origin_tinted(const TileDef *def, int x, int y, float sc
 void draw_tile_tinted(const TileDef *def, int x, int y, float scale, Color tint);
 
 /// @brief Draws a tile tinted texture from the origin (x - origin.x, y - origin.y).
-/// @param x The matrix' X coordinates.
-/// @param Y The matrix' Y coordinates.
+/// @param x The screen's X coordinates.
+/// @param Y The screen's Y coordinates.
 /// @param scale The scale of the tile.
 /// @param tint The color of the tile.
 /// @attention This must be called in a drawing context (after BeginDrawing()
