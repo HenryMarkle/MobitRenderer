@@ -436,7 +436,8 @@ PropSettings PropSettings::antimatter(
     return settings;
 }
 
-Prop::Prop(std::shared_ptr<std::string> name, Quad const &quad) : 
+Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, Quad const &quad) : 
+    depth(depth), 
     und_name(name), 
     prop_def(nullptr), 
     tile_def(nullptr), 
@@ -444,7 +445,8 @@ Prop::Prop(std::shared_ptr<std::string> name, Quad const &quad) :
     settings(PropSettings())
 {}
 
-Prop::Prop(std::shared_ptr<std::string> name, PropDef *def, Quad const &quad) :
+Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, PropDef *def, Quad const &quad) :
+    depth(depth), 
     und_name(name), 
     prop_def(def), 
     tile_def(nullptr), 
@@ -452,7 +454,8 @@ Prop::Prop(std::shared_ptr<std::string> name, PropDef *def, Quad const &quad) :
     settings(PropSettings())
 {}
 
-Prop::Prop(std::shared_ptr<std::string> name, TileDef *def, Quad const &quad) :
+Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, TileDef *def, Quad const &quad) :
+    depth(depth), 
     und_name(name), 
     prop_def(nullptr), 
     tile_def(def), 

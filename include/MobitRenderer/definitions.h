@@ -833,10 +833,11 @@ struct Prop {
   
 // private:
 
+  uint8_t depth;
   std::shared_ptr<std::string> und_name;
-  PropSettings settings;
   PropDef *prop_def;
   TileDef *tile_def;
+  PropSettings settings;
   Quad quad;
 
 // public:
@@ -850,9 +851,9 @@ struct Prop {
 //   inline PropDef *get_prop_def() noexcept { return prop_def; }
 //   inline TileDef *get_tile_def() noexcept { return tile_def; }
 
-  Prop(std::shared_ptr<std::string> name, Quad const &quad);
-  Prop(std::shared_ptr<std::string> name, PropDef*, Quad const &quad);
-  Prop(std::shared_ptr<std::string> name, TileDef*, Quad const &quad);
+  Prop(uint8_t depth, std::shared_ptr<std::string> name, Quad const &quad);
+  Prop(uint8_t depth, std::shared_ptr<std::string> name, PropDef *def, Quad const &quad);
+  Prop(uint8_t depth, std::shared_ptr<std::string> name, TileDef *def, Quad const &quad);
 };
 
 }; // namespace mr

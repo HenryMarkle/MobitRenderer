@@ -141,6 +141,38 @@ struct Quad {
             Vector2Subtract(bottomleft, v)
         );
     }
+    inline Quad operator*(float scale) const noexcept {
+        return Quad(
+            topleft * scale,
+            topright * scale,
+            bottomright * scale,
+            bottomleft * scale
+        );
+    }
+    inline Quad operator/(float scale) const noexcept {
+        return Quad(
+            topleft / scale,
+            topright / scale,
+            bottomright / scale,
+            bottomleft / scale
+        );
+    }
+    inline Quad &operator*=(float scale) noexcept {
+        topleft *= scale;
+        topright *= scale;
+        bottomright *= scale;
+        bottomleft *= scale;
+        
+        return *this;
+    }
+    inline Quad &operator/=(float scale) noexcept {
+        topleft /= scale;
+        topright /= scale;
+        bottomright /= scale;
+        bottomleft /= scale;
+
+        return *this;
+    }
 
     /// @brief Returns a vertex depends on an index, which is
     /// given the order: top left, top right, bottom right, bottom left.

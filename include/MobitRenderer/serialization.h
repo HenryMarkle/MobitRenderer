@@ -56,9 +56,14 @@ void deser_terrain_medium (const mp::Node*, bool&);
 void deser_geometry_matrix(const mp::Node*, Matrix<GeoCell>&);
 
 /// @brief Deserializes a tile matrix from a syntax tree node.
-/// @note The function expects receiving the #tlMatrix node and the node the entire line.
+/// @note The function expects receiving the #tlMatrix node and 
+/// not the node of the entire line.
 void deser_tile_matrix    (const mp::Node*, Matrix<TileCell>&);
 void deser_cameras        (const mp::Node*, std::vector<mr::LevelCamera>&);
+
+/// @note The function expects to receive the #props node and
+/// not the node of the entire line.
+void deser_props(const mp::Node*, std::vector<std::shared_ptr<Prop>>&);
 
 std::unique_ptr<Level> deser_level(const std::filesystem::path&);
 
@@ -120,6 +125,7 @@ std::vector<uint8_t> deser_uint8_vec(const mp::Node *node);
 /// @param node The underlying pointer must be mp::GCall* and the name must be 'point'.
 void deser_point(const mp::Node *node, int&, int&);
 void deser_point(const mp::Node *node, float&, float&);
+void deser_point(const mp::Node *node, Vector2&);
 
 void deser_tilecell(const mp::Node*, TileCell&);
 

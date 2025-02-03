@@ -98,6 +98,312 @@ PropDef *deser_propdef(const mp::Node *node) {
     return def;
 }
 
+void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props) {
+    const mp::List *list = dynamic_cast<const mp::List*>(node);
+
+    if (list == nullptr) throw deserialization_failure("node is not a Linear List");
+
+    std::vector<std::shared_ptr<Prop>> new_props;
+    std::unordered_map<std::string, std::shared_ptr<std::string>> names;
+
+    size_t counter = 0;
+    for (const auto &prop_node_ptr : list->elements) {
+        counter++;
+
+        const mp::List *prop_node = dynamic_cast<const mp::List*>(prop_node_ptr.get());
+
+        if (prop_node == nullptr) throw deserialization_failure(
+            std::string("failed to deserialize prop #")
+            +std::to_string(counter)
+            +": prop is not a Linear List"
+        );
+
+        if (prop_node->elements.size() < 4) throw deserialization_failure(
+            std::string("failed to parse prop #")
+            +std::to_string(counter)
+            +": insufficient elements (expected at least 4)"
+        );
+
+        uint8_t depth = 0;
+        std::shared_ptr<std::string> und_name;
+        Quad quad;
+        PropSettings settings;
+
+        try {
+            depth = deser_uint8(prop_node->elements[0].get());
+        } catch (deserialization_failure &de) {
+            throw deserialization_failure(
+                std::string("failed to deserialize prop #")
+                +std::to_string(counter)
+                +": "
+                +de.what()
+            );
+        }
+
+        try {
+            auto name = deser_string(prop_node->elements[1].get());
+            if (names.find(name) == names.end()) {
+                und_name = std::make_shared<std::string>(name);
+                names[name] = und_name;
+            }
+        } catch (deserialization_failure &de) {
+            throw deserialization_failure(
+                std::string("failed to deserialize prop #")
+                +std::to_string(counter)
+                +": "
+                +de.what()
+            );
+        }
+
+        // Quad
+
+        const mp::List *quad_node = dynamic_cast<const mp::List*>(prop_node->elements[3].get());
+        if (quad_node == nullptr) throw deserialization_failure(
+            std::string("failed to deserialize prop #")
+            +std::to_string(counter)
+            +": element #4 (quad vertices) is not a Linear List"
+        );
+
+        if (quad_node->elements.size() < 4) throw deserialization_failure(
+            std::string("failed to deserialize prop #")
+            +std::to_string(counter)
+            +": element #4 (quad vertices) elements are insufficient (expected at least 4)"
+        );
+
+        try {
+            deser_point(quad_node->elements[0].get(), quad.topleft);
+        } catch (deserialization_failure &de) {
+            throw deserialization_failure(
+                std::string("failed to deserialize prop #")
+                +std::to_string(counter)
+                +"'s top left quad vertex: "
+                +de.what()
+            );
+        }
+
+        try {
+            deser_point(quad_node->elements[1].get(), quad.topright);
+        } catch (deserialization_failure &de) {
+            throw deserialization_failure(
+                std::string("failed to deserialize prop #")
+                +std::to_string(counter)
+                +"'s top right quad vertex: "
+                +de.what()
+            );
+        }
+
+        try {
+            deser_point(quad_node->elements[2].get(), quad.bottomright);
+        } catch (deserialization_failure &de) {
+            throw deserialization_failure(
+                std::string("failed to deserialize prop #")
+                +std::to_string(counter)
+                +"'s bottom right quad vertex: "
+                +de.what()
+            );
+        }
+
+        try {
+            deser_point(quad_node->elements[3].get(), quad.bottomleft);
+        } catch (deserialization_failure &de) {
+            throw deserialization_failure(
+                std::string("failed to deserialize prop #")
+                +std::to_string(counter)
+                +"'s bottom left quad vertex: "
+                +de.what()
+            );
+        }
+
+        quad *= 1.25f;
+
+        // Settings & Segments
+
+        if (prop_node->elements.size() > 4) {
+            const mp::Props *extra_node = dynamic_cast<const mp::Props*>(prop_node->elements[4].get());
+
+            if (extra_node == nullptr) throw deserialization_failure(
+                std::string("failed to deserialize prop #")
+                +std::to_string(counter)
+                +": element #5 is not a Property List"
+            );
+
+            auto settings_iter = extra_node->map.find("settings");
+            auto segments_iter = extra_node->map.find("point");
+
+            if (settings_iter != extra_node->map.end()) {
+                const mp::Props *settings_node = dynamic_cast<const mp::Props*>(settings_iter->second.get());
+                if (settings_node == nullptr) throw deserialization_failure(
+                    std::string("failed to deserialize prop #")
+                    +std::to_string(counter)
+                    +" #settings: node is not a Property List"
+                );
+
+                const auto &map = settings_node->map;
+                const auto notfound = settings_node->map.end();
+
+                auto render_order = map.find("renderorder");
+                auto seed = map.find("seed");
+                auto render_time = map.find("rendertime");
+                auto variation = map.find("variation");
+                auto custom_depth = map.find("customdepth");
+                auto thickness = map.find("thickness");
+                auto apply_color = map.find("applycolor");
+                auto release = map.find("release");
+
+                if (render_order != notfound) {
+                    try {
+                        settings.render_order = deser_int(render_order->second.get());
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #renderOrder: "
+                            +de.what()
+                        );
+                    }
+                }
+
+                if (seed != notfound) {
+                    try {
+                        settings.seed = deser_int(seed->second.get());
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #seed: "
+                            +de.what()
+                        );
+                    }
+                }
+
+                if (render_time != notfound) {
+                    try {
+                        settings.render_time = deser_int(render_time->second.get());
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #renderTime: "
+                            +de.what()
+                        );
+                    }
+                }
+
+                if (variation != notfound) {
+                    try {
+                        settings.variation = deser_int(variation->second.get());
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #variation: "
+                            +de.what()
+                        );
+                    }
+                }
+
+                if (custom_depth != notfound) {
+                    try {
+                        settings.custom_depth = deser_int(custom_depth->second.get());
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #customDepth: "
+                            +de.what()
+                        );
+                    }
+                }
+
+                if (thickness != notfound) {
+                    try {
+                        settings.thickness = deser_float(thickness->second.get());
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #thickness: "
+                            +de.what()
+                        );
+                    }
+                }
+
+                if (apply_color != notfound) {
+                    try {
+                        settings.apply_color = deser_bool(apply_color->second.get());
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #applyColor: "
+                            +de.what()
+                        );
+                    }
+                }
+
+                if (release != notfound) {
+                    try {
+                        int r = deser_int(release->second.get());
+                    
+                        if      (r == -1) settings.release = RopeRelease::left;
+                        else if (r ==  0) settings.release = RopeRelease::none;
+                        else if (r ==  1) settings.release = RopeRelease::right;
+                        else throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #release: invalid value (accepted values are -1, 0, 1)"
+                        );
+
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s settings property #release: "
+                            +de.what()
+                        );
+                    }
+                }
+            }
+            if (segments_iter != extra_node->map.end()) {
+                const mp::List *list = dynamic_cast<const mp::List*>(segments_iter->second.get());
+                if (list == nullptr) throw deserialization_failure(
+                    std::string("failed to deserialize prop #")
+                    +std::to_string(counter)
+                    +" #point: node is not a Linear List"
+                );
+
+                settings.segments.reserve(list->elements.size());
+
+                size_t counter = 0;
+                for (const auto &point_node : list->elements) {
+                    counter++;
+
+                    try {
+                        Vector2 point;
+                        deser_point(point_node.get(), point);
+                        settings.segments.push_back(point);
+                    } catch (deserialization_failure &de) {
+                        throw deserialization_failure(
+                            std::string("failed to deserialize prop #")
+                            +std::to_string(counter)
+                            +"'s rope segments #"
+                            +std::to_string(counter)
+                            +": "
+                            +de.what()
+                        );
+                    }
+                }
+            }
+        }
+    
+        Prop new_prop = Prop(depth, std::move(und_name), quad);
+        new_prop.settings = std::move(settings);
+        new_props.push_back(std::make_shared<Prop>(std::move(new_prop)));
+    }
+
+    props = std::move(new_props);
+}
+
 };
 
 inline void deser_nm_or_throw(const mp::Props *props, std::string &name) {

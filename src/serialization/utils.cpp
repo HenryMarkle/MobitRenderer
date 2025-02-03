@@ -262,4 +262,33 @@ void deser_point(const mp::Node *node, float &x, float &y) {
   y = value_y;
 }
 
+void deser_point(const mp::Node *node, Vector2 &vector) {
+  const mp::GCall *gcall_node = dynamic_cast<const mp::GCall*>(node);
+  
+  if (gcall_node == nullptr) throw deserialization_failure("node is not a Global Call");
+  if (gcall_node->name != "point") throw deserialization_failure("global call is not a point");
+  if (gcall_node->args.size() < 2) throw deserialization_failure("point global call has insufficient arguments (expected at least 2)");
+
+  float value_x, value_y;
+
+  try {
+    value_x = deser_float(gcall_node->args[0].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize point argument 1: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  try {
+    value_y = deser_float(gcall_node->args[1].get());
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize point argument 2: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  vector.x = value_x;
+  vector.y = value_y;
+}
+
 };

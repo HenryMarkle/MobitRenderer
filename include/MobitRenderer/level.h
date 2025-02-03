@@ -215,6 +215,7 @@ private:
   Matrix<GeoCell> geo_matrix;
   Matrix<TileCell> tile_matrix;
   std::vector<Effect> effects;
+  std::vector<std::shared_ptr<Prop>> props;
 
   RenderTexture2D lightmap;
 
