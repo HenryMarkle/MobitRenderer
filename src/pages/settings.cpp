@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <raylib.h>
 #include <imgui.h>
 
@@ -38,6 +40,7 @@ void Settings_Page::windows() noexcept {
                 if (ImGui::Selectable("light", category_index == 5)) category_index = 5;
                 if (ImGui::Selectable("Effects", category_index == 6)) category_index = 6;
                 if (ImGui::Selectable("Props", category_index == 7)) category_index = 7;
+                if (ImGui::Selectable("Resources", category_index == 8)) category_index = 8;
                 if (ImGui::Selectable("Misc", category_index == 1)) category_index = 1;
                 
                 ImGui::EndListBox();
@@ -225,6 +228,82 @@ void Settings_Page::windows() noexcept {
                 }
                 break;
                 
+                case 8:
+                {
+                    ImGui::SeparatorText("Graphics");
+
+                    if (ImGui::BeginTable("##Graphics", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                        
+                        ImGui::TableSetupColumn("Resource");
+                        ImGui::TableSetupColumn("");
+                        ImGui::TableSetupColumn("");
+                        ImGui::TableHeadersRow();
+
+                        ImGui::TableNextRow();
+
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("Textures");
+
+                        ImGui::TableSetColumnIndex(1);
+                        if (ImGui::Button("Reload##1")) ctx->_textures->reload_all_textures();
+
+                        ImGui::TableSetColumnIndex(2);
+                        // if (ImGui::Button("Unload"));
+
+                        ImGui::TableNextRow();
+
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("Shaders");
+
+                        ImGui::TableSetColumnIndex(1);
+                        if (ImGui::Button("Reload##2")) ctx->_shaders->reload_all();
+
+                        ImGui::TableSetColumnIndex(2);
+                        if (ImGui::Button("Unload##2")) ctx->_shaders->unload_all();
+
+                        ImGui::EndTable();
+                    }
+                
+                    ImGui::SeparatorText("Cast Libraries");
+
+                    if (ImGui::Button("Reload All")) {
+                        for (const auto &pair : ctx->_castlibs->libs()) pair.second->reload_members();
+                    }
+
+                    if (ImGui::Button("Unload All")) {
+                        for (const auto &pair : ctx->_castlibs->libs()) pair.second->unload_members();
+                    }
+
+                    if (ImGui::BeginTable("##CastLibs", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                        ImGui::TableSetupColumn("Name");
+                        ImGui::TableSetupColumn("Members");
+                        ImGui::TableSetupColumn("Loaded");
+                        ImGui::TableHeadersRow();
+
+                        for (const auto &pair : ctx->_castlibs->libs()) {
+                            ImGui::TableNextRow();
+
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::Text(pair.first.c_str());
+
+                            ImGui::TableSetColumnIndex(1);
+                            ImGui::Text(std::to_string(pair.second->get_members().size()).c_str());
+
+                            ImGui::TableSetColumnIndex(2);
+                            ImGui::Text(pair.second->is_loaded() ? "Yes" : "No");
+
+                            ImGui::TableSetColumnIndex(3);
+                            if (ImGui::Button((std::string("Reload##") + pair.first).c_str())) pair.second->reload_members();
+                            
+                            ImGui::TableSetColumnIndex(4);
+                            if (ImGui::Button((std::string("Unload##") + pair.first).c_str())) pair.second->unload_members();
+                        }
+
+                        ImGui::EndTable();
+                    }
+                }
+                break;
+
                 default: 
                 {
                     ImGui::SetNextItemWidth(100);
