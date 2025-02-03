@@ -321,6 +321,21 @@ enum class PropType : uint8_t {
   antimatter
 };
 
+inline const char *prop_type_c_str(PropType t) {
+  if (t == PropType::standard) return "Standard";
+  if (t == PropType::varied_standard) return "Varied Standard";
+  if (t == PropType::soft) return "Soft";
+  if (t == PropType::varied_soft) return "Varied Soft";
+  if (t == PropType::soft_effect) return "Soft Effect";
+  if (t == PropType::colored_soft) return "Colored Soft";
+  if (t == PropType::decal) return "Decal";
+  if (t == PropType::varied_decal) return "Varied Decal";
+  if (t == PropType::_long) return "Long";
+  if (t == PropType::rope) return "Rope";
+  if (t == PropType::antimatter) return "Antimatter";
+  return "Unknown";
+}
+
 class PropDef {
 
 protected:
@@ -355,6 +370,13 @@ public:
   inline void reload_texture() { unload_texture(); load_texture(); }
 
   inline const Texture2D &get_texture() const noexcept { return texture; }
+  inline const Texture2D &get_loaded_texture() {
+    if (!loaded) load_texture();
+    return texture;
+  }
+
+  virtual uint32_t get_pixel_width() const noexcept;
+  virtual uint32_t get_pixel_height() const noexcept;
 
   PropDef &operator=(PropDef&&) noexcept = delete;
   PropDef &operator=(PropDef const&) = delete;
@@ -377,6 +399,9 @@ public:
   const std::vector<uint8_t> repeat;
   const PropColorTreatment color_treatment;
   const int bevel;
+
+  inline uint32_t get_pixel_width() const noexcept override { return width * 20; }
+  inline uint32_t get_pixel_height() const noexcept override { return height * 20; }
 
   Standard &operator=(Standard&&) noexcept = delete;
   Standard &operator=(Standard const&) = delete;
@@ -416,6 +441,9 @@ public:
   const PropColorTreatment color_treatment;
   const bool colorize;
   const int bevel;
+
+    inline uint32_t get_pixel_width() const noexcept override { return width * 20; }
+  inline uint32_t get_pixel_height() const noexcept override { return height * 20; }
 
   VariedStandard &operator=(VariedStandard&&) noexcept = delete;
   VariedStandard &operator=(VariedStandard const&) = delete;
@@ -477,6 +505,9 @@ public:
   const uint8_t variations;
   const bool random;
 
+  inline uint32_t get_pixel_width() const noexcept override { return pixel_width; }
+  inline uint32_t get_pixel_height() const noexcept override { return pixel_height; }
+
   VariedDecal &operator=(VariedDecal&&) noexcept = delete;
   VariedDecal &operator=(VariedDecal const&) = delete;
 
@@ -509,7 +540,6 @@ public:
   const bool round, self_shade;
   const uint32_t smooth_shading; // cannot be zero
   const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
-
 
   Soft &operator=(Soft&&) noexcept = delete;
   Soft &operator=(Soft const&) = delete;
@@ -550,6 +580,9 @@ public:
   const uint32_t pixel_width, pixel_height;
   const uint32_t smooth_shading; // cannot be zero
   const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
+
+  inline uint32_t get_pixel_width() const noexcept override { return pixel_width; }
+  inline uint32_t get_pixel_height() const noexcept override { return pixel_height; }
 
   VariedSoft &operator=(VariedSoft&&) noexcept = delete;
   VariedSoft &operator=(VariedSoft const&) = delete;
@@ -602,6 +635,9 @@ public:
   const uint32_t pixel_width, pixel_height;
   const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
 
+  inline uint32_t get_pixel_width() const noexcept override { return pixel_width; }
+  inline uint32_t get_pixel_height() const noexcept override { return pixel_height; }
+
   ColoredSoft &operator=(ColoredSoft&&) noexcept = delete;
   ColoredSoft &operator=(ColoredSoft const&) = delete;
 
@@ -640,6 +676,7 @@ public:
 };
 
 class SoftEffect : public PropDef {
+
   public:
 
   SoftEffect &operator=(SoftEffect&&) noexcept = delete;

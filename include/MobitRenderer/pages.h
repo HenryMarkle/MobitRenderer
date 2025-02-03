@@ -228,7 +228,14 @@ private:
 
   bool _hovering_on_window;
 
-  bool _should_redraw;
+  bool _should_redraw,
+    _should_redraw1,
+    _should_redraw2,
+    _should_redraw3,
+    _should_redraw_tile1,
+    _should_redraw_tile2,
+    _should_redraw_tile3,
+    _should_redraw_props;
 
   TileDef 
     *_selected_tile, 

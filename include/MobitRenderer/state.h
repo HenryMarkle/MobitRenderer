@@ -152,7 +152,11 @@ private:
   Shader _white_remover_apply_alpha;
   Shader _white_remover_rgb_recolor;
   Shader _voxel_struct;
+  Shader _default_prop;
+  Shader _soft;
+  Shader _varied_soft;
   Shader _voxel_struct_tinted;
+  Shader _varied_voxel_struct;
 
   bool loaded;
 
@@ -172,7 +176,11 @@ public:
   inline const Shader &white_remover_apply_alpha() const noexcept { return _white_remover_apply_alpha; }
   inline const Shader &white_remover_rgb_recolor() const noexcept { return _white_remover_rgb_recolor; }
   inline const Shader &voxel_struct() const noexcept { return _voxel_struct; }
+  inline const Shader &default_prop() const noexcept { return _default_prop; }
+  inline const Shader &soft() const noexcept { return _soft; }
+  inline const Shader &varied_soft() const noexcept { return _varied_soft; }
   inline const Shader &voxel_struct_tinted() const noexcept { return _voxel_struct_tinted; }
+  inline const Shader &varied_voxel_struct() const noexcept { return _varied_voxel_struct; }
 
   shaders &operator=(shaders const&) = delete;
   shaders &operator=(shaders &&) noexcept;
@@ -190,6 +198,9 @@ private:
   std::shared_ptr<dirs> directories;
 
 public:
+
+  // Shouldn't these be stored in the Level class?
+
   rendertexture main_level_viewport;
 
   rendertexture 
@@ -207,9 +218,13 @@ public:
     tile_layer2,
     tile_layer3;
 
+  /// @note This buffer's size is wider by 400px and higher by 400px
+  /// than the level, to show out-of-bounds props.
+  rendertexture props;
+
   texture file_icon, folder_icon, up_icon, home_icon;
 
-  GE_Textures geometry_editor;
+  GE_Textures geometry_editor;  // One of a kind, as usual.
 
   void reload_all_textures();
 

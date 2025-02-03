@@ -31,6 +31,12 @@ void draw_tile_prevs_layer(
     float scale
 );
 
+void draw_tile_as_prop(
+    const TileDef *def,
+    const shaders *_shaders,
+    const Quad &quad
+) noexcept;
+
 /// @brief Draws a preview of a prop.
 /// @param def The definition of the prop.
 /// @param settings The configuration of the prop.
@@ -47,7 +53,7 @@ void draw_prop_preview(
 /// @param prop The prop instance of course. 
 /// @param _shaders The shaders manager class.
 void draw_prop_preview(
-    const Prop &prop,
+    const Prop *prop,
     const shaders *_shaders
 ) noexcept;
 

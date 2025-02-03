@@ -27,11 +27,38 @@ IQuad::IQuad(
     bottomleft(bottomleft) 
 {}
 
+IQuad::IQuad(Rectangle r) :
+    topleft(IVector2{(int)r.x, (int)r.y}),
+    topright(IVector2{(int)(r.x + r.width), (int)r.y}),
+    bottomright(IVector2{(int)(r.x + r.width), (int)(r.y + r.height)}),
+    bottomleft(IVector2{(int)r.x, (int)(r.y + r.height)})
+{}
+
+
 Quad::Quad() : 
     topleft({0, 0}), 
     topright({0, 0}), 
     bottomright({0, 0}), 
     bottomleft({0, 0}) 
+{}
+
+Quad::Quad(
+    Vector2 topleft, 
+    Vector2 topright, 
+    Vector2 bottomright, 
+    Vector2 bottomleft
+) :
+    topleft(topleft), 
+    topright(topright), 
+    bottomright(bottomright), 
+    bottomleft(bottomleft) 
+{}
+
+Quad::Quad(Rectangle r) :
+    topleft({r.x, r.y}),
+    topright({r.x + r.width, r.y}),
+    bottomright({r.x + r.width, r.y + r.height}),
+    bottomleft({r.x, r.y + r.height})
 {}
 
 IQuad IQuad::rotated_around(float degrees, IVector2 ctr) const noexcept {
@@ -164,19 +191,6 @@ Rectangle IQuad::enclose() const noexcept {
 
     return Rectangle { min_x, min_y, (max_x - min_x), (max_y - min_y) };
 }
-
-
-Quad::Quad(
-    Vector2 topleft, 
-    Vector2 topright, 
-    Vector2 bottomright, 
-    Vector2 bottomleft
-) :
-    topleft(topleft), 
-    topright(topright), 
-    bottomright(bottomright), 
-    bottomleft(bottomleft) 
-{}
 
 Quad Quad::rotated_around(float degrees, Vector2 ctr) const noexcept {
     float radian = degrees * PI / 180.0f;

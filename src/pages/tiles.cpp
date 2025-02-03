@@ -105,8 +105,8 @@ void Tile_Page::_redraw_tile_texture_rt() noexcept {
         float width = _selected_tile->calculate_width(20)*1.0f / _selected_tile->get_texture().width;
         SetShaderValue(shader, GetShaderLocation(shader, "width"), &width, SHADER_UNIFORM_FLOAT);
         
-        auto depth = 2;
-        SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_INT);
+        auto depth = -0.022f;
+        SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_FLOAT);
         
         DrawTexturePro(
           texture,
@@ -642,7 +642,7 @@ void Tile_Page::draw() noexcept {
       },
       4,
       WHITE
-  );
+    );
 
     if (_hovered_cell != nullptr) {
       switch (_hovered_cell->type) {
@@ -793,7 +793,7 @@ void Tile_Page::windows() noexcept {
 }
 void Tile_Page::order_level_redraw() noexcept { _should_redraw = true; }
 void Tile_Page::f3() const noexcept {
-    auto f3 = ctx->f3_;
+  auto f3 = ctx->f3_;
   auto camera = ctx->get_camera();
 
   f3->print("Zoom ");

@@ -15,21 +15,17 @@ void PropDef::load_texture() {
     if (loaded) return;
 
     #ifdef IS_DEBUG_BUILD
-    if (std::filesystem::exists(texture_path)) {
-        auto img = LoadImage(texture_path.string().c_str());
-        ImageCrop(&img, Rectangle{0, 1, (float)img.width, (float)img.height - 1});
-
-        texture = LoadTextureFromImage(img);
-        UnloadImage(img);
+    if (!std::filesystem::exists(texture_path)) {
+        std::cout << "Warning: prop texture path not found: " << texture_path << std::endl;
+        return;
     }
-    else std::cout << "Warning: texture path not found: " << texture_path << std::endl;
-    #else
+    #endif
+
     auto img = LoadImage(texture_path.string().c_str());
     ImageCrop(&img, Rectangle{0, 1, (float)img.width, (float)img.height - 1});
 
     texture = LoadTextureFromImage(img);
     UnloadImage(img);
-    #endif
 
     loaded = true;
 }
@@ -39,6 +35,8 @@ void PropDef::unload_texture() {
     loaded = false;
 }
 
+uint32_t PropDef::get_pixel_width() const noexcept { return texture.width; }
+uint32_t PropDef::get_pixel_height() const noexcept { return texture.height; }
 
 PropDef::PropDef(uint8_t depth, std::string &&name, PropType type) :
     depth(depth), name(std::move(name)), type(type), tags({}), loaded(false), color({255, 0, 0, 255})

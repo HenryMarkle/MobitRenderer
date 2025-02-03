@@ -15,6 +15,7 @@ struct IQuad {
 
     IQuad();
     IQuad(IVector2, IVector2, IVector2, IVector2);
+    IQuad(Rectangle);
   
     inline IQuad operator+(IVector2 v) const noexcept {
         return IQuad(
@@ -105,6 +106,7 @@ struct Quad {
 
     Quad();
     Quad(Vector2, Vector2, Vector2, Vector2);
+    Quad(Rectangle);
 
     inline Quad operator+(IVector2 v) const noexcept {
         return Quad(

@@ -75,6 +75,19 @@ void draw_texture(const Texture2D *texture, const Quad *quad);
 
 void draw_texture(const Texture2D &texture, const Quad &quad, Color color);
 
+void draw_texture(
+  const Texture2D &texture, 
+  Rectangle src, 
+  const Quad &quad
+) noexcept;
+
+void draw_texture(
+  const Texture2D &texture, 
+  Rectangle src, 
+  const Quad &quad, 
+  Color color
+) noexcept;
+
 void draw_grid(levelsize width, levelsize height, Color color = GRAY, int scale = 20, int thickness = 1) noexcept;
 void draw_nested_grid(levelsize width, levelsize height, Color color, int scale = 20, int thickness = 1) noexcept;
 

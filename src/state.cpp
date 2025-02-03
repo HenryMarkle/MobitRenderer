@@ -172,7 +172,11 @@ void shaders::unload_all() {
   mr::utils::unload_shader(_white_remover_apply_color);
   mr::utils::unload_shader(_white_remover_rgb_recolor);
   mr::utils::unload_shader(_voxel_struct);
+  mr::utils::unload_shader(_default_prop);
+  mr::utils::unload_shader(_soft);
+  mr::utils::unload_shader(_varied_soft);
   mr::utils::unload_shader(_voxel_struct_tinted);
+  mr::utils::unload_shader(_varied_voxel_struct);
   loaded = false;
 }
 
@@ -197,8 +201,20 @@ void shaders::load_all() {
   auto voxel_struct_path = _shaders_dir / "voxel_struct.frag";
   _voxel_struct = LoadShader(nullptr, voxel_struct_path.string().c_str());
 
+  auto default_prop_path = _shaders_dir / "default_prop.frag";
+  _default_prop = LoadShader(nullptr, default_prop_path.string().c_str());
+
+  auto soft_path = _shaders_dir / "soft.frag";
+  _soft = LoadShader(nullptr, soft_path.string().c_str());
+
+  auto varied_soft_path = _shaders_dir / "varied_soft.frag";
+  _varied_soft = LoadShader(nullptr, varied_soft_path.string().c_str());
+
   auto voxel_struct_tinted_path = _shaders_dir / "voxel_struct_tinted.frag";
   _voxel_struct_tinted = LoadShader(nullptr, voxel_struct_tinted_path.string().c_str());
+
+  auto variedvoxel_struct_path = _shaders_dir / "varied_voxel_struct.frag";
+  _varied_voxel_struct = LoadShader(nullptr, variedvoxel_struct_path.string().c_str());
 
   loaded = true;
 }
@@ -221,7 +237,11 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _white_remover_apply_alpha = other._white_remover_apply_alpha;
   _white_remover_rgb_recolor = other._white_remover_rgb_recolor;
   _voxel_struct = other._voxel_struct;
+  _default_prop = other._default_prop;
+  _soft = other._soft;
+  _varied_soft = other._varied_soft;
   _voxel_struct_tinted = other._voxel_struct_tinted;
+  _varied_voxel_struct = other._varied_voxel_struct;
 
   other._vflip = Shader{0};
   other._white_remover = Shader{0};
@@ -229,7 +249,11 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
   other._voxel_struct = Shader{0};
+  other._default_prop = Shader{0};
+  other._soft = Shader{0};
+  other._varied_soft = Shader{0};
   other._voxel_struct_tinted = Shader{0};
+  other._varied_voxel_struct = Shader{0};
   other.loaded = false;
 
   return *this;
@@ -243,7 +267,11 @@ shaders::shaders(shaders &&other) noexcept :
   _white_remover_apply_alpha(other._white_remover_apply_alpha),
   _white_remover_rgb_recolor(other._white_remover_rgb_recolor),
   _voxel_struct(other._voxel_struct),
+  _default_prop(other._default_prop),
+  _soft(other._soft),
+  _varied_soft(other._varied_soft),
   _voxel_struct_tinted(other._voxel_struct_tinted),
+  _varied_voxel_struct(other._varied_voxel_struct),
   loaded(other.loaded)
 {
   other.loaded = false;
@@ -253,7 +281,11 @@ shaders::shaders(shaders &&other) noexcept :
   other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
   other._voxel_struct = Shader{0};
+  other._default_prop = Shader{0};
+  other._soft = Shader{0};
+  other._varied_soft = Shader{0};
   other._voxel_struct_tinted = Shader{0};
+  other._varied_voxel_struct = Shader{0};
 }
 
 shaders::shaders(std::filesystem::path shaders_dir) : 
@@ -265,7 +297,11 @@ shaders::shaders(std::filesystem::path shaders_dir) :
   _white_remover_apply_alpha(Shader{0}),
   _white_remover_rgb_recolor(Shader{0}),
   _voxel_struct(Shader{0}),
-  _voxel_struct_tinted(Shader{0}) { }
+  _default_prop(Shader{0}),
+  _soft(Shader{0}),
+  _varied_soft(Shader{0}),
+  _voxel_struct_tinted(Shader{0}),
+  _varied_voxel_struct(Shader{0}) { }
 
 shaders::~shaders() { 
   unload_all();
@@ -461,6 +497,20 @@ void textures::resize_all_level_buffers(int width, int height) {
     tile_layer1 = std::move(new_tile_layer1);
     tile_layer2 = std::move(new_tile_layer2);
     tile_layer3 = std::move(new_tile_layer3);
+  }
+  // Prop buffer
+  {
+    auto new_buffer = rendertexture(width + 400, height + 400);
+
+    BeginTextureMode(new_buffer.get());
+    ClearBackground(WHITE);
+
+    if (props.is_loaded()) {
+      DrawTexture(props.get().texture, 200, 200, WHITE);
+    }
+    EndTextureMode();
+
+    props = std::move(new_buffer);
   }
 }
 
