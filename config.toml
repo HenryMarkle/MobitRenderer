@@ -17,11 +17,11 @@ list_wrap = false
 # The whole init won't load if any error occurrs.
 strict_deserialization = false
 
-props =     { visible = true, opacity = 255 }
-tiles =     { visible = true, opacity = 255 }
-water =     { visible = true, opacity =  70 }
-materials = { visible = true, opacity = 255 }
-grid =      { visible = true, opacity = 255 }
+props =     { visible = true , opacity = 255 }
+tiles =     { visible = true , opacity = 255 }
+water =     { visible = true , opacity =  70 }
+materials = { visible = true , opacity = 255 }
+grid =      { visible = false, opacity =  90 }
 
 [general.prerendering]
 
@@ -44,8 +44,9 @@ basic_view = true # The classic RGB level view.
 # 'inherit' means take the setting from [general].
 props = { inherit = true, visible = true, opacity = 255 }
 tiles = { inherit = true, visible = true, opacity = 255 }
-water = { inherit = true, visible = true, opacity = 70 }
-materials = { visible = true, opacity = 255 }
+water = { inherit = true, visible = true, opacity =  70 }
+materials = { visible = true, opacity =  255 }
+grid =      { inherit = false, visible = false, opacity =  90 }
 
 [page.geometry.basic_view_colors]
 
@@ -60,6 +61,7 @@ props = { inherit = true, visible = true, opacity = 255 }
 tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
+grid =      { inherit = true, visible = false, opacity =  90 }
 
 [page.cameras]
 
@@ -67,6 +69,7 @@ props = { inherit = true, visible = true, opacity = 255 }
 tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
+grid =      { inherit = true, visible = false, opacity =  90 }
 
 [page.light]
 
@@ -74,6 +77,7 @@ props = { inherit = true, visible = true, opacity = 255 }
 tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
+grid =      { inherit = true, visible = false, opacity =  90 }
 
 [page.effects]
 
@@ -81,6 +85,7 @@ props = { inherit = true, visible = true, opacity = 255 }
 tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
+grid =      { inherit = true, visible = false, opacity =  90 }
 
 canvas = { r = 255, g = 0, b = 255, a = 100 }
 effect = { r = 0, g = 255, b = 0, a = 120 }
@@ -91,41 +96,38 @@ props = { inherit = true, visible = true, opacity = 255 }
 tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
+grid =      { inherit = true, visible = false, opacity =  90 }
 
-# Paths here are relative to the executable's.
-
-[paths]
-
-logs = "Logs"
-levels = "Levels"
-projects = "Projects"
-imgui = "imgui.ini"
-icon = "icon.png"
 
 [paths.data]
 
-cast = "Data/Cast"
+# if default is true, ignore path 
+default = true 
+path = "Data"
+
+[paths.cast]
+
+# if inherit is true, ignore path
+inherit = true
+path = "Data/Cast"
 
 [paths.assets]
 
-shaders = "Assets/Shaders"
-fonts = "Assets/Fonts"
-icons = "Assets/Icons"
+# if default is true, ignore path 
+default = true
+path = "Assets"
 
 [[paths.inits.materials]]
 
-path = "Data/Materials"
-init = "Init.txt"       # by default "Init.txt"
+# Add a path to a materials init file
 
 [[paths.inits.tiles]]
 
-path = "Data/Graphics"
-init = "Init.txt"
+# Add a path to a tiles init file
 
 [[paths.inits.props]]
 
-path = "Data/Props"
-init = "Init.txt"
+# Add a path to a props init file
 
 # Shortcuts that work across screens.
 
@@ -134,23 +136,23 @@ init = "Init.txt"
 # Each number maps to an enum defined in raylib.h
 # 48..57 = KEY_ONE..KEY_NINE
 
-start = { key = 48, ctrl = false, shift = false, alt = false, held = false }
-main = { key = 49, ctrl = false, shift = false, alt = false, held = false }
-geometry = { key = 50, ctrl = false, shift = false, alt = false, held = false }
-tiles = { key = 51, ctrl = false, shift = false, alt = false, held = false }
-cameras = { key = 52, ctrl = false, shift = false, alt = false, held = false }
-light = { key = 53, ctrl = false, shift = false, alt = false, held = false }
-dimensions = { key = 54, ctrl = false, shift = false, alt = false, held = false }
-effects = { key = 55, ctrl = false, shift = false, alt = false, held = false }
-props = { key = 56, ctrl = false, shift = false, alt = false, held = false }
-settings = { key = 57, ctrl = false, shift = false, alt = false, held = false }
+start       = { key = 48, ctrl = false, shift = false, alt = false, held = false }
+main        = { key = 49, ctrl = false, shift = false, alt = false, held = false }
+geometry    = { key = 50, ctrl = false, shift = false, alt = false, held = false }
+tiles       = { key = 51, ctrl = false, shift = false, alt = false, held = false }
+cameras     = { key = 52, ctrl = false, shift = false, alt = false, held = false }
+light       = { key = 53, ctrl = false, shift = false, alt = false, held = false }
+dimensions  = { key = 54, ctrl = false, shift = false, alt = false, held = false }
+effects     = { key = 55, ctrl = false, shift = false, alt = false, held = false }
+props       = { key = 56, ctrl = false, shift = false, alt = false, held = false }
+settings    = { key = 57, ctrl = false, shift = false, alt = false, held = false }
 
 # Shortcuts for each editor screen.
 
-[shortcuts.main]
-[shortcuts.geometry]
-[shortcuts.tiles]
-[shortcuts.cameras]
-[shortcuts.light]
-[shortcuts.effects]
-[shortcuts.props]
+# [shortcuts.main]
+# [shortcuts.geometry]
+# [shortcuts.tiles]
+# [shortcuts.cameras]
+# [shortcuts.light]
+# [shortcuts.effects]
+# [shortcuts.props]

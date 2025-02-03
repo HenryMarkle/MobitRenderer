@@ -19,6 +19,7 @@
 #include <MobitRenderer/atlas.h>
 #include <MobitRenderer/dex.h>
 #include <MobitRenderer/castlibs.h>
+#include <MobitRenderer/config.h>
 
 namespace mr {
 
@@ -28,7 +29,7 @@ private:
 
   std::filesystem::path executable;
   std::filesystem::path assets, projects, levels, data, datapacks, logs;
-  std::filesystem::path shaders, fonts, materials, tiles, props, cast;
+  std::filesystem::path shaders, palettes, fonts, materials, tiles, props, cast;
   std::filesystem::path tilepacks, proppacks, materialpacks;
 
   bool 
@@ -36,6 +37,7 @@ private:
     executable_found,
     
     assets_found,
+    palettes_found,
     shaders_found,
     fonts_found,
     
@@ -59,6 +61,7 @@ public:
   inline const std::filesystem::path &get_executable() const noexcept { return executable; }
 
   inline const std::filesystem::path &get_assets() const noexcept { return assets; }
+  inline const std::filesystem::path &get_palettes() const noexcept { return palettes; }
   inline const std::filesystem::path &get_projects() const noexcept { return projects; }
   inline const std::filesystem::path &get_levels() const noexcept { return levels; }
   inline const std::filesystem::path &get_data() const noexcept { return data; }
@@ -83,6 +86,7 @@ public:
   inline bool is_executable_found() const noexcept { return executable_found; }
   
   inline bool is_assets_found() const noexcept { return assets_found; }
+  inline bool is_palettes_found() const noexcept { return palettes_found; }
   inline bool is_shaders_found() const noexcept { return shaders_found; }
   inline bool is_fonts_found() const noexcept { return fonts_found; }
 
@@ -193,9 +197,41 @@ public:
   ~shaders();
 };
 
+/// @attention Must be destroyed (or unloaded) before CloseWindow().
+class Palette {
+
+private:
+  
+  std::string name;
+  Texture2D texture;
+  bool loaded;
+
+public:
+  
+  std::filesystem::path texture_path;
+
+  inline const std::string &get_name() const noexcept { return name; }
+  inline bool is_loaded() const noexcept { return loaded; }
+  void load();
+  void unload();
+  inline void reload() { unload(); load(); }
+  inline const Texture &get_texture() const noexcept { return texture; }
+  inline const Texture &get_loaded_texture() { load(); return texture; }
+  
+  Palette &operator=(Palette const&) = delete;
+  Palette &operator=(Palette&&) noexcept;
+
+  Palette(const std::string&, const std::filesystem::path&);
+  Palette(Palette const&) = delete;
+  Palette(Palette&&) noexcept;
+  ~Palette();
+
+};
+
 class textures {
 private:
   std::shared_ptr<dirs> directories;
+  std::vector<Palette> palettes;
 
 public:
 
@@ -237,15 +273,11 @@ public:
   /// @param height Level height in pixels.
   void resize_all_level_buffers(int width, int height);
 
+  inline const std::vector<Palette>& get_palettes() const noexcept { return palettes; }
+  void reload_palettes();
+
   textures(std::shared_ptr<dirs>, bool preload_textures = false);
   ~textures();
-};
-
-class shortcuts {
-private:
-public:
-  shortcuts();
-  ~shortcuts();
 };
 
 enum class context_event_type { level_loaded, goto_page };
@@ -255,34 +287,7 @@ struct context_event {
   std::any payload;
 };
 
-struct SpriteVisiblity {
-  bool inherit, visible;
-  uint8_t opacity;
 
-  SpriteVisiblity(bool inherit = true, bool visible = true,
-                  uint8_t opacity = 255);
-};
-
-struct SpritePrerender {
-  bool tinted, preview, palette;
-
-  SpritePrerender(bool tinted = false, bool preview = true, bool palette = false);
-};
-
-struct config {
-  bool splashscreen, f3, crash_on_esc, blue_screen_of_death;
-
-  uint16_t event_handle_per_frame, load_per_frame;
-  bool list_wrap, strict_deserialization;
-
-  SpriteVisiblity props_visibility, tiles_visibility, water_visibility,
-      materials_visibility, grid;
-  SpritePrerender tiles_prerender, props_prerender, materials_prerender;
-
-  bool shadows;
-
-  config();
-};
 
 class context {
 private:
@@ -291,7 +296,7 @@ private:
   std::vector<mr::Level *> levels;
   uint8_t selected_level;
 
-  config _config;
+  std::shared_ptr<Config> _config;
 
 public:
   std::shared_ptr<spdlog::logger> logger;
@@ -329,11 +334,8 @@ public:
   void lock_global_shortcuts() noexcept;
   void unlock_global_shortcuts() noexcept;
 
-  const config &get_config_const() const noexcept;
-  config &get_config() noexcept;
-  const config *get_config_const_ptr() const noexcept;
-  config *get_config_ptr() noexcept;
-  void set_config(config) noexcept;
+  inline std::shared_ptr<Config> get_config() const noexcept { return _config; }
+  void set_config(Config const&) noexcept;
 
   context() = delete;
   context(std::shared_ptr<spdlog::logger>, std::shared_ptr<dirs>);

@@ -10,7 +10,9 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
         "CMAKE_C_COMPILER": "/usr/bin/gcc",
         "CMAKE_CXX_COMPILER": "/usr/bin/g++",
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "FEATURE_DATAPACKS": "1",
+        "FEATURE_PALETTES": "1"
       }
     },
     {
@@ -22,6 +24,8 @@
         "CMAKE_C_COMPILER": "C:/w64devkit/bin/gcc.exe",
         "CMAKE_CXX_COMPILER": "C:/w64devkit/bin/g++.exe",
         "CMAKE_BUILD_TYPE": "Debug",
+        "FEATURE_DATAPACKS": "1",
+        "FEATURE_PALETTES": "1",
         "CMAKE_MAKE_PROGRAM": "C:/w64devkit/bin/make.exe"
       }
     }

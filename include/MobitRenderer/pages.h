@@ -35,6 +35,11 @@ public:
   /// @brief Draws debug information
   virtual void f3() const noexcept;
 
+  Page &operator=(Page const&) = delete;
+  Page &operator=(Page&&) noexcept = delete;
+
+  Page(Page const&) = delete;
+  Page(Page&&) noexcept = delete;
   virtual ~Page() = default;
 };
 
@@ -263,10 +268,27 @@ public:
   void process() noexcept override;
   void draw() noexcept override;
   void windows() noexcept override;
-  void f3() const noexcept;
+  void f3() const noexcept override;
 
   Props_Page(context*);
   ~Props_Page();
+
+};
+class Settings_Page : public LevelPage {
+
+private:
+
+  int category_index;
+
+public:
+
+  void process() noexcept override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void f3() const noexcept override;
+
+  Settings_Page(context*);
+  ~Settings_Page();
 
 };
 class Render_Page : public LevelPage {};
@@ -283,6 +305,7 @@ Tile_Page _tile_page;
 Camera_Page _camera_page;
 
 Props_Page _props_page;
+Settings_Page _settings_page;
 
 int _selected, _previous;
 

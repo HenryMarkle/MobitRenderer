@@ -215,7 +215,6 @@ private:
   Matrix<GeoCell> geo_matrix;
   Matrix<TileCell> tile_matrix;
   std::vector<Effect> effects;
-  std::vector<std::shared_ptr<Prop>> props;
 
   RenderTexture2D lightmap;
 
@@ -225,6 +224,7 @@ public:
   int water;
   bool light, terrain, front_water;
   std::vector<LevelCamera> cameras;
+  std::vector<std::shared_ptr<Prop>> props;
   int seed;
 
   const std::string &get_name() const noexcept;

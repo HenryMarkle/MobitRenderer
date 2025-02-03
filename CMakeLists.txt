@@ -101,6 +101,12 @@ else()
   target_compile_definitions(MobitRenderer PRIVATE FEATURE_DATAPACKS=0)
 endif()
 
+if(FEATURE_PALETTES)
+  target_compile_definitions(MobitRenderer PRIVATE FEATURE_PALETTES=1)
+else()
+  target_compile_definitions(MobitRenderer PRIVATE FEATURE_PALETTES=0)
+endif()
+
 target_compile_definitions(MobitRenderer PRIVATE BUILD_TYPE="${CMAKE_BUILD_TYPE}")
 
 # Define version

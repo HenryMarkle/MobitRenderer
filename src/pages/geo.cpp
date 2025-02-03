@@ -42,7 +42,7 @@ void Geo_Page::f3() const noexcept {
 
   f3->print("Grid ");
   // f3->print(ctx->get_config_const().grid.visible, true);
-  f3->print(ctx->get_config_const().grid.visible, true);
+  f3->print(ctx->get_config()->geometry.grid.visible, true);
 
   f3->print("Layer Pointer: Global");
   f3->print("L ");
@@ -230,7 +230,7 @@ void Geo_Page::draw() noexcept {
   DrawRectangle(0, 0, width * 20, height * 20, GRAY);
   DrawTexture(ctx->_textures->get_main_level_viewport().texture, 0, 0, WHITE);
 
-  if (ctx->get_config_const().grid.visible) {
+  if (ctx->get_config()->geometry.grid.visible) {
     mr::draw::draw_nested_grid(
       width, 
       height, 

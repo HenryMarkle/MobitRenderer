@@ -91,8 +91,9 @@ public:
   inline const std::filesystem::path &get_texture_path() const noexcept { return texture_path; }
 
   inline bool is_texture_loaded() const noexcept { return _is_texture_loaded; }
-  void reload_texture();
+  void load_texture();
   void unload_texture();
+  inline void reload_texture() { unload_texture(); load_texture(); }
   
   inline const Texture2D &get_texture() const noexcept { return texture; }
   

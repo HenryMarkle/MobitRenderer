@@ -12,6 +12,11 @@
 
 #include <raylib.h>
 
+#include <toml++/toml.hpp>
+#include <toml++/impl/forward_declarations.hpp>
+#include <toml++/impl/parse_error.hpp>
+#include <toml++/impl/parser.hpp>
+
 #include <MobitRenderer/atlas.h>
 #include <MobitRenderer/draw.h>
 #include <MobitRenderer/level.h>
@@ -67,6 +72,8 @@ dirs::dirs() {
   assets = executable / "Assets";
   #endif
 
+  palettes = assets / "Palettes";
+
   tilepacks = datapacks / "Tiles";
   proppacks = datapacks / "Props";
   materialpacks = datapacks / "Materials";
@@ -78,6 +85,10 @@ dirs::dirs() {
   if (!exists(projects)) std::filesystem::create_directory(projects);
   if (!exists(levels)) std::filesystem::create_directory(levels);
   if (!exists(logs)) std::filesystem::create_directory(logs);
+
+  #ifdef FEATURE_PALETTES
+  if (!exists(palettes)) std::filesystem::create_directory(palettes);
+  #endif
 
   #ifdef FEATURE_DATAPACKS
   if (!exists(datapacks)) std::filesystem::create_directory(datapacks);
@@ -96,6 +107,7 @@ dirs::dirs() {
   executable_found = exists(executable);
 
   assets_found = exists(assets);
+  palettes_found = exists(palettes);
   shaders_found = exists(shaders);
   fonts_found = exists(fonts);
 
@@ -339,25 +351,12 @@ void context::unlock_global_shortcuts() noexcept {
   enable_global_shortcuts = true;
 }
 
-const config &context::get_config_const() const noexcept {
-  return _config;
-}
-config &context::get_config() noexcept {
-  return _config;
-}
-const config *context::get_config_const_ptr() const noexcept {
-  return &_config;
-}
-config *context::get_config_ptr() noexcept {
-  return &_config;
-}
-void context::set_config(config c) noexcept {
-  _config = c;
-}
+void context::set_config(Config const &c) noexcept { *_config = c; }
 
 context::context(std::shared_ptr<spdlog::logger> logger,
                  std::shared_ptr<dirs> dirs)
-    : logger(logger), 
+    : logger(logger),
+      _config(Config::from_file(dirs->get_executable() / "config.toml")),
       directories(dirs),
       _textures(nullptr),
       _tiledex(nullptr),
@@ -376,6 +375,60 @@ context::~context() {
   }
 }
 
+void Palette::load() {
+  if (loaded) return;
+
+  if (!std::filesystem::exists(texture_path)) {
+    #ifdef IS_DEBUG_BUILD
+    std::cout << "Warning: palette texture not found: " << texture_path << std::endl;
+    #endif
+    return;
+  }
+
+  texture = LoadTexture(texture_path.string().c_str());
+  loaded = true;
+}
+
+void Palette::unload() {
+  if (!loaded) return;
+  mr::utils::unload_texture(texture);
+  loaded = false;
+}
+
+Palette &Palette::operator=(Palette &&other) noexcept {
+  if (this == &other) return *this;
+
+  texture = other.texture;
+  loaded = other.loaded;
+
+  name = std::move(other.name);
+  texture_path = std::move(other.texture_path);
+
+  other.texture = Texture2D{0};
+  other.loaded = false;
+
+  return *this;
+}
+
+Palette::Palette(const std::string &name, const std::filesystem::path &p) :
+  texture(Texture2D{0}),
+  name(name),
+  texture_path(p),
+  loaded(false)
+{}
+
+Palette::Palette(Palette &&other) noexcept :
+  loaded(other.loaded),
+  texture_path(std::move(other.texture_path)),
+  name(std::move(other.name)),
+  texture(other.texture)
+{
+  memset(&other.texture, 0, sizeof(Texture2D));
+  other.loaded = false;
+}
+
+Palette::~Palette() { unload(); }
+
 void textures::reload_all_textures() {
   file_icon = texture((directories->get_assets() / "Icons" / "file icon.png").string().c_str());
   folder_icon = texture((directories->get_assets() / "Icons" / "folder icon.png").string().c_str());
@@ -383,6 +436,14 @@ void textures::reload_all_textures() {
   home_icon = texture((directories->get_assets() / "Icons" / "home icon.png").string().c_str());
 
   geometry_editor.reload();
+
+  #ifdef FEATURE_PALETTES
+  for (auto &palette : palettes) palette.reload();
+  #endif
+}
+
+void textures::reload_palettes() {
+  for (auto &palette : palettes) palette.reload();
 }
 
 const RenderTexture2D &textures::get_main_level_viewport() const noexcept {
@@ -516,39 +577,27 @@ void textures::resize_all_level_buffers(int width, int height) {
 
 textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
     : directories(directories), 
-    geometry_editor(directories.get()->get_assets()) {
+    geometry_editor(directories.get()->get_assets()) 
+{
+
   if (preload_textures) {
     reload_all_textures();
   }
+
+  #ifdef FEATURE_PALETTES
+  if (directories->is_palettes_found()) {
+    for (const auto &entry : std::filesystem::directory_iterator(directories->get_palettes())) {
+      if (entry.path().extension() != ".png") continue;
+
+      palettes.push_back(Palette(entry.path().stem().string(), entry.path()));
+    }
+  }
+  #endif
 }
 
 textures::~textures() {}
 
-SpriteVisiblity::SpriteVisiblity(bool inherit, bool visible, uint8_t opacity) :
-  inherit(inherit), visible(visible), opacity(opacity) {}
 
-SpritePrerender::SpritePrerender(bool tinted, bool preview, bool palette) : tinted(tinted), preview(preview), palette(palette) {}
-
-config::config() : 
-  splashscreen(true), 
-  f3(false), 
-  crash_on_esc(false),
-  blue_screen_of_death(true),
-  event_handle_per_frame(30),
-  load_per_frame(100),
-  list_wrap(true),
-  strict_deserialization(true),
-
-  props_visibility(SpriteVisiblity()),
-  tiles_visibility(SpriteVisiblity()),
-  water_visibility(SpriteVisiblity()),
-  materials_visibility(SpriteVisiblity()),
-  grid(SpriteVisiblity()),
-  
-  tiles_prerender(SpritePrerender()),
-  props_prerender(SpritePrerender()),
-  materials_prerender(SpritePrerender()),
-  shadows(false) {}
 
 void fonts::load_all() {
   if (loaded) return;

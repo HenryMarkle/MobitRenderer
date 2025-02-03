@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
           ImGui::MenuItem("Dimensions", nullptr, current_page == 6, false);
           ImGui::MenuItem("Effects", nullptr, current_page == 7, false);
           auto goto_props = ImGui::MenuItem("Props", nullptr, current_page == 8, true);
-          ImGui::MenuItem("Settings", nullptr, current_page == 9, false);
+          auto goto_settings = ImGui::MenuItem("Settings", nullptr, current_page == 9, true);
 
           if (goto_main) {
             pager->select(1);
@@ -283,6 +283,9 @@ int main(int argc, char* argv[]) {
           }
           else if (goto_props) {
             pager->select(8);
+          }
+          else if (goto_settings) {
+            pager->select(9);
           }
         }
 

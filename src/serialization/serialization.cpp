@@ -521,6 +521,11 @@ std::unique_ptr<ProjectSaveFileNodes> parse_project(const std::filesystem::path 
       }
       break;
     case 8:
+      try {
+        nodes->props = mp::parse(tokens, true);
+      } catch (std::exception &e) {
+        throw parse_failure(std::string("failed to parse props: ")+e.what());
+      }
       break;
     }
 
@@ -1224,10 +1229,33 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
     );
   }
 
+  // Props
+
+  // I know that props some times are not included in the project file, 
+  // but I don't care.
+
+  const mp::Props* props_line_node = dynamic_cast<const mp::Props*>(nodes->props.get());
+  if (props_line_node == nullptr) throw deserialization_failure(
+    "failed to parse props: props line is not a Property List*"
+  );
+
+  auto props_iter = props_line_node->map.find("props");
+  if (props_iter == props_line_node->map.end()) throw deserialization_failure(
+    "failed to parse props: #props not found"
+  );
+
+  try {
+    deser_props(props_iter->second.get(), level->props);
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(
+      std::string("failed to deserialize props: ")+de.what()
+    );
+  }
+
   return level;
 }
 
-std::shared_ptr<config> load_config(const std::filesystem::path &path) {
+std::shared_ptr<Config> load_config(const std::filesystem::path &path) {
   toml::parse_result parsed;
 
   try {
@@ -1241,7 +1269,7 @@ std::shared_ptr<config> load_config(const std::filesystem::path &path) {
     return nullptr;
   }
 
-  auto c = std::make_shared<config>();
+  auto c = std::make_shared<Config>();
 
   return nullptr;
 }

@@ -1,11 +1,13 @@
 #include <string>
 #include <filesystem>
 #include <unordered_set>
+#include <iostream>
 #include <math.h>
 
 #include <raylib.h>
 
 #include <MobitRenderer/definitions.h>
+#include <MobitRenderer/utils.h>
 
 // To be used in unordered maps and sets
 namespace std {
@@ -18,8 +20,16 @@ template <> struct hash<mr::TileDef> {
 
 namespace mr {
 
-void TileDef::reload_texture() {
-  unload_texture();
+void TileDef::load_texture() {
+  if (_is_texture_loaded) return;
+
+  if (!std::filesystem::exists(texture_path)) {
+    #ifdef IS_DEBUG_BUILD
+    std::cout << "Warning: tile texture not found: " << texture_path << std::endl;
+    #endif
+
+    return;
+  }
 
   if (type != TileDefType::box) {
     auto img = LoadImage(texture_path.string().c_str());
@@ -30,13 +40,12 @@ void TileDef::reload_texture() {
     texture = LoadTexture(texture_path.string().c_str());
   }
 
-  if (!_is_texture_loaded) _is_texture_loaded = true;
+  _is_texture_loaded = true;
 }
+
 void TileDef::unload_texture() {
-  if (texture.id == 0) return;
-  
-  UnloadTexture(texture);
-  texture = {0};
+  if (!_is_texture_loaded) return;
+  mr::utils::unload_texture(texture);
   _is_texture_loaded = false;
 }
 
