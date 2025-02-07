@@ -12,9 +12,13 @@
 
 namespace mr {
 
-void handle_level_loaded(context *ctx, pages::pager *pager,
-                         const std::any &payload) {
+void handle_level_loaded(context *ctx, pages::pager *pager, const std::any &payload) {
   pager->select(1);
+  for (auto p : pager->get_pages()) p->on_level_loaded();
+}
+
+void handle_level_selected(context *ctx, pages::pager *pager, const std::any &payload) {
+  for (auto p : pager->get_pages()) p->on_level_selected();
 }
 
 void handle_goto_page(context *ctx, pages::pager *pager,

@@ -69,7 +69,8 @@ int8_t deser_int8(const mp::Node *node) {
 uint8_t deser_uint8(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an uint8");
-  return (uint8_t)int_node->number;
+  
+  return (uint8_t)abs(int_node->number);
 }
 uint16_t deser_uint16(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);

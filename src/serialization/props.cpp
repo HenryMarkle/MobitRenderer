@@ -297,6 +297,7 @@ void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props
                 if (variation != notfound) {
                     try {
                         settings.variation = deser_int(variation->second.get());
+                        if (--settings.variation < 0) settings.variation = 0;
                     } catch (deserialization_failure &de) {
                         throw deserialization_failure(
                             std::string("failed to deserialize prop #")

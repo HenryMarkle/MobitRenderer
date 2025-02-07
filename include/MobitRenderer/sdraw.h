@@ -34,7 +34,9 @@ void draw_tile_prevs_layer(
 void draw_tile_as_prop(
     const TileDef *def,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a prop.
@@ -47,6 +49,7 @@ void draw_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int depth
 ) noexcept;
 
@@ -78,7 +81,8 @@ void draw_standard_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a varied standard prop.
@@ -91,7 +95,8 @@ void draw_varied_standard_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a soft standard prop.
@@ -104,7 +109,8 @@ void draw_soft_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a varied soft prop.
@@ -117,7 +123,8 @@ void draw_varied_soft_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a colored soft prop.
@@ -130,7 +137,8 @@ void draw_colored_soft_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a soft effect prop.
@@ -143,7 +151,8 @@ void draw_soft_effect_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a (simple) decal prop.
@@ -156,7 +165,8 @@ void draw_decal_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a varied decal prop.
@@ -169,7 +179,8 @@ void draw_varied_decal_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a long prop.
@@ -182,7 +193,8 @@ void draw_long_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a rope prop.
@@ -195,7 +207,8 @@ void draw_rope_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 /// @brief Draws a preview of a antimatter prop.
@@ -208,7 +221,8 @@ void draw_antimatter_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
-    int depth
+    float depth_amplifier,
+    int depth_offset
 ) noexcept;
 
 };

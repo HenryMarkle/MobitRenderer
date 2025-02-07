@@ -261,6 +261,22 @@ void Geo_Page::order_level_redraw() noexcept {
   should_redraw = true;
 }
 
+void Geo_Page::on_level_loaded() noexcept {
+  should_redraw = true;
+}
+
+void Geo_Page::on_level_unloaded() noexcept {
+  should_redraw = true;
+}
+
+void Geo_Page::on_level_selected() noexcept {
+  should_redraw = true;
+}
+
+void Geo_Page::on_page_selected() noexcept {
+  should_redraw = true;
+}
+
 Geo_Page::Geo_Page(context *ctx) : LevelPage(ctx), 
   should_redraw1(true), 
   should_redraw2(true), 

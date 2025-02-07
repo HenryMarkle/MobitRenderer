@@ -207,7 +207,9 @@ struct context_event {
 };
 
 class context {
+
 private:
+
   Camera2D camera;
 
   std::vector<mr::Level *> levels;
@@ -216,6 +218,7 @@ private:
   std::shared_ptr<Config> _config;
 
 public:
+
   std::shared_ptr<spdlog::logger> logger;
   std::shared_ptr<Dirs> directories;
 

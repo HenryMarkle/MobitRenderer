@@ -14,6 +14,7 @@ void draw_tile_as_prop(
     const TileDef *def,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;
@@ -36,7 +37,7 @@ void draw_tile_as_prop(
         float width = def->calculate_width(20)*1.0f / def->get_texture().width;
         SetShaderValue(shader, GetShaderLocation(shader, "width"), &width, SHADER_UNIFORM_FLOAT);
         
-        float depth = -(0.72f / layers);
+        float depth = -(0.8f / 30.0f);
         SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_FLOAT);
         
         SetShaderValue(shader, GetShaderLocation(shader, "depthOffset"), &_depth, SHADER_UNIFORM_INT);
@@ -51,6 +52,7 @@ void draw_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;
@@ -69,7 +71,7 @@ void draw_prop_preview(
             const Standard *standard = static_cast<const Standard*>(def);
         #endif
 
-            draw_standard_prop_preview(standard, settings, _shaders, quad, _depth); 
+            draw_standard_prop_preview(standard, settings, _shaders, quad, amplifier, _depth); 
         }
         break;
 
@@ -83,7 +85,7 @@ void draw_prop_preview(
             const VariedStandard *varied_standard = static_cast<const VariedStandard*>(def);
         #endif
 
-            draw_varied_standard_prop_preview(varied_standard, settings, _shaders, quad, _depth);
+            draw_varied_standard_prop_preview(varied_standard, settings, _shaders, quad, amplifier, _depth);
         }
         break;
 
@@ -97,7 +99,7 @@ void draw_prop_preview(
             const Soft *soft = static_cast<const Soft*>(def);
         #endif
 
-            draw_soft_prop_preview(soft, settings, _shaders, quad, _depth);
+            draw_soft_prop_preview(soft, settings, _shaders, quad, 0, _depth);
         }
         break;
 
@@ -111,7 +113,7 @@ void draw_prop_preview(
             const VariedSoft *varied_soft = static_cast<const VariedSoft*>(def);
         #endif
 
-            draw_varied_soft_prop_preview(varied_soft, settings, _shaders, quad, _depth);
+            draw_varied_soft_prop_preview(varied_soft, settings, _shaders, quad, 0, _depth);
         }
         break;
 
@@ -125,7 +127,7 @@ void draw_prop_preview(
             const Decal *decal = static_cast<const Decal*>(def);
         #endif
 
-            draw_decal_prop_preview(decal, settings, _shaders, quad, _depth);
+            draw_decal_prop_preview(decal, settings, _shaders, quad, 0, _depth);
         }
         break;
 
@@ -139,7 +141,7 @@ void draw_prop_preview(
             const VariedDecal *varied_decal = static_cast<const VariedDecal*>(def);
         #endif
 
-            draw_varied_decal_prop_preview(varied_decal, settings, _shaders, quad, _depth);
+            draw_varied_decal_prop_preview(varied_decal, settings, _shaders, quad, 0, _depth);
         }
         break;
 
@@ -165,9 +167,9 @@ void draw_prop_preview(
     if (_shaders == nullptr) return;
 
     if (prop->prop_def != nullptr && prop->tile_def == nullptr) {
-        draw_prop_preview(prop->prop_def, &prop->settings, _shaders, prop->quad, prop->depth);
+        draw_prop_preview(prop->prop_def, &prop->settings, _shaders, prop->quad, 0.8f / 30.0f, prop->depth);
     } else if (prop->prop_def == nullptr && prop->tile_def != nullptr) {
-        draw_tile_as_prop(prop->tile_def, _shaders, prop->quad, prop->depth);
+        draw_tile_as_prop(prop->tile_def, _shaders, prop->quad, 0.8f / 30.0f, prop->depth);
     }
 }
 
@@ -180,9 +182,9 @@ void draw_prop_preview(
     if (_shaders == nullptr) return;
 
     if (prop->prop_def != nullptr && prop->tile_def == nullptr) {
-        draw_prop_preview(prop->prop_def, &prop->settings, _shaders, prop->quad, as_depth);
+        draw_prop_preview(prop->prop_def, &prop->settings, _shaders, prop->quad, 0.8f / 30.0f, (prop->depth - static_cast<int>(as_depth)));
     } else if (prop->prop_def == nullptr && prop->tile_def != nullptr) {
-        draw_tile_as_prop(prop->tile_def, _shaders, prop->quad, as_depth);
+        draw_tile_as_prop(prop->tile_def, _shaders, prop->quad, 0.8f / 30.0f, (prop->depth - static_cast<int>(as_depth)));
     }
 }
 
@@ -191,6 +193,7 @@ void draw_standard_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;
@@ -216,7 +219,7 @@ void draw_standard_prop_preview(
     float width = def->width * 20.0f / texture.width;
     SetShaderValue(shader, GetShaderLocation(shader, "width"), &width, SHADER_UNIFORM_FLOAT);
 
-    float depth = -(0.8f / layers);
+    float depth = -depth_amplifier;
     SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_FLOAT);
 
     SetShaderValue(shader, GetShaderLocation(shader, "depthOffset"), &_depth, SHADER_UNIFORM_INT);
@@ -231,6 +234,7 @@ void draw_varied_standard_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;
@@ -255,7 +259,7 @@ void draw_varied_standard_prop_preview(
     float width = def->width * 20.0f / texture.width;
     SetShaderValue(shader, GetShaderLocation(shader, "width"), &width, SHADER_UNIFORM_FLOAT);
 
-    float depth = -(0.8f / layers);
+    float depth = -depth_amplifier;
     SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_FLOAT);
 
     SetShaderValue(shader, GetShaderLocation(shader, "depthOffset"), &_depth, SHADER_UNIFORM_INT);
@@ -272,6 +276,7 @@ void draw_soft_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;
@@ -285,7 +290,7 @@ void draw_soft_prop_preview(
     {
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
         
-        float depth = (_depth *  1.0f/settings->custom_depth);
+        float depth = (_depth *  depth_amplifier);
         SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_FLOAT);
         
         mr::draw::draw_texture(texture, quad);
@@ -298,6 +303,7 @@ void draw_varied_soft_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;
@@ -315,7 +321,7 @@ void draw_varied_soft_prop_preview(
         const float width = def->variations > 1 ? (def->get_pixel_width() / (float)texture.width) : 1.0f;
         SetShaderValue(shader, GetShaderLocation(shader, "width"), &width, SHADER_UNIFORM_FLOAT);
 
-        float depth = (_depth *  1.0f/settings->custom_depth);
+        float depth = (_depth *  depth_amplifier);
         SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_FLOAT);
 
         if (def->colorize) {
@@ -341,6 +347,7 @@ void draw_decal_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;
@@ -367,6 +374,7 @@ void draw_varied_decal_prop_preview(
     const PropSettings *settings,
     const shaders *_shaders,
     const Quad &quad,
+    float depth_amplifier,
     int _depth
 ) noexcept {
     if (def == nullptr) return;

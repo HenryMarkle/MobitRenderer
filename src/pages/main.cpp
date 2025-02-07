@@ -99,6 +99,19 @@ void Main_Page::order_level_redraw() noexcept {
   should_redraw = true;
 }
 
+void Main_Page::on_level_loaded() noexcept {
+  should_redraw = true;
+}
+void Main_Page::on_level_unloaded() noexcept {
+  should_redraw = true;
+}
+void Main_Page::on_level_selected() noexcept {
+  should_redraw = true;
+}
+void Main_Page::on_page_selected() noexcept {
+  should_redraw = true;
+}
+
 Main_Page::Main_Page(context *ctx) : LevelPage(ctx), should_redraw(true) {}
 
 Main_Page::~Main_Page() {}

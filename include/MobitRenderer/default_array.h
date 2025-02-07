@@ -21,6 +21,8 @@ public:
     void resize(size_t) noexcept;
     void resize(size_t, T&&) noexcept;
     size_t size() const noexcept;
+    void fill() noexcept;
+    void fill(T&&) noexcept;
 
     default_array(size_t size);
     default_array(size_t size, T &&default_value);
@@ -55,6 +57,7 @@ void default_array<T>::resize(size_t size) noexcept {
     delete[] arr;
 
     arr = new_arr;
+    _size = size;
 }
 
 template<typename T>
@@ -71,10 +74,21 @@ void default_array<T>::resize(size_t size, T &&default_value) noexcept {
     delete[] arr;
 
     arr = new_arr;
+    _size = size;
 }
 
 template<typename T>
 size_t default_array<T>::size() const noexcept { return this->_size; }
+
+template<typename T>
+void default_array<T>::fill() noexcept {
+    std::fill(arr, arr + _size, default_value);
+}
+
+template<typename T>
+void default_array<T>::fill(T &&value) noexcept {
+    std::fill(arr, arr + _size, value);
+}
 
 template<typename T>
 default_array<T>::default_array(size_t size) : _size(size), default_value(T()), arr(nullptr) {

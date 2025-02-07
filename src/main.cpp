@@ -245,11 +245,11 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    pager->current_process();
+    pager->get_selected()->process();
 
     BeginDrawing();
     {
-      pager->current_draw();
+      pager->get_selected()->draw();
 
       rlImGuiBegin();
       {
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
                                      ImGui::GetMainViewport(),
                                      ImGuiDockNodeFlags_PassthruCentralNode);
 
-        pager->current_windows();
+        pager->get_selected()->windows();
         auto current_page = pager->get_selected_index();
 
         auto menubarOpened = ImGui::BeginMainMenuBar();
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
           f3->print(current_level->get_height(), true);
         }
 
-        pager->current_f3();
+        pager->get_selected()->f3();
         f3->reset();
       }
     }

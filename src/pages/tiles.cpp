@@ -910,6 +910,46 @@ void Tile_Page::f3() const noexcept {
   }
 }
 
+void Tile_Page::on_level_loaded() noexcept {
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw = true;
+}
+
+void Tile_Page::on_level_unloaded() noexcept {
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw = true;
+}
+
+void Tile_Page::on_level_selected() noexcept {
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw = true;
+}
+
+void Tile_Page::on_page_selected() noexcept {
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw = true;
+}
+
 Tile_Page::Tile_Page(context *ctx) : 
     LevelPage(ctx),
     _should_redraw(true), 

@@ -65,6 +65,7 @@ virtual void on_level_selected() noexcept;
 virtual void on_level_loaded() noexcept;
 virtual void on_level_created() noexcept;
 virtual void on_level_unloaded() noexcept;
+virtual void on_page_selected() noexcept;
 
 virtual ~LevelPage() = default;
 
@@ -125,7 +126,12 @@ public:
   void process() override;
   void draw() noexcept override;
   void windows() noexcept override;
+
   void order_level_redraw() noexcept override;
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
 
   Main_Page(context*);
 
@@ -133,7 +139,9 @@ public:
 };
 
 class Geo_Page : public LevelPage {
+
 private:
+
   bool 
     should_redraw, 
     should_redraw1,
@@ -144,19 +152,27 @@ private:
     should_redraw_feature3;
 
 public:
+
   void process() override;
   void draw() noexcept override;
   void windows() noexcept override;
   void order_level_redraw() noexcept override;
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
   void f3() const noexcept;
 
   Geo_Page(context*);
 
   ~Geo_Page() override;
+
 };
 
 class Tile_Page : public LevelPage {
+
 private:
+
   bool 
     _should_redraw, 
     _should_redraw1,
@@ -200,6 +216,10 @@ public:
   void draw() noexcept override;
   void windows() noexcept override;
   void order_level_redraw() noexcept override;
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
   void f3() const noexcept;
 
   Tile_Page(context*);
@@ -219,20 +239,58 @@ bool
 
 public:
 
-void process() override;
-void draw() noexcept override;
-void windows() noexcept override;
-void f3() const noexcept override;
+  void process() override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void f3() const noexcept override;
 
-void order_level_redraw() noexcept override;
+  void order_level_redraw() noexcept override;
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
 
-Camera_Page(context*);
-~Camera_Page() override;
+  Camera_Page(context*);
+  ~Camera_Page() override;
 
 };
 
-class Light_Page : public LevelPage {};
-class Effects_Page : public LevelPage {};
+class Light_Page : public LevelPage {
+
+public:
+
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
+
+  Light_Page(context*);
+  ~Light_Page();
+
+};
+class Effects_Page : public LevelPage {
+
+public:
+
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
+  Effects_Page(context*);
+  ~Effects_Page();
+
+};
+class Dimensions_Page : public LevelPage {
+
+public:
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
+  Dimensions_Page(context*);
+  ~Dimensions_Page();
+
+};
 class Props_Page : public LevelPage {
 
 private:
@@ -275,12 +333,16 @@ private:
 
 public:
 
+  void on_level_loaded() noexcept override;
+  void on_level_unloaded() noexcept override;
+  void on_level_selected() noexcept override;
+  void on_page_selected() noexcept override;
+
   void process() noexcept override;
   void draw() noexcept override;
   void windows() noexcept override;
   void f3() const noexcept override;
 
-  void on_level_loaded() noexcept override;
 
   Props_Page(context*);
   ~Props_Page();
@@ -310,27 +372,19 @@ class pager {
 
 private:
 
-Start_Page _start_page;
-Main_Page _main_page;
-Geo_Page _geo_page;
-Tile_Page _tile_page;
-Camera_Page _camera_page;
+std::vector<LevelPage*> _pages;
+LevelPage *_selected_page, *_previous_page;
 
-Props_Page _props_page;
-Settings_Page _settings_page;
-
-int _selected, _previous;
+size_t _selected, _previous;
 
 public:
 
-void select(int) noexcept;
-int get_selected_index() const noexcept;
-int get_previous_index() const noexcept;
-
-void current_process();
-void current_draw() noexcept;
-void current_windows() noexcept;
-void current_f3() const noexcept;
+void select(size_t) noexcept;
+inline size_t get_selected_index() const noexcept { return _selected; }
+inline size_t get_previous_index() const noexcept { return _previous; }
+inline LevelPage *get_selected() const noexcept { return _pages[_selected]; }
+inline LevelPage *get_previous() const noexcept { return _pages[_previous]; }
+inline const std::vector<LevelPage*> &get_pages() const noexcept { return _pages; }
 
 pager &operator=(pager const&) = delete;
 

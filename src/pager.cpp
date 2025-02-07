@@ -50,81 +50,40 @@ Pager::~Pager() {
     delete p;
 }
 
-void pager::select(int index) noexcept {
+void pager::select(size_t index) noexcept {
   if (index < 0 || index > 9) return;
+
   _previous = _selected;
   _selected = index;
 
-  switch (_selected) {
-    case 0: _start_page.order_level_redraw(); break;
-    case 1: _main_page.order_level_redraw(); break;
-    case 2: _geo_page.order_level_redraw(); break;
-    case 3: _tile_page.order_level_redraw(); break;
-    case 4: _camera_page.order_level_redraw(); break;
-    case 8: _props_page.order_level_redraw(); break;
-    case 9: _settings_page.order_level_redraw(); break;
-  }
-}
-
-int pager::get_selected_index() const noexcept { return _selected; }
-int pager::get_previous_index() const noexcept { return _previous; }
-
-void pager::current_process() {
-  switch (_selected) {
-    case 0: _start_page.process(); break;
-    case 1: _main_page.process(); break;
-    case 2: _geo_page.process(); break;
-    case 3: _tile_page.process(); break;
-    case 4: _camera_page.process(); break;
-    case 8: _props_page.process(); break;
-    case 9: _settings_page.process(); break;
-  }
-}
-void pager::current_draw() noexcept {
-  switch (_selected) {
-    case 0: _start_page.draw(); break;
-    case 1: _main_page.draw(); break;
-    case 2: _geo_page.draw(); break;
-    case 3: _tile_page.draw(); break;
-    case 4: _camera_page.draw(); break;
-    case 8: _props_page.draw(); break;
-    case 9: _settings_page.draw(); break;
-  }
-}
-void pager::current_windows() noexcept {
-  switch (_selected) {
-    case 0: _start_page.windows(); break;
-    case 1: _main_page.windows(); break;
-    case 2: _geo_page.windows(); break;
-    case 3: _tile_page.windows(); break;
-    case 4: _camera_page.windows(); break;
-    case 8: _props_page.windows(); break;
-    case 9: _settings_page.windows(); break;
-  }
-}
-void pager::current_f3() const noexcept {
-  switch (_selected) {
-    case 0: _start_page.f3(); break;
-    case 1: _main_page.f3(); break;
-    case 2: _geo_page.f3(); break;
-    case 3: _tile_page.f3(); break;
-    case 4: _camera_page.f3(); break;
-    case 8: _props_page.f3(); break;
-    case 9: _settings_page.f3(); break;
-  }
+  _previous_page = _selected_page;
+  _selected_page = _pages[_selected];
+  
+  _selected_page->on_page_selected();
 }
 
 pager::pager(context *ctx) :
   _selected(0),
   _previous(0),
-  _start_page(Start_Page(ctx)),
-  _main_page(Main_Page(ctx)),
-  _geo_page(Geo_Page(ctx)),
-  _tile_page(Tile_Page(ctx)),
-  _camera_page(Camera_Page(ctx)),
-  _props_page(Props_Page(ctx)),
-  _settings_page(Settings_Page(ctx)) {}
+  _pages({
+    new Start_Page(ctx),
+    new Main_Page(ctx),
+    new Geo_Page(ctx),
+    new Tile_Page(ctx),
+    new Camera_Page(ctx),
+    new Light_Page(ctx),
+    new Dimensions_Page(ctx),
+    new Effects_Page(ctx),
+    new Props_Page(ctx),
+    new Settings_Page(ctx)
+  }),
+  _selected_page(nullptr),
+  _previous_page(nullptr) {
+    _selected_page = _previous_page = _pages[0];
+  }
 
-pager::~pager() {}
+pager::~pager() {
+  for (auto  *page : _pages) delete page;
+}
 
 }; // namespace mr::pages

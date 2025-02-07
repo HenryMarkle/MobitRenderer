@@ -50,7 +50,7 @@ void Props_Page::process() noexcept {
 
     if (IsKeyPressed(KEY_L)) {
       ctx->level_layer_ = (ctx->level_layer_ + 1) % 3;
-      _should_redraw = true;
+      _should_redraw_props = true;
     }
   }
 
@@ -165,6 +165,7 @@ void Props_Page::_redraw_prop_preview_rt() noexcept {
       &settings,
       ctx->_shaders,
       Quad(Rectangle{0, 0, (float)width, (float)height}),
+      1.0f/30.0f,
       0
     );
   }
@@ -309,7 +310,7 @@ void Props_Page::draw() noexcept {
       prop->load_texture();
       if (!prop->is_loaded()) continue;
 
-      mr::sdraw::draw_prop_preview(prop.get(), ctx->_shaders, 0);
+      mr::sdraw::draw_prop_preview(prop.get(), ctx->_shaders, ctx->level_layer_ * 10);
     }
 
     EndTextureMode();
@@ -764,7 +765,7 @@ void Props_Page::windows() noexcept {
   auto list_opened = ImGui::Begin("Props List##PropsPagePropsList");
   _hovering_on_window |= ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
 
-  if (props_opened) {
+  if (list_opened) {
     const auto *level = ctx->get_selected_level();
 
     if (ImGui::BeginListBox("##List", ImGui::GetContentRegionAvail()) && 
@@ -783,9 +784,10 @@ void Props_Page::windows() noexcept {
         label.append("##"+x_str);
 
         if (ImGui::Selectable(label.c_str(), _selected[x])) {
-          if (IsKeyPressed(KEY_LEFT_CONTROL) || IsKeyPressed(KEY_RIGHT_CONTROL)) {
+          if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) {
             _selected[x] = !_selected[x];
           } else {
+            _selected.fill();
             _selected[x] = true;
           }
         }
@@ -859,6 +861,52 @@ void Props_Page::f3() const noexcept {
 
 void Props_Page::on_level_loaded() noexcept {
   resize_indices();
+
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw_props = true;
+  _should_redraw = true;
+}
+
+void Props_Page::on_level_unloaded() noexcept {
+  resize_indices();
+
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw_props = true;
+  _should_redraw = true;
+}
+
+void Props_Page::on_level_selected() noexcept {
+  resize_indices();
+  
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw_props = true;
+  _should_redraw = true;
+}
+
+void Props_Page::on_page_selected() noexcept {
+  _should_redraw1 = true;
+  _should_redraw2 = true;
+  _should_redraw3 = true;
+  _should_redraw_tile1 = true;
+  _should_redraw_tile2 = true;
+  _should_redraw_tile3 = true;
+  _should_redraw_props = true;
+  _should_redraw = true;
 }
 
 Props_Page::Props_Page(context *ctx)

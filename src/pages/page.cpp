@@ -55,5 +55,6 @@ void LevelPage::on_level_selected() noexcept {}
 void LevelPage::on_level_loaded() noexcept {}
 void LevelPage::on_level_created() noexcept {}
 void LevelPage::on_level_unloaded() noexcept {}
+void LevelPage::on_page_selected() noexcept {}
 
 };
