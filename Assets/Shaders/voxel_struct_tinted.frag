@@ -5,6 +5,7 @@ uniform int layers;
 uniform float height;
 uniform float width;
 uniform float depth;
+uniform int depthOffset;
 
 in vec2 fragTexCoord;
 in vec4 fragColor;
@@ -18,7 +19,7 @@ void main() {
     if (totalWidth < 0 || totalWidth > 1.0) discard;
 
 	for (int l = layers - 1; l > -1; l--) {
-		float depthTint = (l) * depth;
+		float depthTint = (l + depthOffset) * depth;
 		float currentHeight = fragTexCoord.y * height + (l * height);
 
         if (currentHeight < 0 || currentHeight > 1.0) continue;

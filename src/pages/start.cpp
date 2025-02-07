@@ -41,10 +41,13 @@ void Start_Page::process() {
 
     project_load_thread = std::make_unique<std::thread>([this, file]() {
       try {
+      
         const std::filesystem::path path_copy = *file;
         this->loaded_level = mr::serde::deser_level(path_copy);
         mr::serde::define_tile_matrix(this->loaded_level->get_tile_matrix(), ctx->_tiledex, ctx->_materialdex);
+        mr::serde::define_prop_list(this->loaded_level->props, ctx->_propdex);
         this->loaded_level->set_path(*file);
+      
       } catch (const deserialization_failure &pf) {
         std::cout << "exception: " << pf.what() << std::endl;
       } catch (const std::exception &e) {

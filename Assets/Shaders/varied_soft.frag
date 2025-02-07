@@ -6,6 +6,7 @@ in vec4 fragColor;
 uniform sampler2D texture0;
 uniform int variation;
 uniform float width;
+uniform float depth;
 
 out vec4 finalColor;
 
@@ -26,6 +27,6 @@ void main()
             discard;
         }
 
-        finalColor = texelColor;
+        finalColor = texelColor + vec4(0, depth, 0, 0);
     }
 }

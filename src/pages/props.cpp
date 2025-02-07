@@ -5,6 +5,7 @@
 #include <raylib.h>
 #include <rlImGui.h>
 
+#include <MobitRenderer/default_array.h>
 #include <MobitRenderer/pages.h>
 #include <MobitRenderer/utils.h>
 #include <MobitRenderer/sdraw.h>
@@ -13,6 +14,13 @@
 
 namespace mr::pages {
 
+void Props_Page::resize_indices() noexcept {
+  const auto *level = ctx->get_selected_level();
+  if (level == nullptr) return;
+
+  _selected.resize(level->props.size());
+  _hidden.resize(level->props.size());
+}
 void Props_Page::process() noexcept {
   if (ctx == nullptr) return;
 
@@ -109,9 +117,12 @@ void Props_Page::_redraw_tile_preview_rt() noexcept {
         SetShaderValue(shader, GetShaderLocation(shader, "width"), &width,
                        SHADER_UNIFORM_FLOAT);
 
-        auto depth = 2;
+        float depth = -(0.8f / layers);
         SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth,
-                       SHADER_UNIFORM_INT);
+                       SHADER_UNIFORM_FLOAT);
+
+        int offset = 0;
+        SetShaderValue(shader, GetShaderLocation(shader, "depthOffset"), &offset, SHADER_UNIFORM_INT);
 
         DrawTexturePro(
             texture,
@@ -153,7 +164,8 @@ void Props_Page::_redraw_prop_preview_rt() noexcept {
       _hovered_prop,
       &settings,
       ctx->_shaders,
-      Quad(Rectangle{0, 0, (float)width, (float)height})
+      Quad(Rectangle{0, 0, (float)width, (float)height}),
+      0
     );
   }
   EndTextureMode();
@@ -288,15 +300,22 @@ void Props_Page::draw() noexcept {
   if (_should_redraw_props) {
     
     BeginTextureMode(ctx->_textures->props.get());
-    ClearBackground(WHITE);
+    ClearBackground(Color{0, 0, 0, 0});
+    // ClearBackground(WHITE);
 
-    /// TODO: Continue here..
+    for (auto &prop : level->props) {
+      if (prop->tile_def == nullptr && prop->prop_def == nullptr) continue;
+
+      prop->load_texture();
+      if (!prop->is_loaded()) continue;
+
+      mr::sdraw::draw_prop_preview(prop.get(), ctx->_shaders, 0);
+    }
 
     EndTextureMode();
 
     _should_redraw_props = false;
     _should_redraw = true;
-
   }
 
   if (_should_redraw) {
@@ -548,6 +567,8 @@ void Props_Page::draw() noexcept {
         EndShaderMode();
       }
     
+      DrawTexture(ctx->_textures->props.get().texture, 0, 0, WHITE);
+
     }
     EndTextureMode();
 
@@ -567,13 +588,13 @@ void Props_Page::draw() noexcept {
   
   // Props layers
 
-  const auto &shader = ctx->_shaders->white_remover();
-  const auto &texture = ctx->_textures->props.get().texture;
+  // const auto &shader = ctx->_shaders->white_remover();
+  // const auto &texture = ctx->_textures->props.get().texture;
 
-  BeginShaderMode(shader);
-  SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
-  DrawTexture(texture, -200, -200, WHITE);
-  EndShaderMode();
+  // BeginShaderMode(shader);
+  // SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
+  // DrawTexture(texture, -200, -200, WHITE);
+  // EndShaderMode();
 
   const auto &features_border = level->buffer_geos;
 
@@ -634,8 +655,7 @@ void Props_Page::windows() noexcept {
     ImGui::NextColumn();
 
     // Tiles
-    if (ImGui::BeginListBox("##CategoryTiles",
-                            ImGui::GetContentRegionAvail())) {
+    if (ImGui::BeginListBox("##CategoryTiles", ImGui::GetContentRegionAvail())) {
       const auto &category_tiles =
           tiles->sorted_tiles().at(_selected_tile_category_index);
 
@@ -740,6 +760,42 @@ void Props_Page::windows() noexcept {
   }
 
   ImGui::End();
+
+  auto list_opened = ImGui::Begin("Props List##PropsPagePropsList");
+  _hovering_on_window |= ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+
+  if (props_opened) {
+    const auto *level = ctx->get_selected_level();
+
+    if (ImGui::BeginListBox("##List", ImGui::GetContentRegionAvail()) && 
+      level != nullptr && 
+      !level->props.empty()) {
+
+      const auto &props = level->props;
+      
+      for (size_t x = 0; x < props.size(); x++) {
+        const auto &prop = props[x];
+        
+        std::string label("");
+        std::string x_str = std::to_string(x + 3);
+        label.reserve(prop->und_name->size() + x_str.size());
+        label.append(*(prop->und_name.get()));
+        label.append("##"+x_str);
+
+        if (ImGui::Selectable(label.c_str(), _selected[x])) {
+          if (IsKeyPressed(KEY_LEFT_CONTROL) || IsKeyPressed(KEY_RIGHT_CONTROL)) {
+            _selected[x] = !_selected[x];
+          } else {
+            _selected[x] = true;
+          }
+        }
+      }
+
+      ImGui::EndListBox();
+    }
+  }
+
+  ImGui::End();
 }
 
 void Props_Page::f3() const noexcept {
@@ -801,6 +857,10 @@ void Props_Page::f3() const noexcept {
   else f3->print("NULL", true);
 }
 
+void Props_Page::on_level_loaded() noexcept {
+  resize_indices();
+}
+
 Props_Page::Props_Page(context *ctx)
     : LevelPage(ctx), _selected_tile(nullptr), _hovered_tile(nullptr),
       _selected_prop(nullptr), _hovered_prop(nullptr), _selected_tile_index(0),
@@ -818,7 +878,10 @@ Props_Page::Props_Page(context *ctx)
       
       _previously_drawn_tile_texture(nullptr),
       _previously_drawn_prop_texture(nullptr), _tile_texture_rt({0}),
-      _prop_texture_rt({0}) {}
+      _prop_texture_rt({0}),
+      
+      _selected(0, false),
+      _hidden(0, false) {}
 
 Props_Page::~Props_Page() {
   mr::utils::unload_rendertexture(_tile_texture_rt);

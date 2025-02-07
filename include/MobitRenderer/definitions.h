@@ -852,6 +852,35 @@ struct Prop {
 //   inline PropDef *get_prop_def() noexcept { return prop_def; }
 //   inline TileDef *get_tile_def() noexcept { return tile_def; }
 
+  inline bool is_loaded() const noexcept {
+    return (prop_def != nullptr && prop_def->is_loaded()) ||
+    (tile_def != nullptr && tile_def->is_texture_loaded());
+  }
+
+  inline void load_texture() {
+    if (prop_def != nullptr) {
+      prop_def->load_texture();
+    } else if (tile_def != nullptr) {
+      tile_def->load_texture();
+    }
+  }
+
+  inline void unload_texture() {
+    if (prop_def != nullptr) {
+      prop_def->unload_texture();
+    } else if (tile_def != nullptr) {
+      tile_def->unload_texture();
+    }
+  }
+
+  inline void reload_texture() {
+    if (prop_def != nullptr) {
+      prop_def->reload_texture();
+    } else if (tile_def != nullptr) {
+      tile_def->reload_texture();
+    }
+  }
+
   Prop(uint8_t depth, std::shared_ptr<std::string> name, Quad const &quad);
   Prop(uint8_t depth, std::shared_ptr<std::string> name, PropDef *def, Quad const &quad);
   Prop(uint8_t depth, std::shared_ptr<std::string> name, TileDef *def, Quad const &quad);

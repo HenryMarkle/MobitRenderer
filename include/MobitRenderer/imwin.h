@@ -69,7 +69,7 @@ public:
   ProjectExplorer();
 
   /// Initializes the explorer and sets the current directory to the given one.
-  ProjectExplorer(std::shared_ptr<dirs> dirs, textures *_textures);
+  ProjectExplorer(std::shared_ptr<Dirs> dirs, textures *_textures);
 
   ~ProjectExplorer();
 };

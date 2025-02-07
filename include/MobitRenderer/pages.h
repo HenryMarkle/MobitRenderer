@@ -8,6 +8,7 @@
 
 #include <spdlog/logger.h>
 
+#include <MobitRenderer/default_array.h>
 #include <MobitRenderer/imwin.h>
 #include <MobitRenderer/state.h>
 #include <MobitRenderer/level.h>
@@ -59,6 +60,11 @@ public:
 
 /// @brief Propagates texture buffer refreshing.
 virtual void order_level_redraw() noexcept;
+
+virtual void on_level_selected() noexcept;
+virtual void on_level_loaded() noexcept;
+virtual void on_level_created() noexcept;
+virtual void on_level_unloaded() noexcept;
 
 virtual ~LevelPage() = default;
 
@@ -242,6 +248,9 @@ private:
     _should_redraw_tile3,
     _should_redraw_props;
 
+  
+  default_array<bool> _selected, _hidden;
+
   TileDef 
     *_selected_tile, 
     *_hovered_tile,
@@ -262,6 +271,7 @@ private:
 
   void _redraw_tile_preview_rt() noexcept;
   void _redraw_prop_preview_rt() noexcept;
+  void resize_indices() noexcept;
 
 public:
 
@@ -269,6 +279,8 @@ public:
   void draw() noexcept override;
   void windows() noexcept override;
   void f3() const noexcept override;
+
+  void on_level_loaded() noexcept override;
 
   Props_Page(context*);
   ~Props_Page();

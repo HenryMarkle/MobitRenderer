@@ -142,9 +142,14 @@ void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props
 
         try {
             auto name = deser_string(prop_node->elements[1].get());
-            if (names.find(name) == names.end()) {
+
+            auto found_name = names.find(name);
+
+            if (found_name == names.end()) {
                 und_name = std::make_shared<std::string>(name);
                 names[name] = und_name;
+            } else {
+                und_name = found_name->second;
             }
         } catch (deserialization_failure &de) {
             throw deserialization_failure(
@@ -244,7 +249,7 @@ void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props
                 auto render_order = map.find("renderorder");
                 auto seed = map.find("seed");
                 auto render_time = map.find("rendertime");
-                auto variation = map.find("variation");
+                auto variation = map.find("var");
                 auto custom_depth = map.find("customdepth");
                 auto thickness = map.find("thickness");
                 auto apply_color = map.find("applycolor");
@@ -296,7 +301,7 @@ void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props
                         throw deserialization_failure(
                             std::string("failed to deserialize prop #")
                             +std::to_string(counter)
-                            +"'s settings property #variation: "
+                            +"'s settings property #var: "
                             +de.what()
                         );
                     }
@@ -313,6 +318,8 @@ void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props
                             +de.what()
                         );
                     }
+                } else {
+                    settings.custom_depth = depth;
                 }
 
                 if (thickness != notfound) {
@@ -402,6 +409,30 @@ void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props
     }
 
     props = std::move(new_props);
+}
+
+void define_prop_list(
+  std::vector<std::shared_ptr<Prop>> &props,
+  PropDex const *dex
+) noexcept {
+    if (dex == nullptr) return;
+
+    for (auto &prop : props) {
+        const auto *name = prop->und_name.get();
+
+        auto *pdef = dex->prop(*name);
+
+        if (pdef != nullptr) {
+            prop->prop_def = pdef;
+            continue;
+        }
+
+        auto *tdef = dex->tile(*name);
+
+        if (tdef != nullptr) {
+            prop->tile_def = tdef;            
+        }
+    }
 }
 
 };

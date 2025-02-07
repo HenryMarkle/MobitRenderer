@@ -146,5 +146,10 @@ void define_tile_matrix(
   MaterialDex const*
 );
 
+void define_prop_list(
+  std::vector<std::shared_ptr<Prop>> &props,
+  PropDex const *dex
+) noexcept;
+
 // TOML
 }; // namespace mr

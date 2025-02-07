@@ -119,7 +119,7 @@ ProjectExplorer::ProjectExplorer() : level_geo(nullptr) {
   go_to(exec_dir);
 }
 
-ProjectExplorer::ProjectExplorer(std::shared_ptr<dirs> dirs,
+ProjectExplorer::ProjectExplorer(std::shared_ptr<Dirs> dirs,
                                  textures *_textures) {
   std::filesystem::path path(dirs->get_projects());
 

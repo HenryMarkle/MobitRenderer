@@ -105,8 +105,11 @@ void Tile_Page::_redraw_tile_texture_rt() noexcept {
         float width = _selected_tile->calculate_width(20)*1.0f / _selected_tile->get_texture().width;
         SetShaderValue(shader, GetShaderLocation(shader, "width"), &width, SHADER_UNIFORM_FLOAT);
         
-        auto depth = -0.022f;
+        auto depth = -(0.8f / layers);
         SetShaderValue(shader, GetShaderLocation(shader, "depth"), &depth, SHADER_UNIFORM_FLOAT);
+
+        int offset = 0;
+        SetShaderValue(shader, GetShaderLocation(shader, "depthOffset"), &offset, SHADER_UNIFORM_INT);
         
         DrawTexturePro(
           texture,

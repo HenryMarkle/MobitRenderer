@@ -46,7 +46,8 @@ void draw_prop_preview(
     const PropDef *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a prop.
@@ -55,6 +56,16 @@ void draw_prop_preview(
 void draw_prop_preview(
     const Prop *prop,
     const shaders *_shaders
+) noexcept;
+
+/// @brief Draws a preview of a prop.
+/// @param prop The prop instance of course. 
+/// @param _shaders The shaders manager class.
+/// @param as_depth Render previews as if they're in that layer (0 - 29)
+void draw_prop_preview(
+    const Prop *prop,
+    const shaders *_shaders,
+    uint8_t as_depth
 ) noexcept;
 
 /// @brief Draws a preview of a standard prop.
@@ -66,7 +77,8 @@ void draw_standard_prop_preview(
     const Standard *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a varied standard prop.
@@ -78,7 +90,8 @@ void draw_varied_standard_prop_preview(
     const VariedStandard *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a soft standard prop.
@@ -90,7 +103,8 @@ void draw_soft_prop_preview(
     const Soft *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a varied soft prop.
@@ -102,7 +116,8 @@ void draw_varied_soft_prop_preview(
     const VariedSoft *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a colored soft prop.
@@ -114,7 +129,8 @@ void draw_colored_soft_prop_preview(
     const ColoredSoft *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a soft effect prop.
@@ -126,7 +142,8 @@ void draw_soft_effect_prop_preview(
     const SoftEffect *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a (simple) decal prop.
@@ -138,7 +155,8 @@ void draw_decal_prop_preview(
     const Decal *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a varied decal prop.
@@ -150,7 +168,8 @@ void draw_varied_decal_prop_preview(
     const VariedDecal *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a long prop.
@@ -162,7 +181,8 @@ void draw_long_prop_preview(
     const Long *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a rope prop.
@@ -174,7 +194,8 @@ void draw_rope_prop_preview(
     const Rope *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 /// @brief Draws a preview of a antimatter prop.
@@ -186,7 +207,8 @@ void draw_antimatter_prop_preview(
     const Antimatter *def,
     const PropSettings *settings,
     const shaders *_shaders,
-    const Quad &quad
+    const Quad &quad,
+    int depth
 ) noexcept;
 
 };

@@ -25,6 +25,7 @@
 #include <MobitRenderer/events.h>
 #include <MobitRenderer/dex.h>
 #include <MobitRenderer/castlibs.h>
+#include <MobitRenderer/dirs.h>
 
 #define STRINGIFY_DEFINED(x) #x
 #define TO_STRING_DEFINED(x) STRINGIFY_DEFINED(x)
@@ -38,7 +39,7 @@ typedef std::unordered_map<mr::context_event_type, void (*)(mr::context *, mr::p
 
 // Implementations appended to the end of the file.
 //
-int _missing_dirs_window(const mr::dirs *d);
+int _missing_dirs_window(const mr::Dirs *d);
 int _auto_render_window(int argc, char* argv[]);
 //
 
@@ -49,7 +50,7 @@ int main(int argc, char* argv[]) {
     return _auto_render_window(argc, argv);
   }
 
-  auto directories = std::make_shared<mr::dirs>();
+  auto directories = std::make_shared<mr::Dirs>();
 
   if (!directories->is_ok()) {
     return _missing_dirs_window(directories.get());
@@ -373,7 +374,7 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-int _missing_dirs_window(const mr::dirs *d) {
+int _missing_dirs_window(const mr::Dirs *d) {
   SetTargetFPS(40);
   InitWindow(1200, 800, "Mobit Renderer");
   while (!WindowShouldClose()) {
@@ -483,7 +484,7 @@ int _auto_render_window(int argc, char* argv[]) {
     return 0;
   }
 
-  shared_ptr<mr::dirs> directories = std::make_shared<mr::dirs>();
+  shared_ptr<mr::Dirs> directories = std::make_shared<mr::Dirs>();
   shared_ptr<logger> logger = nullptr;
 
   // Initializing logging

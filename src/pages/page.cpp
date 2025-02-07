@@ -51,4 +51,9 @@ void LevelPage::update_mtx_mouse_pos() noexcept {
 
 void LevelPage::order_level_redraw() noexcept {}
 
+void LevelPage::on_level_selected() noexcept {}
+void LevelPage::on_level_loaded() noexcept {}
+void LevelPage::on_level_created() noexcept {}
+void LevelPage::on_level_unloaded() noexcept {}
+
 };

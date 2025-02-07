@@ -27,156 +27,6 @@
 
 namespace mr {
 
-void dirs::set_data(std::filesystem::path dir, bool include_cast) {
-  if (!std::filesystem::is_directory(dir))
-      throw std::invalid_argument(dir.string()+" is not a directory");
-  
-  data = dir;
-  props = data / "Props";
-  tiles = data / "Graphics";
-  materials = data / "Materials";
-  if (include_cast) cast = data / "Cast";
-
-  data_found = std::filesystem::exists(data);
-  props_found = std::filesystem::exists(props);
-  tiles_found = std::filesystem::exists(tiles);
-  materials_found = std::filesystem::exists(materials);
-  if (include_cast) cast_found = std::filesystem::exists(cast);
-}
-void dirs::set_levels(std::filesystem::path dir) {
-  if (!std::filesystem::is_directory(dir))
-      throw std::invalid_argument(dir.string()+" is not a directory");
-  
-  levels = dir;
-  levels_found = std::filesystem::exists(levels);
-}
-
-dirs::dirs() {
-
-  executable = mr::get_executable_dir();
-
-  #ifdef IS_DEBUG_BUILD
-  data = executable / ".." / ".." / "Data";
-  datapacks = executable / ".." / ".." / "DataPacks";
-  assets = executable / ".." / ".." / "Assets";
-
-  // VS Code's annoying configuration
-  if (!exists(data) && !exists(assets)) {
-    data = executable / ".." / ".." / ".." / "Data";
-    datapacks = executable / ".." / ".." / ".." / "DataPacks";
-    assets = executable / ".." / ".." / ".." / "Assets";
-  }
-  #else
-  data = executable / "Data";
-  datapacks = executable / "DataPacks";
-  assets = executable / "Assets";
-  #endif
-
-  palettes = assets / "Palettes";
-
-  tilepacks = datapacks / "Tiles";
-  proppacks = datapacks / "Props";
-  materialpacks = datapacks / "Materials";
-
-  projects = executable / "Projects";
-  levels = executable / "Levels";
-  logs = executable / "Logs";
-
-  if (!exists(projects)) std::filesystem::create_directory(projects);
-  if (!exists(levels)) std::filesystem::create_directory(levels);
-  if (!exists(logs)) std::filesystem::create_directory(logs);
-
-  #ifdef FEATURE_PALETTES
-  if (!exists(palettes)) std::filesystem::create_directory(palettes);
-  #endif
-
-  #ifdef FEATURE_DATAPACKS
-  if (!exists(datapacks)) std::filesystem::create_directory(datapacks);
-  if (!exists(tilepacks)) std::filesystem::create_directory(tilepacks);
-  if (!exists(proppacks)) std::filesystem::create_directory(proppacks);
-  if (!exists(materialpacks)) std::filesystem::create_directory(materialpacks);
-  #endif
-
-  shaders = assets / "Shaders";
-  fonts = assets / "Fonts";
-  materials = data / "Materials";
-  tiles = data / "Graphics";
-  props = data / "Props";
-  cast = data / "Cast";
-
-  executable_found = exists(executable);
-
-  assets_found = exists(assets);
-  palettes_found = exists(palettes);
-  shaders_found = exists(shaders);
-  fonts_found = exists(fonts);
-
-  data_found = exists(data);
-  tiles_found = exists(tiles);
-  materials_found = exists(materials);
-  props_found = exists(props);
-  cast_found = exists(cast);
-
-  ok = executable_found && 
-    assets_found &&
-    shaders_found &&
-    data_found &&
-    tiles_found &&
-    materials_found &&
-    props_found &&
-    cast_found;
-}
-
-dirs::dirs(const std::filesystem::path &executable_directory) {
-  if (!std::filesystem::exists(executable_directory))
-    throw std::invalid_argument("invalid executable directory");
-
-  assets = executable_directory / "Assets";
-  projects = executable_directory / "Projects";
-  levels = executable_directory / "Levels";
-  data = executable_directory / "Data";
-  logs = executable_directory / "Logs";
-
-  if (!exists(assets))
-    throw std::invalid_argument("assets does not exist");
-  if (!exists(data))
-    throw std::invalid_argument("data does not exist");
-
-  if (!exists(projects)) {
-    std::filesystem::create_directory(projects);
-  }
-
-  if (!exists(levels)) {
-    std::filesystem::create_directory(levels);
-  }
-
-  if (!exists(levels)) {
-    std::filesystem::create_directory(logs);
-  }
-
-  shaders = assets / "Shaders";
-  fonts = assets / "Fonts";
-  materials = data / "Materials";
-  tiles = data / "Graphics";
-  props = data / "Props";
-  cast = data / "Cast";
-
-  if (!exists(shaders))
-    throw std::invalid_argument("Assets/Shaders does not exist");
-  if (!exists(fonts))
-    std::filesystem::create_directory(fonts);
-  if (!exists(materials))
-    throw std::invalid_argument("Data/Materials does not exist");
-  if (!exists(tiles))
-    throw std::invalid_argument("Data/Graphics does not exist");
-  if (!exists(props))
-    throw std::invalid_argument("Data/Props does not exist");
-  if (!exists(cast))
-    throw std::invalid_argument("Data/Cast does not exist");
-
-  executable = executable_directory;
-}
-
 void shaders::unload_all() {
   if (!loaded) return;
   mr::utils::unload_shader(_vflip);
@@ -354,7 +204,7 @@ void context::unlock_global_shortcuts() noexcept {
 void context::set_config(Config const &c) noexcept { *_config = c; }
 
 context::context(std::shared_ptr<spdlog::logger> logger,
-                 std::shared_ptr<dirs> dirs)
+                 std::shared_ptr<Dirs> dirs)
     : logger(logger),
       _config(Config::from_file(dirs->get_executable() / "config.toml")),
       directories(dirs),
@@ -561,13 +411,13 @@ void textures::resize_all_level_buffers(int width, int height) {
   }
   // Prop buffer
   {
-    auto new_buffer = rendertexture(width + 400, height + 400);
+    auto new_buffer = rendertexture(width, height);
 
     BeginTextureMode(new_buffer.get());
     ClearBackground(WHITE);
 
     if (props.is_loaded()) {
-      DrawTexture(props.get().texture, 200, 200, WHITE);
+      DrawTexture(props.get().texture, 0, 0, WHITE);
     }
     EndTextureMode();
 
@@ -575,7 +425,7 @@ void textures::resize_all_level_buffers(int width, int height) {
   }
 }
 
-textures::textures(std::shared_ptr<dirs> directories, bool preload_textures)
+textures::textures(std::shared_ptr<Dirs> directories, bool preload_textures)
     : directories(directories), 
     geometry_editor(directories.get()->get_assets()) 
 {
