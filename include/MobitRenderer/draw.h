@@ -93,6 +93,7 @@ void draw_nested_grid(levelsize width, levelsize height, Color color, int scale 
 
 void draw_frame(levelpixelsize width, levelpixelsize height, Color color = WHITE) noexcept;
 void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept;
+void draw_double_frame(int x, int y, levelpixelsize width, levelpixelsize height) noexcept;
 
 void draw_geo_shape(GeoType type, float x, float y, float scale, Color color);
 

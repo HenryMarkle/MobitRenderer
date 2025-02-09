@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
 
 #include <MobitRenderer/managed.h>
 
@@ -80,10 +81,33 @@ void reload();
 GE_Textures &operator=(GE_Textures &&) noexcept;
 GE_Textures &operator=(GE_Textures const&) = delete;
 
-GE_Textures(const std::filesystem::path&);
+GE_Textures(const std::filesystem::path &assets_dir);
 GE_Textures(GE_Textures &&) noexcept;
 GE_Textures(GE_Textures const&) = delete;
 ~GE_Textures();
+
+};
+
+class LE_Textures {
+
+private:
+
+    std::filesystem::path _textures_dir;
+    std::vector<texture> _brushes;
+
+public:
+
+    inline const std::vector<texture> &brushes() const noexcept { return _brushes; }
+
+    void reload();
+
+    LE_Textures &operator=(LE_Textures &&) noexcept;
+    LE_Textures &operator=(const LE_Textures&) = delete;
+
+    LE_Textures(const std::filesystem::path &assets_dir);
+    LE_Textures(LE_Textures &&) noexcept;
+    LE_Textures(const LE_Textures&) = delete;
+    ~LE_Textures();
 
 };
 

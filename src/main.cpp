@@ -200,6 +200,7 @@ int main(int argc, char* argv[]) {
   event_handlers handlers = event_handlers();
 
   handlers[mr::context_event_type::level_loaded] = mr::handle_level_loaded;
+  handlers[mr::context_event_type::level_selected] = mr::handle_level_selected;
   handlers[mr::context_event_type::goto_page] = mr::handle_goto_page;
 
   logger->info("entering main loop");
@@ -267,7 +268,7 @@ int main(int argc, char* argv[]) {
           auto goto_geo = ImGui::MenuItem("Geometry", nullptr, current_page == 2, true);
           auto goto_tiles = ImGui::MenuItem("Tiles", nullptr, current_page == 3, true);
           auto goto_cameras = ImGui::MenuItem("Cameras", nullptr, current_page == 4, true);
-          ImGui::MenuItem("Light", nullptr, current_page == 5, false);
+          auto goto_light = ImGui::MenuItem("Light", nullptr, current_page == 5, true);
           ImGui::MenuItem("Dimensions", nullptr, current_page == 6, false);
           ImGui::MenuItem("Effects", nullptr, current_page == 7, false);
           auto goto_props = ImGui::MenuItem("Props", nullptr, current_page == 8, true);
@@ -281,6 +282,9 @@ int main(int argc, char* argv[]) {
             pager->select(3);
           } else if (goto_cameras) {
             pager->select(4);
+          }
+          else if (goto_light) {
+            pager->select(5);
           }
           else if (goto_props) {
             pager->select(8);

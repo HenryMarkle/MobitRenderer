@@ -257,12 +257,42 @@ public:
 
 class Light_Page : public LevelPage {
 
+protected:
+
+  bool 
+    _hovering_on_window, 
+    _should_redraw,
+    _custom_rotation,
+    _click_lock;
+
+  size_t _brush_index;
+
+  float
+    _brush_width, 
+    _brush_height, 
+    _half_brush_width,
+    _half_brush_height;
+
+  float _brush_growth_speed, _brush_growth_accelaration, _brush_rotation;
+
+  /// @brief 0 - paint shadows; 1 - paint light
+  uint8_t _paint_mode;
+
+  Vector2 _projection_angle, _brush_pinned_pos;
+
+  void _update_projection_angle() noexcept;
+
 public:
 
   void on_level_loaded() noexcept override;
   void on_level_unloaded() noexcept override;
   void on_level_selected() noexcept override;
   void on_page_selected() noexcept override;
+
+  void process() override;
+  void draw() noexcept override;
+  void windows() noexcept override;
+  void f3() const noexcept override;
 
   Light_Page(context*);
   ~Light_Page();

@@ -1140,6 +1140,8 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
 
   auto level = std::make_unique<Level>(width, height);
 
+  level->set_path(path);
+
   // Geometry
 
   try {

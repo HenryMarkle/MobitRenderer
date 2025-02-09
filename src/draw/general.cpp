@@ -541,6 +541,19 @@ void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept {
     );
 }
 
+void draw_double_frame(int x, int y, levelpixelsize width, levelpixelsize height) noexcept {
+    DrawRectangleLinesEx(
+        Rectangle{ x - 2.0f, y - 2.0f, width + 2.0f, height + 2.0f},
+        6,
+        WHITE
+    );
+    DrawRectangleLinesEx(
+        Rectangle{x - 2.0f, y - 2.0f, width + 2.0f, height + 2.0f},
+        4,
+        BLACK
+    );
+}
+
 };
     
 };

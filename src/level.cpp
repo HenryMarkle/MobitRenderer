@@ -1,12 +1,12 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <cstdint>
 #include <vector>
 #include <string>
 #include <filesystem>
 #include <exception>
+
+#ifdef IS_DEBUG_BUILD
+#include <iostream>
+#endif
 
 #include <raylib.h>
 
@@ -86,7 +86,7 @@ void Level::set_name(string new_name) {
 }
 
 const path &Level::get_path() const noexcept { return path; }
-void Level::set_path(std::filesystem::path p) {
+void Level::set_path(std::filesystem::path const &p) {
   if (!exists(p)) throw std::invalid_argument("directory path does not exist");
 
   auto parent = p.parent_path();
@@ -99,7 +99,7 @@ void Level::set_path(std::filesystem::path p) {
 }
 const path &Level::get_directory() const noexcept { return directory_path; }
 
-void Level::set_directory(std::filesystem::path p) {
+void Level::set_directory(std::filesystem::path const &p) {
   if (!exists(p)) throw std::invalid_argument("directory path does not exist");
 
   directory_path = p;
@@ -120,10 +120,54 @@ Matrix<TileCell> &Level::get_tile_matrix() { return tile_matrix; }
 std::vector<Effect> &Level::get_effects() { return effects; }
 
 void Level::load_lightmap() {
+  #ifdef IS_DEBUG_BUILD
+  if (!std::filesystem::exists(lightmap_path)) {
+    std::cout 
+      << "Warning: lightmap path does not exist: " 
+      << lightmap_path 
+      << "; generating a new one" 
+      << std::endl; 
+  }
+  #endif
+
   mr::utils::unload_rendertexture(lightmap);
 
   if (std::filesystem::exists(lightmap_path)) {
     auto texture = LoadTexture(lightmap_path.string().c_str());
+
+    lightmap = LoadRenderTexture(texture.width, texture.height);
+
+    BeginTextureMode(lightmap);
+    ClearBackground(WHITE);
+    DrawTexture(texture, 0, 0, WHITE);
+    EndTextureMode();
+
+    UnloadTexture(texture);
+
+    return;
+  }
+
+  lightmap = LoadRenderTexture(pxwidth + 300, pxheight + 300);
+  BeginTextureMode(lightmap);
+  ClearBackground(WHITE);
+  EndTextureMode();
+}
+
+void Level::load_lightmap(const std::filesystem::path &path) {
+  #ifdef IS_DEBUG_BUILD
+  if (!std::filesystem::exists(lightmap_path)) {
+    std::cout 
+      << "Warning: lightmap path does not exist: " 
+      << lightmap_path 
+      << "; generating a new one" 
+      << std::endl; 
+  }
+  #endif
+
+  mr::utils::unload_rendertexture(lightmap);
+
+  if (std::filesystem::exists(path)) {
+    auto texture = LoadTexture(path.string().c_str());
 
     lightmap = LoadRenderTexture(texture.width, texture.height);
 
@@ -200,7 +244,7 @@ void Level::resize(int16_t left, int16_t top, int16_t right,
 Level::Level(uint16_t width, uint16_t height)
     : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), geo_matrix(width, height),
       tile_matrix(width, height), water(-1), front_water(false), light(true),
-      terrain(true), lightmap(RenderTexture2D{0}) {}
+      terrain(true), lightmap(RenderTexture2D{0}), light_angle(180), light_flatness(1) {}
 
 Level::Level(uint16_t width, uint16_t height,
 
@@ -212,7 +256,7 @@ Level::Level(uint16_t width, uint16_t height,
                 int8_t water, bool light, bool terrain, bool front_water)
     : width(width), height(height), pxwidth(width * 20), pxheight(height * 20), water(water), front_water(front_water),
       light(light), terrain(terrain), tile_matrix(std::move(tile_matrix)),
-      geo_matrix(std::move(geo_matrix)), lightmap(RenderTexture2D{0}) {}
+      geo_matrix(std::move(geo_matrix)), lightmap(RenderTexture2D{0}), light_angle(180), light_flatness(1) {}
 
 Level::~Level() {
   unload_lightmap();

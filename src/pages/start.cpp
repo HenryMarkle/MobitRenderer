@@ -71,14 +71,6 @@ void Start_Page::process() {
     }
 
     if (loaded_level != nullptr) {
-      auto *level_path = explorer_.get_selected_entry_ptr();
-      auto parent = level_path->parent_path();
-
-      std::stringstream sb;
-      sb << level_path->stem().c_str() << ".png";
-
-      auto lightmap_path = parent / sb.str();
-
       loaded_level->load_lightmap();
 
       ctx->_textures->resize_all_level_buffers(
@@ -88,6 +80,7 @@ void Start_Page::process() {
       ctx->add_level(std::move(loaded_level));
       ctx->select_level(0);
       ctx->events.push(context_event{context_event_type::level_loaded, nullptr});
+      ctx->events.push(context_event{context_event_type::level_selected, nullptr});
     }
   }
 }

@@ -610,6 +610,10 @@ void Props_Page::draw() noexcept {
     WHITE
   );
 
+  for (size_t x = 0; x < level->props.size(); x++) {
+    const auto &prop = level->props[x];
+  }
+
 
   EndMode2D();
 }

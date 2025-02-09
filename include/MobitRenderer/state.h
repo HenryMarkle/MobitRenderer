@@ -70,7 +70,10 @@ private:
   std::filesystem::path _shaders_dir;
 
   Shader _vflip;
+  Shader _apply_alpha;
+  Shader _apply_alpha_vflip;
   Shader _white_remover;
+  Shader _white_remover_apply_color_vflip;
   Shader _white_remover_apply_color;
   Shader _white_remover_apply_alpha;
   Shader _white_remover_rgb_recolor;
@@ -94,7 +97,10 @@ public:
   inline bool is_loaded() const noexcept { return loaded; }
 
   inline const Shader &vflip() const noexcept { return _vflip; }
+  inline const Shader &apply_alpha() const noexcept { return _apply_alpha; }
+  inline const Shader &apply_alpha_vflip() const noexcept { return _apply_alpha_vflip; }
   inline const Shader &white_remover() const noexcept { return _white_remover; }
+  inline const Shader &white_remover_apply_color_vflip() const noexcept { return _white_remover_apply_color_vflip; }
   inline const Shader &white_remover_apply_color() const noexcept { return _white_remover_apply_color; }
   inline const Shader &white_remover_apply_alpha() const noexcept { return _white_remover_apply_alpha; }
   inline const Shader &white_remover_rgb_recolor() const noexcept { return _white_remover_rgb_recolor; }
@@ -179,7 +185,8 @@ public:
 
   texture file_icon, folder_icon, up_icon, home_icon;
 
-  GE_Textures geometry_editor;  // One of a kind, as usual.
+  GE_Textures geometry_editor;
+  LE_Textures light_editor;
 
   void reload_all_textures();
 
@@ -199,7 +206,7 @@ public:
   ~textures();
 };
 
-enum class context_event_type { level_loaded, goto_page };
+enum class context_event_type { level_loaded, level_selected, goto_page };
 
 struct context_event {
   context_event_type type;

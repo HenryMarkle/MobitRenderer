@@ -1,5 +1,10 @@
 #include <filesystem>
+#include <vector>
 #include <memory>
+
+#ifdef IS_DEBUG_BUILD
+#include <iostream>
+#endif
 
 #include <MobitRenderer/atlas.h>
 #include <MobitRenderer/managed.h>
@@ -156,5 +161,43 @@ GE_Textures::GE_Textures(GE_Textures &&other) noexcept {
 }
 
 GE_Textures::~GE_Textures() {}
+
+
+void LE_Textures::reload() {
+  if (!std::filesystem::is_directory(_textures_dir)) {
+    #ifdef IS_DEBUG_BUILD
+    std::cout 
+      << "Warning: light editor's textures directory does not exist: " 
+      << _textures_dir 
+      << std::endl;
+    #endif
+    
+    return;
+  }
+
+  _brushes.clear();
+
+  for (const auto &entry : std::filesystem::directory_iterator(_textures_dir)) {
+    if (!std::filesystem::is_regular_file(entry.path())) continue;
+    if (entry.path().extension() != ".png") continue;
+
+    _brushes.push_back(texture(entry.path().string().c_str()));
+  }
+}
+
+LE_Textures &LE_Textures::operator=(LE_Textures &&other) noexcept {
+  if (this == &other) return *this;
+
+  _brushes = std::move(other._brushes);
+
+  return *this;
+}
+LE_Textures::LE_Textures(const std::filesystem::path &path) {
+  _textures_dir = path / "Level" / "Light";
+}
+LE_Textures::LE_Textures(LE_Textures &&other) noexcept {
+  _brushes = std::move(other._brushes);
+}
+LE_Textures::~LE_Textures() {}
 
 };

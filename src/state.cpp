@@ -30,7 +30,10 @@ namespace mr {
 void shaders::unload_all() {
   if (!loaded) return;
   mr::utils::unload_shader(_vflip);
+  mr::utils::unload_shader(_apply_alpha);
+  mr::utils::unload_shader(_apply_alpha_vflip);
   mr::utils::unload_shader(_white_remover);
+  mr::utils::unload_shader(_white_remover_apply_color_vflip);
   mr::utils::unload_shader(_white_remover_apply_color);
   mr::utils::unload_shader(_white_remover_rgb_recolor);
   mr::utils::unload_shader(_voxel_struct);
@@ -48,8 +51,17 @@ void shaders::load_all() {
   auto vflip_path = _shaders_dir / "vflip.frag";
   _vflip = LoadShader(nullptr, vflip_path.string().c_str());
 
+  auto apply_alpha_path = _shaders_dir / "apply_alpha.frag";
+  _apply_alpha = LoadShader(nullptr, apply_alpha_path.string().c_str());
+
+  auto vflip_apply_alpha_path = _shaders_dir / "apply_alpha_vflip.frag";
+  _apply_alpha_vflip = LoadShader(nullptr, vflip_apply_alpha_path.string().c_str());
+
   auto white_remover_path = _shaders_dir / "white_remover.frag";
   _white_remover = LoadShader(nullptr, white_remover_path.string().c_str());
+
+  auto white_remover_apply_color_vflip_path = _shaders_dir / "white_remover_apply_color_vflip.frag";
+  _white_remover_apply_color_vflip = LoadShader(nullptr, white_remover_apply_color_vflip_path.string().c_str());
 
   auto white_remover_apply_color_path = _shaders_dir / "white_remover_apply_color.frag";
   _white_remover_apply_color = LoadShader(nullptr, white_remover_apply_color_path.string().c_str());
@@ -94,7 +106,10 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _shaders_dir = other._shaders_dir;
 
   _vflip = other._vflip;
+  _apply_alpha = other._apply_alpha;
+  _apply_alpha_vflip = other._apply_alpha_vflip;
   _white_remover = other._white_remover;
+  _white_remover_apply_color_vflip = other._white_remover_apply_color_vflip;
   _white_remover_apply_color = other._white_remover_apply_color;
   _white_remover_apply_alpha = other._white_remover_apply_alpha;
   _white_remover_rgb_recolor = other._white_remover_rgb_recolor;
@@ -106,7 +121,10 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _varied_voxel_struct = other._varied_voxel_struct;
 
   other._vflip = Shader{0};
+  other._apply_alpha = Shader{0};
+  other._apply_alpha_vflip = Shader{0};
   other._white_remover = Shader{0};
+  other._white_remover_apply_color_vflip = Shader{0};
   other._white_remover_apply_color = Shader{0};
   other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
@@ -124,7 +142,10 @@ shaders &shaders::operator=(shaders &&other) noexcept {
 shaders::shaders(shaders &&other) noexcept : 
   _shaders_dir(other._shaders_dir), 
   _vflip(other._vflip), 
+  _apply_alpha_vflip(other._apply_alpha_vflip), 
+  _apply_alpha(other._apply_alpha), 
   _white_remover(other._white_remover), 
+  _white_remover_apply_color_vflip(other._white_remover_apply_color_vflip),
   _white_remover_apply_color(other._white_remover_apply_color),
   _white_remover_apply_alpha(other._white_remover_apply_alpha),
   _white_remover_rgb_recolor(other._white_remover_rgb_recolor),
@@ -138,7 +159,10 @@ shaders::shaders(shaders &&other) noexcept :
 {
   other.loaded = false;
   other._vflip = Shader{0};
+  other._apply_alpha = Shader{0};
+  other._apply_alpha_vflip = Shader{0};
   other._white_remover = Shader{0};
+  other._white_remover_apply_color_vflip = Shader{0};
   other._white_remover_apply_color = Shader{0};
   other._white_remover_apply_alpha = Shader{0};
   other._white_remover_rgb_recolor = Shader{0};
@@ -154,7 +178,10 @@ shaders::shaders(std::filesystem::path shaders_dir) :
   loaded(false),
   _shaders_dir(shaders_dir), 
   _vflip(Shader{0}), 
+  _apply_alpha(Shader{0}), 
+  _apply_alpha_vflip(Shader{0}), 
   _white_remover(Shader{0}),
+  _white_remover_apply_color_vflip(Shader{0}),
   _white_remover_apply_color(Shader{0}),
   _white_remover_apply_alpha(Shader{0}),
   _white_remover_rgb_recolor(Shader{0}),
@@ -286,6 +313,7 @@ void textures::reload_all_textures() {
   home_icon = texture((directories->get_assets() / "Icons" / "home icon.png").string().c_str());
 
   geometry_editor.reload();
+  light_editor.reload();
 
   #ifdef FEATURE_PALETTES
   for (auto &palette : palettes) palette.reload();
@@ -427,7 +455,8 @@ void textures::resize_all_level_buffers(int width, int height) {
 
 textures::textures(std::shared_ptr<Dirs> directories, bool preload_textures)
     : directories(directories), 
-    geometry_editor(directories.get()->get_assets()) 
+    geometry_editor(directories.get()->get_assets()),
+    light_editor(directories.get()->get_assets())
 {
 
   if (preload_textures) {

@@ -226,6 +226,12 @@ public:
   std::vector<LevelCamera> cameras;
   std::vector<std::shared_ptr<Prop>> props;
   int seed;
+  
+  /// @brief 0 - 360
+  int light_angle;
+
+  /// @brief 1 - 10
+  int light_flatness;
 
   const std::string &get_name() const noexcept;
 
@@ -238,17 +244,19 @@ public:
 
   /// @note This will update the name, path, directory 
   /// and the path of the lightmap.
-  void set_path(std::filesystem::path);
+  void set_path(const std::filesystem::path&);
 
   /// @brief Gets the directory path of the level.
   const std::filesystem::path &get_directory() const noexcept;
   
   /// @note This will update the path, directory 
   /// and the path of the lightmap.
-  void set_directory(std::filesystem::path);
+  void set_directory(const std::filesystem::path&);
 
   /// @brief Gets the file path of the lightmap.
   const std::filesystem::path &get_lightmap_path() const noexcept;
+
+  const RenderTexture2D &get_lightmap() const noexcept { return lightmap; }
 
   /// @return Retrieves the level width in units of 20 px^2.
   levelsize get_width() const noexcept;
@@ -266,6 +274,7 @@ public:
 
   /// @note Requires a GL context.
   void load_lightmap();
+  void load_lightmap(const std::filesystem::path&);
 
   /// @note Requires a GL context.
   void unload_lightmap();
