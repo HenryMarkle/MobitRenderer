@@ -353,7 +353,8 @@ private:
     _selected_tile_category_index, 
     _selected_tile_index,
     _selected_prop_category_index,
-    _selected_prop_index;
+    _selected_prop_index,
+    _selected_count;
 
   RenderTexture2D _tile_texture_rt, _prop_texture_rt;
 

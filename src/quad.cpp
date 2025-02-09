@@ -315,10 +315,10 @@ void Quad::rotate_around(float degrees, Vector2 ctr) noexcept {
 
 Rectangle Quad::enclose() const noexcept {
     float min_x = MINF(MINF(topleft.x, topright.x), MINF(bottomleft.x, bottomright.x));
-    float min_y = MINF(MINF(topleft.y, topright.y), MINF(bottomleft.y, bottomright.y));
+    float min_y = MINF(MINF(topleft.y, bottomleft.y), MINF(topright.y, bottomright.y));
     
     float max_x = MAXF(MAXF(topleft.x, topright.x), MAXF(bottomleft.x, bottomright.x));
-    float max_y = MAXF(MAXF(topleft.y, topright.y), MAXF(bottomleft.y, bottomright.y));
+    float max_y = MAXF(MAXF(topleft.y, bottomleft.y), MAXF(topright.y, bottomright.y));
 
     return Rectangle { min_x, min_y, (max_x - min_x), (max_y - min_y) };
 }

@@ -12,6 +12,15 @@
 #include <MobitRenderer/draw.h>
 #include <MobitRenderer/quad.h>
 
+Rectangle enclose(Rectangle r1, Rectangle r2) {
+  float minx = fminf(r1.x, r2.x);
+  float miny = fminf(r1.y, r2.y);
+  float maxx = fmaxf(r1.x + r1.width, r2.x + r2.width);
+  float maxy = fmaxf(r1.y + r1.height, r2.y + r2.height);
+
+  return Rectangle {minx, miny, maxx - minx, maxy - miny};
+}
+
 namespace mr::pages {
 
 void Props_Page::resize_indices() noexcept {
@@ -610,9 +619,21 @@ void Props_Page::draw() noexcept {
     WHITE
   );
 
+  _selected_count = 0;
+  auto rect = Rectangle{0, 0, 0, 0};
+
   for (size_t x = 0; x < level->props.size(); x++) {
     const auto &prop = level->props[x];
+    bool selected = _selected[x];
+
+    if (selected) {
+      if (_selected_count > 0) rect = enclose(rect, prop->quad.enclose());
+      else rect = prop->quad.enclose();
+      _selected_count++;
+    }
   }
+
+  DrawRectangleLinesEx(rect, 3, BLUE);
 
 
   EndMode2D();
@@ -861,6 +882,14 @@ void Props_Page::f3() const noexcept {
     f3->print(prop_type_c_str(_selected_prop->type), true);
   }
   else f3->print("NULL", true);
+
+  auto *level = ctx->get_selected_level();
+
+  f3->print("Placed ");
+  f3->print(level == nullptr ? 0 : level->props.size(), true);
+
+  f3->print("Selected ");
+  f3->print(_selected_count, true);
 }
 
 void Props_Page::on_level_loaded() noexcept {
@@ -918,6 +947,7 @@ Props_Page::Props_Page(context *ctx)
       _selected_prop(nullptr), _hovered_prop(nullptr), _selected_tile_index(0),
       _selected_tile_category_index(0), _selected_prop_index(0),
       _selected_prop_category_index(0), _hovering_on_window(true),
+      _selected_count(0),
       
       _should_redraw(true),
       _should_redraw1(true),
