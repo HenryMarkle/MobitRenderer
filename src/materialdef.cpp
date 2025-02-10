@@ -67,9 +67,9 @@ namespace mr {
   }
 
   MaterialDefTexture::MaterialDefTexture(
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> repeat,
+    int width, 
+    int height, 
+    std::vector<int> repeat,
     std::unordered_set<std::string> tags
   ) : 
     width(width), 
@@ -79,9 +79,9 @@ namespace mr {
   {}
 
   MaterialDefBlock::MaterialDefBlock(
-    std::vector<uint8_t> repeat,
+    std::vector<int> repeat,
     int rnd, 
-    uint8_t buffer,
+    int buffer,
     std::unordered_set<std::string> tags
   ) :
     repeat(repeat),
@@ -91,9 +91,9 @@ namespace mr {
   {}
 
   MaterialDefSlope::MaterialDefSlope(
-    std::vector<uint8_t> repeat,
+    std::vector<int> repeat,
     int rnd,
-    uint8_t buffer,
+    int buffer,
     std::unordered_set<std::string> tags
   ) :
     repeat(repeat),
@@ -103,9 +103,9 @@ namespace mr {
   {}
 
   MaterialDefFloor::MaterialDefFloor(
-    std::vector<uint8_t> repeat,
+    std::vector<int> repeat,
     int rnd,
-    uint8_t buffer,
+    int buffer,
     std::unordered_set<std::string> tags
   ) :
     repeat(repeat),

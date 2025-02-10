@@ -114,11 +114,11 @@ void TileDef::unload_texture() {
 // }
 
 TileDef::TileDef(
-  std::string name, TileDefType type, uint8_t width,
-  uint8_t height, uint8_t buffer, int8_t rnd,
-  std::unordered_set<std::string> tags, std::vector<int8_t> specs,
-  std::vector<int8_t> specs2, std::vector<int8_t> specs3,
-  std::vector<uint8_t> repeat
+  std::string name, TileDefType type, int width,
+  int height, int buffer, int rnd,
+  std::unordered_set<std::string> tags, std::vector<int> specs,
+  std::vector<int> specs2, std::vector<int> specs3,
+  std::vector<int> repeat
   ) : 
     name(name),
     category(std::string()),

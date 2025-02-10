@@ -13,6 +13,13 @@
 #include <MobitRenderer/pages.h>
 #include <MobitRenderer/utils.h>
 
+#define EDIT_MODE_MATERIAL 0
+#define EDIT_MODE_TILE 1
+
+#define FORCE_MODE_PERMISSIVE 0
+#define FORCE_MODE_WITH_GEO 1
+#define FORCE_MODE_WITHOUT_GEO 2
+
 namespace mr::pages {
 
 void Tile_Page::_redraw_tile_preview_rt() noexcept {
@@ -147,23 +154,37 @@ void Tile_Page::_redraw_tile_specs_rt() noexcept {
   if (_selected_tile == nullptr) return;
 
   _tile_specs_rt = LoadRenderTexture(
-    _selected_tile->calculate_width(10), 
-    _selected_tile->calculate_height(10)
+    _selected_tile->get_width() * 10, 
+    _selected_tile->get_height() * 10
   );
 
   BeginTextureMode(_tile_specs_rt);
   {
-    for (int8_t x = 0; x < _selected_tile->get_width(); x++) {
-      for (int8_t y = 0; y < _selected_tile->get_height(); y++) {
-        auto spec = _selected_tile->get_specs()[y + x*_selected_tile->get_width()];
-
-        if (spec < 0) continue;
+    for (size_t x = 0; x < _selected_tile->get_width(); x++) {
+      for (size_t y = 0; y < _selected_tile->get_height(); y++) {
+        auto index = y + x*_selected_tile->get_height();
+        auto spec = _selected_tile->get_specs()[index];
 
         if (spec == 1) DrawRectangleLinesEx(
           Rectangle{x * 10.0f, y * 10.0f, 10.0f, 10.0f},
           1,
           WHITE
         );
+
+        if (spec == 0) {
+          DrawLineEx(
+            Vector2{x * 10.0f, y * 10.0f},
+            Vector2{(x+1) * 10.0f, (y+1) * 10.0f},
+            1,
+            WHITE 
+          );
+          DrawLineEx(
+            Vector2{x * 10.0f, (y+1) * 10.0f},
+            Vector2{(x+1) * 10.0f, y * 10.0f},
+            1,
+            WHITE 
+          );
+        }
       }
     }
 
@@ -172,7 +193,7 @@ void Tile_Page::_redraw_tile_specs_rt() noexcept {
     if (_selected_tile->get_specs2().size() > 0) {
       for (int8_t x = 0; x < _selected_tile->get_width(); x++) {
         for (int8_t y = 0; y < _selected_tile->get_height(); y++) {
-          auto spec = _selected_tile->get_specs2()[y + x*_selected_tile->get_width()];
+          auto spec = _selected_tile->get_specs2()[y + x*_selected_tile->get_height()];
 
           if (spec < 0) continue;
 
@@ -181,6 +202,21 @@ void Tile_Page::_redraw_tile_specs_rt() noexcept {
             1,
             GREEN
           );
+
+          if (spec == 0) {
+            DrawLineEx(
+              Vector2{x * 10.0f + 2, y * 10.0f + 2},
+              Vector2{(x+1) * 10.0f - 2, (y+1) * 10.0f - 2},
+              1,
+              WHITE 
+            );
+            DrawLineEx(
+              Vector2{x * 10.0f + 2, (y+1) * 10.0f + 2},
+              Vector2{(x+1) * 10.0f - 2, y * 10.0f - 2},
+              1,
+              WHITE 
+            );
+          }
         }
       }
     }
@@ -192,6 +228,8 @@ void Tile_Page::process() {
   if (ctx == nullptr) return;
 
   auto wheel = GetMouseWheelMove();
+
+  _update_mtx_mouse_pos();
 
   if (!_hovering_on_window) {
     if (wheel != 0) {
@@ -219,9 +257,127 @@ void Tile_Page::process() {
       ctx->level_layer_ = (ctx->level_layer_ + 1) % 3;
       _should_redraw = true;
     }
-  }
 
-  update_mtx_mouse_pos();
+    if (IsKeyPressed(KEY_M)) {
+      if (_edit_mode == EDIT_MODE_TILE) _edit_mode = EDIT_MODE_MATERIAL;
+      else _edit_mode = EDIT_MODE_TILE;
+    }
+
+    if (_is_mouse_in_mtx_bounds) {
+
+      if (IsKeyDown(KEY_G)) {
+        _force_mode = FORCE_MODE_WITH_GEO;
+      } else if (IsKeyDown(KEY_F)) {
+        _force_mode = FORCE_MODE_WITHOUT_GEO;
+      } else {
+        _force_mode = FORCE_MODE_PERMISSIVE;
+      }
+
+      // Pickup item
+      if (IsKeyPressed(KEY_Q)) {
+        const auto *cell = ctx
+          ->get_selected_level()
+          ->get_const_tile_matrix()
+          .get_const_ptr(_mtx_mouse_pos.x, _mtx_mouse_pos.y, ctx->level_layer_);
+
+        if (cell == nullptr) goto break_lookup;
+
+        switch (cell->type) {
+          case TileType::head:
+          {
+            _selected_tile = cell->tile_def;
+
+            if (_selected_tile == nullptr) goto break_lookup;
+
+            _redraw_tile_texture_rt();
+            _redraw_tile_specs_rt();
+            
+            const auto &categories = ctx->_tiledex->sorted_tiles();
+            for (size_t c = 0; c < categories.size(); c++) {
+              const auto &tiles = categories[c];
+              for (size_t t = 0; t < tiles.size(); t++) {
+                if (tiles[t]->get_name() == _selected_tile->get_name()) {
+                  _selected_tile_category_index = c;
+                  _selected_tile_index = t;
+                  goto break_lookup;
+                }                  
+              }
+            }
+          }
+          break;
+
+          case TileType::body:
+          {
+            const auto *supposed_head = ctx
+              ->get_selected_level()
+              ->get_const_tile_matrix()
+              .get_const_ptr(cell->head_pos_x, cell->head_pos_y, cell->head_pos_z);
+
+            if (supposed_head == nullptr || supposed_head->type != TileType::head) goto break_lookup;
+
+            _selected_tile = supposed_head->tile_def;
+
+            _redraw_tile_texture_rt();
+            _redraw_tile_specs_rt();
+            
+            const auto &categories = ctx->_tiledex->sorted_tiles();
+            for (size_t c = 0; c < categories.size(); c++) {
+              const auto &tiles = categories[c];
+              for (size_t t = 0; t < tiles.size(); t++) {
+                if (tiles[t]->get_name() == _selected_tile->get_name()) {
+                  _selected_tile_category_index = c;
+                  _selected_tile_index = t;
+                  goto break_lookup;
+                }                  
+              }
+            }
+          }
+          break;
+
+          case TileType::material:
+          {
+            _selected_material= cell->material_def;
+            if (_selected_material == nullptr) goto break_lookup;
+            
+            const auto &categories = ctx->_materialdex->sorted_materials();
+            for (size_t c = 0; c < categories.size(); c++) {
+              const auto &materials = categories[c];
+              for (size_t m = 0; m < materials.size(); m++) {
+                if (materials[m]->get_name() == _selected_tile->get_name()) {
+                  _selected_material_category_index = c;
+                  _selected_material_index = m;
+                  goto break_lookup;
+                }                  
+              }
+            }
+          }
+          break;
+
+          case TileType::_default:
+          {
+            const auto &name = ctx->get_selected_level()->default_material;
+
+            /// TODO: Inefficient lookup method.
+            
+            const auto &categories = ctx->_materialdex->sorted_materials();
+            for (size_t c = 0; c < categories.size(); c++) {
+              const auto &materials = categories[c];
+              for (size_t m = 0; m < materials.size(); m++) {
+                if (materials[m]->get_name() == name) {
+                  _selected_material_category_index = c;
+                  _selected_material_index = m;
+                  _selected_material = materials[m];
+                  goto break_lookup;
+                }                  
+              }
+            }
+          }
+          break;
+        }
+        break_lookup: {}
+      }
+    }
+  }
 
   auto *level = ctx->get_selected_level();
 
@@ -238,7 +394,6 @@ void Tile_Page::process() {
       _hovered_cell = cell;
     }
   }
-
 
   _hovering_on_window = false;
 }
@@ -679,59 +834,84 @@ void Tile_Page::draw() noexcept {
       WHITE
     );
 
-    if (_hovered_cell != nullptr) {
-      switch (_hovered_cell->type) {
-        case TileType::head:
-        {
-          if (_hovered_cell->tile_def != nullptr) {
-            auto offset = _hovered_cell->tile_def->get_head_offset();
+
+
+    switch (_edit_mode) {
+      case EDIT_MODE_MATERIAL:
+      if (_hovered_cell != nullptr) {
+        switch (_hovered_cell->type) {
+          case TileType::head:
+          {
+            if (_hovered_cell->tile_def != nullptr) {
+              auto offset = _hovered_cell->tile_def->get_head_offset();
+              DrawRectangleLinesEx(
+                Rectangle{
+                  (_mtx_mouse_pos.x - offset.x) * 20.0f,
+                  (_mtx_mouse_pos.y - offset.y) * 20.0f,
+                  _hovered_cell->tile_def->get_width() * 20.0f,
+                  _hovered_cell->tile_def->get_height() * 20.0f
+                },
+                2,
+                WHITE
+              );
+            }
+          }
+          break;
+  
+          case TileType::body:
+          {
+            if (_hovered_cell->tile_def != nullptr) {
+              auto offset = _hovered_cell->tile_def->get_head_offset();
+              DrawRectangleLinesEx(
+                Rectangle{
+                  (_hovered_cell->head_pos_x - offset.x) * 20.0f,
+                  (_hovered_cell->head_pos_y - offset.y) * 20.0f,
+                  _hovered_cell->tile_def->get_width() * 20.0f,
+                  _hovered_cell->tile_def->get_height() * 20.0f
+                },
+                2,
+                WHITE
+              );
+            }
+          }
+          break;
+  
+          default:
+          {
             DrawRectangleLinesEx(
               Rectangle{
-                (_mtx_mouse_pos.x - offset.x) * 20.0f,
-                (_mtx_mouse_pos.y - offset.y) * 20.0f,
-                _hovered_cell->tile_def->get_width() * 20.0f,
-                _hovered_cell->tile_def->get_height() * 20.0f
+                _mtx_mouse_pos.x*20.0f,
+                _mtx_mouse_pos.y*20.0f,
+                20.0f,
+                20.0f
               },
               2,
               WHITE
             );
           }
+          break;
         }
-        break;
-
-        case TileType::body:
-        {
-          if (_hovered_cell->tile_def != nullptr) {
-            auto offset = _hovered_cell->tile_def->get_head_offset();
-            DrawRectangleLinesEx(
-              Rectangle{
-                (_hovered_cell->head_pos_x - offset.x) * 20.0f,
-                (_hovered_cell->head_pos_y - offset.y) * 20.0f,
-                _hovered_cell->tile_def->get_width() * 20.0f,
-                _hovered_cell->tile_def->get_height() * 20.0f
-              },
-              2,
-              WHITE
-            );
-          }
-        }
-        break;
-
-        default:
-        {
-          DrawRectangleLinesEx(
-            Rectangle{
-              _mtx_mouse_pos.x*20.0f,
-              _mtx_mouse_pos.y*20.0f,
-              20.0f,
-              20.0f
-            },
-            2,
-            WHITE
-          );
-        }
-        break;
       }
+      break;
+    
+      case EDIT_MODE_TILE:
+      if (_selected_tile != nullptr) {
+        const auto &shader = ctx->_shaders->white_remover_apply_color();
+        const auto &texture = _selected_tile->get_loaded_texture();
+        auto origin = _selected_tile->get_head_offset();
+        BeginShaderMode(shader);
+        {
+          SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
+          mr::draw::draw_tile_prev(
+            _selected_tile, 
+            (_mtx_mouse_pos.x - origin.x) * 20, 
+            (_mtx_mouse_pos.y - origin.y) * 20, 
+            20, 
+            _force_mode != FORCE_MODE_PERMISSIVE || _is_tile_legal ? _selected_tile->get_color() : RED);
+        }
+        EndShaderMode();
+      }
+      break;
     }
   }
   EndMode2D();
@@ -740,135 +920,162 @@ void Tile_Page::windows() noexcept {
   auto tiles_opened = ImGui::Begin("Tiles##TilesPageTiles");
   _hovering_on_window |= ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
 
-  auto *dex = ctx->_tiledex;
-  if (tiles_opened && dex != nullptr) {
-    ImGui::Columns(2);
-
-    auto *draw_list = ImGui::GetWindowDrawList();
-    auto text_height = ImGui::GetTextLineHeight();
-
-    // Tile Categories
-    if (ImGui::BeginListBox("##Categories", ImGui::GetContentRegionAvail()) && !dex->categories().empty()) {
-      for (size_t c = 0; c < dex->categories().size(); c++) {
-        const auto &category = dex->categories().at(c);
-
-        auto cursor_pos = ImGui::GetCursorScreenPos();
-        draw_list->AddRectFilled(
-          cursor_pos,
-          ImVec2{cursor_pos.x + 10.0f, cursor_pos.y + text_height},
-          ImGui::ColorConvertFloat4ToU32(ImVec4{category.color.r/255.0f, category.color.g/255.0f, category.color.b/255.0f, 1})
-        );
-
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 16.0f);
-
-        bool selected = ImGui::Selectable(category.name.c_str(), _selected_tile_category_index == c);
-        if (selected) {
-          _selected_tile_category_index = c;
-          _selected_tile_index = 0;
-          if (!dex->sorted_tiles()[c].empty()) _selected_tile = dex->sorted_tiles()[c][0];
-        }
-      }
-      
-      ImGui::EndListBox();
-    }
-
-    ImGui::NextColumn();
-
-    // Tiles
-    if (
-      ImGui::BeginListBox("##CategoryTiles", ImGui::GetContentRegionAvail()) && 
-      !dex->sorted_tiles()[_selected_tile_category_index].empty() &&
-      _selected_tile_category_index < dex->sorted_tiles().size()
-    ) {
-      const auto &category_tiles = dex->sorted_tiles()[_selected_tile_category_index];
-
-      for (size_t t = 0; t < category_tiles.size(); t++) {
-        auto *tiledef = category_tiles[t];
-
-        bool selected = ImGui::Selectable(tiledef->get_name().c_str(), t == _selected_tile_index);
-        if (selected) {
-          _selected_tile_index = t;
-          _selected_tile = tiledef;
-          _redraw_tile_texture_rt();
-          _redraw_tile_specs_rt();
-        }
-
-        if (ImGui::IsItemHovered()) {
-          _hovered_tile = tiledef;
-          _redraw_tile_preview_rt();
-
-          ImGui::BeginTooltip();
-          rlImGuiImageRenderTexture(&_tile_preview_rt);
-          ImGui::EndTooltip();
-        }
-      }
-      
-      ImGui::EndListBox();
-    }
+  auto button_space = ImGui::GetContentRegionAvail();
+  button_space.y = 20;
+  if (ImGui::Button(_edit_mode == EDIT_MODE_MATERIAL ? "Switch to tiles" : "Switch to materials", button_space)) {
+    if (_edit_mode == EDIT_MODE_MATERIAL) _edit_mode = EDIT_MODE_TILE;
+    else _edit_mode = EDIT_MODE_MATERIAL;
   }
 
-  ImGui::End();
+  ImGui::Spacing();
 
-  auto materials_opened = ImGui::Begin("Materials##TilesPageMaterials");
-  _hovering_on_window |= ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+  switch (_edit_mode) {
+    case EDIT_MODE_TILE:
+    {
+      auto *dex = ctx->_tiledex;
+      if (tiles_opened && dex != nullptr) {
+        ImGui::Columns(2);
+    
+        auto *draw_list = ImGui::GetWindowDrawList();
+        auto text_height = ImGui::GetTextLineHeight();
+    
+        // Tile Categories
+        if (ImGui::BeginListBox("##Categories", ImGui::GetContentRegionAvail()) && !dex->categories().empty()) {
+          for (size_t c = 0; c < dex->categories().size(); c++) {
+            const auto &category = dex->categories().at(c);
+    
+            auto cursor_pos = ImGui::GetCursorScreenPos();
+            draw_list->AddRectFilled(
+              cursor_pos,
+              ImVec2{cursor_pos.x + 10.0f, cursor_pos.y + text_height},
+              ImGui::ColorConvertFloat4ToU32(ImVec4{category.color.r/255.0f, category.color.g/255.0f, category.color.b/255.0f, 1})
+            );
+    
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 16.0f);
+    
+            bool selected = ImGui::Selectable(category.name.c_str(), _selected_tile_category_index == c);
+            if (selected) {
+              _selected_tile_category_index = c;
+              _selected_tile_index = 0;
+              if (!dex->sorted_tiles()[c].empty()) _selected_tile = dex->sorted_tiles()[c][0];
+              _redraw_tile_texture_rt();
+              _redraw_tile_specs_rt();
+            }
+          }
+          
+          ImGui::EndListBox();
+        }
+    
+        ImGui::NextColumn();
+    
+        // Tiles
+        if (
+          ImGui::BeginListBox("##CategoryTiles", ImGui::GetContentRegionAvail()) && 
+          !dex->sorted_tiles()[_selected_tile_category_index].empty() &&
+          _selected_tile_category_index < dex->sorted_tiles().size()
+        ) {
+          const auto &category_tiles = dex->sorted_tiles()[_selected_tile_category_index];
+    
+          for (size_t t = 0; t < category_tiles.size(); t++) {
+            auto *tiledef = category_tiles[t];
+    
+            bool selected = ImGui::Selectable(tiledef->get_name().c_str(), t == _selected_tile_index);
+            if (selected) {
+              _selected_tile_index = t;
+              _selected_tile = tiledef;
+              _redraw_tile_texture_rt();
+              _redraw_tile_specs_rt();
+            }
 
-  auto *mdex = ctx->_materialdex;
-  if (materials_opened && mdex != nullptr) {
-    ImGui::Columns(2);
-
-    auto *draw_list = ImGui::GetWindowDrawList();
-    auto text_height = ImGui::GetTextLineHeight();
-
-    if (ImGui::BeginListBox("##Categories", ImGui::GetContentRegionAvail()) && !mdex->categories().empty()) {
-      for (size_t c = 0; c < mdex->categories().size(); c++) {
-        const auto &name = mdex->categories()[c];
-
-        if (ImGui::Selectable((name + "##" + std::to_string(c)).c_str(), _selected_material_category_index == c)) 
-        {
-          _selected_material_category_index = c;
-          _selected_material_index = 0;
-          if (!mdex->sorted_materials()[c].empty()) _selected_material = mdex->sorted_materials()[c][0];
+            if (_selected_tile == nullptr) {
+              _selected_tile = tiledef;
+              _redraw_tile_texture_rt();
+              _redraw_tile_specs_rt();
+            }
+    
+            if (ImGui::IsItemHovered()) {
+              _hovered_tile = tiledef;
+              _redraw_tile_preview_rt();
+    
+              ImGui::BeginTooltip();
+              rlImGuiImageRenderTexture(&_tile_preview_rt);
+              ImGui::EndTooltip();
+            }
+          }
+          
+          ImGui::EndListBox();
         }
       }
-
-      ImGui::EndListBox();
     }
-    
-    ImGui::NextColumn();
-    
-    if (
-      ImGui::BeginListBox("##Materials", ImGui::GetContentRegionAvail()) && 
-      !mdex->sorted_materials().empty() && 
-      _selected_material_category_index < mdex->sorted_materials().size()
-    ) {
+    break;
 
-      const auto &materials = mdex->sorted_materials()[_selected_material_category_index];
-    
-      for (size_t m = 0; m < materials.size(); m++) {
-        auto material = materials[m];
-        
-        const auto &color = material->get_color();
-        
-        auto cursor_pos = ImGui::GetCursorScreenPos();
-        draw_list->AddRectFilled(
-          cursor_pos,
-          ImVec2{cursor_pos.x + 10.0f, cursor_pos.y + text_height},
-          ImGui::ColorConvertFloat4ToU32(ImVec4{color.r/255.0f, color.g/255.0f, color.b/255.0f, 1})
-        );
+    case EDIT_MODE_MATERIAL:
+    {
+      auto *mdex = ctx->_materialdex;
+      if (tiles_opened && mdex != nullptr) {
+        ImGui::Columns(2);
 
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 16.0f);
-        if (ImGui::Selectable((std::string (" ") + material->get_name()).c_str(), _selected_material_index == m)) 
-        {
-          _selected_material_index = m;
-          _selected_material = material;
+        auto *draw_list = ImGui::GetWindowDrawList();
+        auto text_height = ImGui::GetTextLineHeight();
+
+        if (ImGui::BeginListBox("##Categories", ImGui::GetContentRegionAvail()) && !mdex->categories().empty()) {
+          for (size_t c = 0; c < mdex->categories().size(); c++) {
+            const auto &name = mdex->categories()[c];
+
+            if (ImGui::Selectable((name + "##" + std::to_string(c)).c_str(), _selected_material_category_index == c)) 
+            {
+              _selected_material_category_index = c;
+              _selected_material_index = 0;
+              if (!mdex->sorted_materials()[c].empty()) _selected_material = mdex->sorted_materials()[c][0];
+            }
+          }
+
+          ImGui::EndListBox();
+        }
+        
+        ImGui::NextColumn();
+        
+        if (
+          ImGui::BeginListBox("##Materials", ImGui::GetContentRegionAvail()) && 
+          !mdex->sorted_materials().empty() && 
+          _selected_material_category_index < mdex->sorted_materials().size()
+        ) {
+
+          const auto &materials = mdex->sorted_materials()[_selected_material_category_index];
+        
+          for (size_t m = 0; m < materials.size(); m++) {
+            auto material = materials[m];
+            
+            const auto &color = material->get_color();
+            
+            auto cursor_pos = ImGui::GetCursorScreenPos();
+            draw_list->AddRectFilled(
+              cursor_pos,
+              ImVec2{cursor_pos.x + 10.0f, cursor_pos.y + text_height},
+              ImGui::ColorConvertFloat4ToU32(ImVec4{color.r/255.0f, color.g/255.0f, color.b/255.0f, 1})
+            );
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 16.0f);
+            if (ImGui::Selectable((std::string (" ") + material->get_name()).c_str(), _selected_material_index == m)) 
+            {
+              _selected_material_index = m;
+              _selected_material = material;
+            }
+
+            if (_selected_material == nullptr) {
+              _selected_material = material;
+            }
+          }
+          ImGui::EndListBox();
         }
       }
-      
-      ImGui::EndListBox();
     }
+    break;
   }
-
+  
   ImGui::End();
+
+ 
 
   // Tile texture window
 
@@ -1024,6 +1231,20 @@ void Tile_Page::f3() const noexcept {
   } else {
     f3->print("NULL", MAGENTA, true);
   }
+
+  f3->print("Is Tile Legal ");
+  f3->print(_is_tile_legal, true);
+
+  f3->print("Edit Mode ");
+  if (_edit_mode == EDIT_MODE_TILE) f3->print(" Tile", MAGENTA, true);
+  else if (_edit_mode == EDIT_MODE_MATERIAL) f3->print(" Material", MAGENTA, true);
+  else f3->print(" Unknown", MAGENTA, true);
+
+  f3->print("Force Mode ");
+  if (_force_mode == FORCE_MODE_PERMISSIVE) f3->print(" Permissive", MAGENTA, true);
+  else if (_force_mode == FORCE_MODE_WITH_GEO) f3->print(" With Geometry", MAGENTA, true);
+  else if (_force_mode == FORCE_MODE_WITHOUT_GEO) f3->print(" Without Geometry", MAGENTA, true);
+  else f3->print(" Unknown", MAGENTA, true);
 }
 
 void Tile_Page::on_level_loaded() noexcept {
@@ -1066,6 +1287,21 @@ void Tile_Page::on_page_selected() noexcept {
   _should_redraw = true;
 }
 
+void Tile_Page::on_mtx_pos_changed() {
+  const auto *level = ctx->get_selected_level();
+
+  if (level != nullptr) {
+    _is_tile_legal = mr::utils::is_tile_legal(
+      _selected_tile, 
+      level->get_const_tile_matrix(), 
+      level->get_const_geo_matrix(), 
+      _mtx_mouse_pos.x, 
+      _mtx_mouse_pos.y, 
+      ctx->level_layer_
+    );
+  }
+}
+
 Tile_Page::Tile_Page(context *ctx) : 
     LevelPage(ctx),
     _should_redraw(true), 
@@ -1076,6 +1312,9 @@ Tile_Page::Tile_Page(context *ctx) :
     _should_redraw_tile2(true),
     _should_redraw_tile3(true),
     _hovering_on_window(false),
+    _is_tile_legal(false),
+    _edit_mode(0),
+    _force_mode(0),
     _selected_tile_category_index(0),
     _selected_tile_index(0),
     _selected_material_category_index(0),

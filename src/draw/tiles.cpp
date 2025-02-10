@@ -135,7 +135,7 @@ void draw_tile_prev_from_origin(
   if (texture.id == 0)
     return;
 
-  std::vector<int8_t> specs;
+  std::vector<int> specs;
   switch (tile_spec_layer) {
     case 0: specs = def->get_specs(); break;
     case 1: specs = def->get_specs2(); break;

@@ -50,9 +50,9 @@ class LevelPage : public Page {
 protected:
 
 bool _is_mouse_in_mtx_bounds;
-mr::ivec2 _mtx_mouse_pos;
+mr::ivec2 _mtx_mouse_pos, _mtx_mouse_prev_pos;
 
-void update_mtx_mouse_pos() noexcept;
+void _update_mtx_mouse_pos() noexcept;
 
 LevelPage(context*);
 
@@ -65,7 +65,13 @@ virtual void on_level_selected() noexcept;
 virtual void on_level_loaded() noexcept;
 virtual void on_level_created() noexcept;
 virtual void on_level_unloaded() noexcept;
+
+/// @brief Invoked when the page is selected 
+/// (does not trigger when other pages are selected).
 virtual void on_page_selected() noexcept;
+
+/// @brief Invoked when _mtx_mouse_pos and _mtx_mouse_prev_pos change.
+virtual void on_mtx_pos_changed();
 
 virtual ~LevelPage() = default;
 
@@ -183,6 +189,13 @@ private:
     _should_redraw_tile3;
 
 bool _hovering_on_window;
+bool _is_tile_legal;
+
+/// @brief 0 - material; 1 - tile
+uint8_t _edit_mode;
+
+/// @brief 0 - permissive; 1 - with geometry; 2 - without geometry
+uint8_t _force_mode;
 
 size_t 
   _selected_tile_category_index, 
@@ -224,6 +237,7 @@ public:
   void on_level_unloaded() noexcept override;
   void on_level_selected() noexcept override;
   void on_page_selected() noexcept override;
+  void on_mtx_pos_changed() override;
   void f3() const noexcept;
 
   Tile_Page(context*);

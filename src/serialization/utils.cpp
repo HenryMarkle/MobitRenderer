@@ -64,7 +64,7 @@ float deser_float(const mp::Node *node) {
 int8_t deser_int8(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
   if (int_node == nullptr) throw deserialization_failure("node is not an uint8");
-  return (int8_t)int_node->number;
+  return static_cast<int8_t>(int_node->number);
 }
 uint8_t deser_uint8(const mp::Node *node) {
   const mp::Int *int_node = dynamic_cast<const mp::Int*>(node);
@@ -166,7 +166,7 @@ std::unordered_set<std::string> deser_string_set(const mp::Node *node) {
 
   return strings;
 }
-std::vector<int8_t> deser_int8_vec (const mp::Node *node) {
+std::vector<int8_t> deser_int8_vec(const mp::Node *node) {
   const mp::List *list = dynamic_cast<const mp::List*>(node);
   if (list == nullptr) throw deserialization_failure("node is not a linear list");
 
@@ -177,6 +177,25 @@ std::vector<int8_t> deser_int8_vec (const mp::Node *node) {
     for (auto &element : list->elements) {
       int8_t number = deser_int8(element.get());
       numbers.push_back(number);
+    }
+  } catch (deserialization_failure &e) {
+    std::string msg("failed to deserialize list element: ");
+    msg += e.what();
+    throw deserialization_failure(msg);
+  }
+
+  return numbers;
+}
+std::vector<int> deser_int_vec(const mp::Node *node) {
+  const mp::List *list = dynamic_cast<const mp::List*>(node);
+  if (list == nullptr) throw deserialization_failure("node is not a linear list");
+
+  std::vector<int> numbers;
+  numbers.reserve(list->elements.size());
+
+  try {
+    for (auto &element : list->elements) {
+      numbers.push_back(deser_int(element.get()));
     }
   } catch (deserialization_failure &e) {
     std::string msg("failed to deserialize list element: ");

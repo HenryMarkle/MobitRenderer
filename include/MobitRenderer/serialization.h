@@ -124,6 +124,10 @@ std::unordered_set<std::string> deser_string_set(const mp::Node *node);
 /// @param node The underlying pointer must be mp::List*.
 std::vector<int8_t> deser_int8_vec(const mp::Node *node);
 
+/// @brief Deserializes a linear list into a vector of int.
+/// @param node The underlying pointer must be mp::List*.
+std::vector<int> deser_int_vec(const mp::Node *node);
+
 /// @brief Deserializes a linear list into a vector of uint8 (unsigned char).
 /// @param node The underlying pointer must be mp::List*.
 std::vector<uint8_t> deser_uint8_vec(const mp::Node *node);

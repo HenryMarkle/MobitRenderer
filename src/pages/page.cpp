@@ -17,10 +17,11 @@ void Page::f3() const noexcept {}
 LevelPage::LevelPage(context *ctx) : 
     Page(ctx), 
     _is_mouse_in_mtx_bounds(false), 
-    _mtx_mouse_pos({0, 0}) 
+    _mtx_mouse_pos({0, 0}),
+    _mtx_mouse_prev_pos({0, 0})
 {}
 
-void LevelPage::update_mtx_mouse_pos() noexcept {
+void LevelPage::_update_mtx_mouse_pos() noexcept {
     if (ctx == nullptr) {
         _is_mouse_in_mtx_bounds = false;
         return;
@@ -38,7 +39,13 @@ void LevelPage::update_mtx_mouse_pos() noexcept {
     auto pos = GetScreenToWorld2D(GetMousePosition(), ctx->get_camera());
     
     auto mtx_pos = Vector2Divide(pos, {20, 20});
-    _mtx_mouse_pos = mr::ivec2{(int)mtx_pos.x, (int)mtx_pos.y};
+
+    if (mtx_pos.x != _mtx_mouse_pos.x || mtx_pos.y != _mtx_mouse_pos.y) {
+        _mtx_mouse_prev_pos = _mtx_mouse_pos;
+        _mtx_mouse_pos = mr::ivec2{(int)mtx_pos.x, (int)mtx_pos.y};
+
+        on_mtx_pos_changed();
+    }
     
     _is_mouse_in_mtx_bounds = !(
         _mtx_mouse_pos.x < 0 || 
@@ -56,5 +63,6 @@ void LevelPage::on_level_loaded() noexcept {}
 void LevelPage::on_level_created() noexcept {}
 void LevelPage::on_level_unloaded() noexcept {}
 void LevelPage::on_page_selected() noexcept {}
+void LevelPage::on_mtx_pos_changed() {}
 
 };

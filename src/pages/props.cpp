@@ -63,7 +63,7 @@ void Props_Page::process() noexcept {
     }
   }
 
-  update_mtx_mouse_pos();
+  _update_mtx_mouse_pos();
 
  
 

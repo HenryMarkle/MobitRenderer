@@ -35,11 +35,11 @@ private:
   std::string category;
   Color color;
   const TileDefType type;
-  const uint8_t width, height, buffer;
-  const int8_t rnd;
-  const std::vector<int8_t> specs, specs2, specs3;
+  const int width, height, buffer;
+  const int rnd;
+  const std::vector<int> specs, specs2, specs3;
   const bool multilayer;
-  const std::vector<uint8_t> repeat;
+  const std::vector<int> repeat;
   const std::unordered_set<std::string> tags;
   std::filesystem::path texture_path;
   Rectangle _preview_rectangle;
@@ -73,13 +73,13 @@ public:
 
   inline ivec2 get_head_offset() const noexcept { return head_offset; }
 
-  inline const std::vector<int8_t> &get_specs() const { return specs; }
-  inline const std::vector<int8_t> &get_specs2() const { return specs2; }
-  inline const std::vector<int8_t> &get_specs3() const { return specs3; }
+  inline const std::vector<int> &get_specs() const { return specs; }
+  inline const std::vector<int> &get_specs2() const { return specs2; }
+  inline const std::vector<int> &get_specs3() const { return specs3; }
 
   inline bool is_multilayer() const noexcept { return multilayer; }
 
-  inline const std::vector<uint8_t> &get_repeat() const noexcept { return repeat; }
+  inline const std::vector<int> &get_repeat() const noexcept { return repeat; }
 
   inline const std::unordered_set<std::string> &get_tags() const noexcept { return tags; }
   inline int get_rnd() const noexcept { return rnd; }
@@ -109,10 +109,10 @@ public:
   TileDef(TileDef &&) noexcept = delete;
   TileDef(const TileDef &) = delete;
 
-  TileDef(std::string name, TileDefType type, uint8_t width, uint8_t height,
-          uint8_t buffer, int8_t rnd, std::unordered_set<std::string> tags,
-          std::vector<int8_t> specs, std::vector<int8_t> specs2,
-          std::vector<int8_t> specs3, std::vector<uint8_t> repeat);
+  TileDef(std::string name, TileDefType type, int width, int height,
+          int buffer, int rnd, std::unordered_set<std::string> tags,
+          std::vector<int> specs, std::vector<int> specs2,
+          std::vector<int> specs3, std::vector<int> repeat);
 
   ~TileDef();
 };
@@ -173,56 +173,56 @@ public:
 };
 
 struct MaterialDefTexture {
-  uint16_t width, height;
-  std::vector<uint8_t> repeat;
+  int width, height;
+  std::vector<int> repeat;
   std::unordered_set<std::string> tags;
 
   MaterialDefTexture(
-    uint16_t, 
-    uint16_t, 
-    std::vector<uint8_t>,
+    int, 
+    int, 
+    std::vector<int>,
     std::unordered_set<std::string>
   );
 };
 
 struct MaterialDefBlock {
-  std::vector<uint8_t> repeat;
+  std::vector<int> repeat;
   int rnd;
-  uint8_t buffer;
+  int buffer;
   std::unordered_set<std::string> tags;
 
   MaterialDefBlock(
-    std::vector<uint8_t>,
+    std::vector<int>,
     int, 
-    uint8_t,
+    int,
     std::unordered_set<std::string>
   );
 };
 
 struct MaterialDefSlope {
-  std::vector<uint8_t> repeat;
+  std::vector<int> repeat;
   int rnd;
-  uint8_t buffer;
+  int buffer;
   std::unordered_set<std::string> tags;
 
   MaterialDefSlope(
-    std::vector<uint8_t>,
+    std::vector<int>,
     int,
-    uint8_t,
+    int,
     std::unordered_set<std::string>
   );
 };
 
 struct MaterialDefFloor {
-  std::vector<uint8_t> repeat;
+  std::vector<int> repeat;
   int rnd;
-  uint8_t buffer;
+  int buffer;
   std::unordered_set<std::string> tags;
 
   MaterialDefFloor(
-    std::vector<uint8_t>,
+    std::vector<int>,
     int,
-    uint8_t,
+    int,
     std::unordered_set<std::string>
   );
 };
@@ -351,7 +351,7 @@ protected:
 
 public:
 
-  const uint8_t depth; // 0 - 29
+  const int depth; // 0 - 29
   const PropType type;
   const std::string name;
   const std::unordered_set<std::string> tags;
@@ -376,14 +376,14 @@ public:
     return texture;
   }
 
-  virtual uint32_t get_pixel_width() const noexcept;
-  virtual uint32_t get_pixel_height() const noexcept;
+  virtual int get_pixel_width() const noexcept;
+  virtual int get_pixel_height() const noexcept;
 
   PropDef &operator=(PropDef&&) noexcept = delete;
   PropDef &operator=(PropDef const&) = delete;
 
-  PropDef(uint8_t depth, std::string &&name, PropType type);
-  PropDef(uint8_t depth, std::string &&name, PropType type, std::unordered_set<std::string> &&tags);
+  PropDef(int depth, std::string &&name, PropType type);
+  PropDef(int depth, std::string &&name, PropType type, std::unordered_set<std::string> &&tags);
   PropDef(PropDef&&) noexcept = delete;
   PropDef(PropDef const&) = delete;
   
@@ -396,33 +396,33 @@ class Standard : public PropDef {
 
 public:
 
-  const uint16_t width, height;
-  const std::vector<uint8_t> repeat;
+  const int width, height;
+  const std::vector<int> repeat;
   const PropColorTreatment color_treatment;
   const int bevel;
 
-  inline uint32_t get_pixel_width() const noexcept override { return width * 20; }
-  inline uint32_t get_pixel_height() const noexcept override { return height * 20; }
+  inline int get_pixel_width() const noexcept override { return width * 20; }
+  inline int get_pixel_height() const noexcept override { return height * 20; }
 
   Standard &operator=(Standard&&) noexcept = delete;
   Standard &operator=(Standard const&) = delete;
 
   Standard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
     PropColorTreatment color_treatment,
     int bevel
   );
   Standard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
     PropColorTreatment color_treatment,
     int bevel
   );
@@ -435,40 +435,40 @@ class VariedStandard : public PropDef {
 
 public:
 
-  const uint16_t width, height;
-  const std::vector<uint8_t> repeat;
-  const uint8_t variations;
+  const int width, height;
+  const std::vector<int> repeat;
+  const int variations;
   const bool random;
   const PropColorTreatment color_treatment;
   const bool colorize;
   const int bevel;
 
-    inline uint32_t get_pixel_width() const noexcept override { return width * 20; }
-  inline uint32_t get_pixel_height() const noexcept override { return height * 20; }
+    inline int get_pixel_width() const noexcept override { return width * 20; }
+  inline int get_pixel_height() const noexcept override { return height * 20; }
 
   VariedStandard &operator=(VariedStandard&&) noexcept = delete;
   VariedStandard &operator=(VariedStandard const&) = delete;
 
   VariedStandard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
-    uint8_t variations,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
+    int variations,
     bool random,
     PropColorTreatment color_treatment,
     bool colorize,
     int bevel
   );
   VariedStandard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
-    uint8_t variations,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
+    int variations,
     bool random,
     PropColorTreatment color_treatment,
     bool colorize,
@@ -486,8 +486,8 @@ public:
   Decal &operator=(Decal&&) noexcept = delete;
   Decal &operator=(Decal const&) = delete;
 
-  Decal(uint8_t depth, std::string &&name);
-  Decal(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags);
+  Decal(int depth, std::string &&name);
+  Decal(int depth, std::string &&name, std::unordered_set<std::string> &&tags);
   Decal(Decal&&) noexcept = delete;
   Decal(Decal const&) = delete;
 
@@ -498,35 +498,35 @@ class VariedDecal : public PropDef {
 public:
 
   /// @brief The width of a single variation in pixels.
-  const uint32_t pixel_width;
+  const int pixel_width;
   
   /// @brief The height of a single variation in pixels.
-  const uint32_t pixel_height;
+  const int pixel_height;
   
-  const uint8_t variations;
+  const int variations;
   const bool random;
 
-  inline uint32_t get_pixel_width() const noexcept override { return pixel_width; }
-  inline uint32_t get_pixel_height() const noexcept override { return pixel_height; }
+  inline int get_pixel_width() const noexcept override { return pixel_width; }
+  inline int get_pixel_height() const noexcept override { return pixel_height; }
 
   VariedDecal &operator=(VariedDecal&&) noexcept = delete;
   VariedDecal &operator=(VariedDecal const&) = delete;
 
   VariedDecal(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random
   );
   VariedDecal(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random
   );
 
@@ -539,16 +539,16 @@ class Soft : public PropDef {
 public:
 
   const bool round, self_shade;
-  const uint32_t smooth_shading; // cannot be zero
+  const int smooth_shading; // cannot be zero
   const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
 
   Soft &operator=(Soft&&) noexcept = delete;
   Soft &operator=(Soft const&) = delete;
 
   Soft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -557,10 +557,10 @@ public:
     bool self_shade
   );
   Soft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -577,26 +577,26 @@ class VariedSoft : public PropDef {
 public:
 
   const bool round, self_shade, colorize, random;
-  const uint8_t variations;
-  const uint32_t pixel_width, pixel_height;
-  const uint32_t smooth_shading; // cannot be zero
+  const int variations;
+  const int pixel_width, pixel_height;
+  const int smooth_shading; // cannot be zero
   const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
 
-  inline uint32_t get_pixel_width() const noexcept override { return pixel_width; }
-  inline uint32_t get_pixel_height() const noexcept override { return pixel_height; }
+  inline int get_pixel_width() const noexcept override { return pixel_width; }
+  inline int get_pixel_height() const noexcept override { return pixel_height; }
 
   VariedSoft &operator=(VariedSoft&&) noexcept = delete;
   VariedSoft &operator=(VariedSoft const&) = delete;
 
   VariedSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -605,15 +605,15 @@ public:
     bool self_shade
   );
   VariedSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -632,23 +632,23 @@ class ColoredSoft : public PropDef {
 public:
 
   const bool round, self_shade, colorize;
-  const uint32_t smooth_shading; // cannot be zero
-  const uint32_t pixel_width, pixel_height;
+  const int smooth_shading; // cannot be zero
+  const int pixel_width, pixel_height;
   const float contour_exp, highlight_border, depth_affect_hilites, shadow_border;
 
-  inline uint32_t get_pixel_width() const noexcept override { return pixel_width; }
-  inline uint32_t get_pixel_height() const noexcept override { return pixel_height; }
+  inline int get_pixel_width() const noexcept override { return pixel_width; }
+  inline int get_pixel_height() const noexcept override { return pixel_height; }
 
   ColoredSoft &operator=(ColoredSoft&&) noexcept = delete;
   ColoredSoft &operator=(ColoredSoft const&) = delete;
 
   ColoredSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint32_t pixel_width,
-    uint32_t pixel_height,
+    int pixel_width,
+    int pixel_height,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -657,13 +657,13 @@ public:
     bool self_shade
   );
   ColoredSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint32_t pixel_width,
-    uint32_t pixel_height,
+    int pixel_width,
+    int pixel_height,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -683,8 +683,8 @@ class SoftEffect : public PropDef {
   SoftEffect &operator=(SoftEffect&&) noexcept = delete;
   SoftEffect &operator=(SoftEffect const&) = delete;
 
-  SoftEffect(uint8_t depth, std::string &&name);
-  SoftEffect(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags);
+  SoftEffect(int depth, std::string &&name);
+  SoftEffect(int depth, std::string &&name, std::unordered_set<std::string> &&tags);
   SoftEffect(SoftEffect&&) noexcept = delete;
   SoftEffect(SoftEffect const&) = delete;
 };
@@ -696,8 +696,8 @@ public:
   Long &operator=(Long&&) noexcept = delete;
   Long &operator=(Long const&) = delete;
 
-  Long(uint8_t depth, std::string &&name);
-  Long(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags);
+  Long(int depth, std::string &&name);
+  Long(int depth, std::string &&name, std::unordered_set<std::string> &&tags);
   Long(Long&&) noexcept = delete;
   Long(Long const&) = delete;
 };
@@ -719,12 +719,12 @@ public:
   Rope &operator=(Rope&&) noexcept = delete;
   Rope &operator=(Rope const&) = delete;
 
-  Rope(uint8_t depth, std::string &&name,
+  Rope(int depth, std::string &&name,
     int segment_length, int collision_depth, float segment_radius, float gravity, float friction, float air_friction,
     bool stiff, float edge_direction, float rigid, float self_push, float source_push
   );
 
-  Rope(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags,
+  Rope(int depth, std::string &&name, std::unordered_set<std::string> &&tags,
     int segment_length, int collision_depth, float segment_radius, float gravity, float friction, float air_friction,
     bool stiff, float edge_direction, float rigid, float self_push, float source_push
   );
@@ -743,8 +743,8 @@ public:
   Antimatter &operator=(Antimatter&&) noexcept = delete;
   Antimatter &operator=(Antimatter const&) = delete;
 
-  Antimatter(uint8_t depth, std::string &&name, float contour_exp);
-  Antimatter(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags, float contour_exp);
+  Antimatter(int depth, std::string &&name, float contour_exp);
+  Antimatter(int depth, std::string &&name, std::unordered_set<std::string> &&tags, float contour_exp);
   Antimatter(Antimatter&&) noexcept = delete;
   Antimatter(Antimatter const&) = delete;
 
@@ -834,7 +834,7 @@ struct Prop {
   
 // private:
 
-  uint8_t depth;
+  int depth;
   std::shared_ptr<std::string> und_name;
   PropDef *prop_def;
   TileDef *tile_def;
@@ -881,9 +881,9 @@ struct Prop {
     }
   }
 
-  Prop(uint8_t depth, std::shared_ptr<std::string> name, Quad const &quad);
-  Prop(uint8_t depth, std::shared_ptr<std::string> name, PropDef *def, Quad const &quad);
-  Prop(uint8_t depth, std::shared_ptr<std::string> name, TileDef *def, Quad const &quad);
+  Prop(int depth, std::shared_ptr<std::string> name, Quad const &quad);
+  Prop(int depth, std::shared_ptr<std::string> name, PropDef *def, Quad const &quad);
+  Prop(int depth, std::shared_ptr<std::string> name, TileDef *def, Quad const &quad);
 };
 
 }; // namespace mr

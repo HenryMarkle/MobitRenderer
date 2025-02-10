@@ -169,7 +169,7 @@ void Light_Page::process() {
     }
 
   
-    update_mtx_mouse_pos();
+    _update_mtx_mouse_pos();
   
     _hovering_on_window = false;
 }

@@ -124,13 +124,13 @@ void deser_props(const mp::Node *node, std::vector<std::shared_ptr<Prop>> &props
             +": insufficient elements (expected at least 4)"
         );
 
-        uint8_t depth = 0;
+        int depth = 0;
         std::shared_ptr<std::string> und_name;
         Quad quad;
         PropSettings settings;
 
         try {
-            depth = deser_uint8(prop_node->elements[0].get());
+            depth = deser_int(prop_node->elements[0].get());
         } catch (deserialization_failure &de) {
             throw deserialization_failure(
                 std::string("failed to deserialize prop #")
@@ -451,9 +451,9 @@ inline void deser_nm_or_throw(const mp::Props *props, std::string &name) {
     }
 }
 
-inline void deser_depth_or_throw            (const mp::Node *node, uint8_t &depth) {
+inline void deser_depth_or_throw            (const mp::Node *node, int &depth) {
     try {
-        depth = mr::serde::deser_uint8(node);
+        depth = mr::serde::deser_int(node);
     } catch (mr::deserialization_failure &de) {
         throw mr::deserialization_failure(
             std::string("failed to deserialize property #depth: ")+de.what()
@@ -469,9 +469,9 @@ inline void deser_tags_or_throw             (const mp::Node *node, std::unordere
         );
     }
 }
-inline void deser_repeat_or_throw           (const mp::Node *node, std::vector<uint8_t> &repeat) {
+inline void deser_repeat_or_throw           (const mp::Node *node, std::vector<int> &repeat) {
     try {
-        repeat = mr::serde::deser_uint8_vec(node);
+        repeat = mr::serde::deser_int_vec(node);
     } catch (mr::deserialization_failure &de) {
         throw mr::deserialization_failure(
             std::string("failed to deserialize property #repeatL: ")+de.what()
@@ -534,18 +534,18 @@ inline void deser_round_or_throw            (const mp::Node *node, bool &round) 
         throw mr::deserialization_failure(std::string("failed to deserialize property #round: ")+de.what());
     }
 }
-inline void deser_variations_or_throw       (const mp::Node *node, uint8_t &variations) {
+inline void deser_variations_or_throw       (const mp::Node *node, int &variations) {
     try {
-        variations = mr::serde::deser_uint8(node);
+        variations = mr::serde::deser_int(node);
     } catch (mr::deserialization_failure &de) {
         throw mr::deserialization_failure(
             std::string("failed to deserialize property #vars: ")+de.what()
         );
     }
 }
-inline void deser_smooth_shading_or_throw   (const mp::Node *node, uint32_t &smooth_shading) {
+inline void deser_smooth_shading_or_throw   (const mp::Node *node, int &smooth_shading) {
     try {
-        smooth_shading = (uint32_t)mr::serde::deser_int(node);
+        smooth_shading = mr::serde::deser_int(node);
     } catch (mr::deserialization_failure &de) {
         throw mr::deserialization_failure(std::string("failed to deserialize property #smoothShading: ")+de.what());
     }
@@ -578,26 +578,18 @@ inline void deser_shadow_border_or_throw    (const mp::Node *node, float &shadow
         throw mr::deserialization_failure(std::string("failed to deserialize property #shadowBorder: ")+de.what());
     }
 }
-inline void deser_size_or_throw             (const mp::Node *node, uint16_t &width, uint16_t &height) {
+inline void deser_size_or_throw             (const mp::Node *node, int &width, int &height) {
     try {
-        int w, h;
-        mr::serde::deser_point(node, w, h);
-
-        width = (uint16_t)w;
-        height = (uint16_t)h;
+        mr::serde::deser_point(node, width, height);
     } catch (mr::deserialization_failure &de) {
         throw mr::deserialization_failure(
             std::string("failed to deserialize property #sz: ")+de.what()
         );
     }
 }
-inline void deser_pixel_size_or_throw       (const mp::Node *node, uint32_t &width, uint32_t &height) {
+inline void deser_pixel_size_or_throw       (const mp::Node *node, int &width, int &height) {
     try {
-        int w, h;
-        mr::serde::deser_point(node, w, h);
-
-        width = (uint32_t)w;
-        height = (uint32_t)h;
+        mr::serde::deser_point(node, width, height);
     } catch (mr::deserialization_failure &de) {
         throw mr::deserialization_failure(std::string("failed to deserialize property #pxlSize: ")+de.what());
     }
@@ -605,12 +597,12 @@ inline void deser_pixel_size_or_throw       (const mp::Node *node, uint32_t &wid
 
 mr::Standard        *deser_standard_prop        (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
-    std::vector<uint8_t> repeat = { 1 };
+    std::vector<int> repeat = { 1 };
     mr::PropColorTreatment color_treatment = mr::PropColorTreatment::standard;
     int bevel = 0;
-    uint16_t width = 1, height = 1;
+    int width = 1, height = 1;
 
     const auto &map = node->map;
     const auto notfound = map.end();
@@ -645,13 +637,13 @@ mr::Standard        *deser_standard_prop        (const mp::Props *node) {
 }
 mr::VariedStandard  *deser_varied_standard_prop (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
-    std::vector<uint8_t> repeat = { 1 };
+    std::vector<int> repeat = { 1 };
     mr::PropColorTreatment color_treatment = mr::PropColorTreatment::standard;
     int bevel = 0;
-    uint16_t width = 1, height = 1;
-    uint8_t variations = 1;
+    int width = 1, height = 1;
+    int variations = 1;
     bool random = false;
     bool colorize = false;
 
@@ -697,11 +689,11 @@ mr::VariedStandard  *deser_varied_standard_prop (const mp::Props *node) {
 }
 mr::Soft            *deser_soft_prop            (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
     
     bool round, self_shade;
-    uint32_t smooth_shading;
+    int smooth_shading;
     float contour_exp, contour_shading, highlight_border, depth_affect_hilites, shadow_border;
 
     const auto &map = node->map;
@@ -744,12 +736,12 @@ mr::Soft            *deser_soft_prop            (const mp::Props *node) {
 }
 mr::VariedSoft      *deser_varied_soft_prop     (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
     
-    uint8_t variations = 1;
+    int variations = 1;
     bool round = false, self_shade = false, colorize = false, random = false;
-    uint32_t smooth_shading = 1, pixel_width, pixel_height;
+    int smooth_shading = 1, pixel_width, pixel_height;
     float contour_exp, contour_shading, highlight_border, depth_affect_hilites, shadow_border;
 
     const auto &map = node->map;
@@ -807,11 +799,11 @@ mr::VariedSoft      *deser_varied_soft_prop     (const mp::Props *node) {
 }
 mr::ColoredSoft     *deser_colored_soft_prop    (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
     
     bool round, self_shade, colorize;
-    uint32_t smooth_shading, pixel_width, pixel_height;
+    int smooth_shading, pixel_width, pixel_height;
     float contour_exp, contour_shading, highlight_border, depth_affect_hilites, shadow_border;
 
     const auto &map = node->map;
@@ -863,7 +855,7 @@ mr::ColoredSoft     *deser_colored_soft_prop    (const mp::Props *node) {
 }
 mr::SoftEffect      *deser_soft_effect_prop     (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
 
     const auto &map = node->map;
@@ -885,7 +877,7 @@ mr::SoftEffect      *deser_soft_effect_prop     (const mp::Props *node) {
 }
 mr::Decal           *deser_decal_prop           (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
 
     const auto &map = node->map;
@@ -907,12 +899,12 @@ mr::Decal           *deser_decal_prop           (const mp::Props *node) {
 }
 mr::VariedDecal     *deser_varied_decal_prop    (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
 
     bool random = false;
-    uint8_t variations = 1;
-    uint32_t pixel_width, pixel_height;
+    int variations = 1;
+    int pixel_width, pixel_height;
 
     const auto &map = node->map;
     const auto notfound = map.end();
@@ -946,7 +938,7 @@ mr::VariedDecal     *deser_varied_decal_prop    (const mp::Props *node) {
 }
 mr::Antimatter      *deser_antimatter_prop      (const mp::Props *node) {
     std::string name;
-    uint8_t depth = 1;
+    int depth = 1;
     std::unordered_set<std::string> tags;
 
     float contour_exp;

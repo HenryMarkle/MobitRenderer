@@ -35,13 +35,13 @@ void PropDef::unload_texture() {
     loaded = false;
 }
 
-uint32_t PropDef::get_pixel_width() const noexcept { return texture.width; }
-uint32_t PropDef::get_pixel_height() const noexcept { return texture.height; }
+int PropDef::get_pixel_width() const noexcept { return texture.width; }
+int PropDef::get_pixel_height() const noexcept { return texture.height; }
 
-PropDef::PropDef(uint8_t depth, std::string &&name, PropType type) :
+PropDef::PropDef(int depth, std::string &&name, PropType type) :
     depth(depth), name(std::move(name)), type(type), tags({}), loaded(false), color({255, 0, 0, 255})
 {}
-PropDef::PropDef(uint8_t depth, std::string &&name, PropType type, std::unordered_set<std::string> &&tags) :
+PropDef::PropDef(int depth, std::string &&name, PropType type, std::unordered_set<std::string> &&tags) :
     depth(depth), name(std::move(name)), type(type), tags(std::move(tags)), loaded(false), color({255, 0, 0, 255})
 {}
 
@@ -51,11 +51,11 @@ PropDef::~PropDef() {
 
 
 Standard::Standard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
     PropColorTreatment color_treatment,
     int bevel
 ) :
@@ -65,12 +65,12 @@ Standard::Standard(
     color_treatment(color_treatment), bevel(bevel)
 {}
 Standard::Standard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
     PropColorTreatment color_treatment,
     int bevel
 ) :
@@ -82,12 +82,12 @@ Standard::Standard(
 
 
 VariedStandard::VariedStandard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
-    uint8_t variations,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
+    int variations,
     bool random,
     PropColorTreatment color_treatment,
     bool colorize,
@@ -97,13 +97,13 @@ VariedStandard::VariedStandard(
     colorize(colorize), bevel(bevel)
 {}
 VariedStandard::VariedStandard(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint16_t width, 
-    uint16_t height, 
-    std::vector<uint8_t> &&repeat,
-    uint8_t variations,
+    int width, 
+    int height, 
+    std::vector<int> &&repeat,
+    int variations,
     bool random,
     PropColorTreatment color_treatment,
     bool colorize,
@@ -113,31 +113,31 @@ VariedStandard::VariedStandard(
     colorize(colorize), bevel(bevel)
 {}
 
-Decal::Decal(uint8_t depth, std::string &&name) :
+Decal::Decal(int depth, std::string &&name) :
     PropDef(depth, std::move(name), PropType::decal)
 {}
-Decal::Decal(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags) :
+Decal::Decal(int depth, std::string &&name, std::unordered_set<std::string> &&tags) :
     PropDef(depth, std::move(name), PropType::decal, std::move(tags))
 {}
 
 VariedDecal::VariedDecal(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random
 ) : PropDef(depth, std::move(name), PropType::varied_decal), 
     pixel_width(pixel_width), pixel_height(pixel_height), variations(variations),
     random(random)
 {}
 VariedDecal::VariedDecal(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random
 ) : PropDef(depth, std::move(name), PropType::varied_decal, std::move(tags)), 
     pixel_width(pixel_width), pixel_height(pixel_height), variations(variations),
@@ -145,9 +145,9 @@ VariedDecal::VariedDecal(
 {}
 
 Soft::Soft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -161,10 +161,10 @@ Soft::Soft(
     shadow_border(shadow_border), round(round), self_shade(self_shade)
 {}
 Soft::Soft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags, 
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -179,14 +179,14 @@ Soft::Soft(
 {}
 
 VariedSoft::VariedSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -200,15 +200,15 @@ VariedSoft::VariedSoft(
     shadow_border(shadow_border), round(round), self_shade(self_shade)
 {}
 VariedSoft::VariedSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint32_t pixel_width,
-    uint32_t pixel_height,
-    uint8_t variations,
+    int pixel_width,
+    int pixel_height,
+    int variations,
     bool random,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -223,12 +223,12 @@ VariedSoft::VariedSoft(
 {}
 
 ColoredSoft::ColoredSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
-    uint32_t pixel_width,
-    uint32_t pixel_height,
+    int pixel_width,
+    int pixel_height,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -241,13 +241,13 @@ ColoredSoft::ColoredSoft(
     shadow_border(shadow_border), round(round), self_shade(self_shade)
 {}
 ColoredSoft::ColoredSoft(
-    uint8_t depth, 
+    int depth, 
     std::string &&name, 
     std::unordered_set<std::string> &&tags,
-    uint32_t pixel_width,
-    uint32_t pixel_height,
+    int pixel_width,
+    int pixel_height,
     bool colorize,
-    uint32_t smooth_shading,
+    int smooth_shading,
     float contour_exp, 
     float highlight_border, 
     float depth_affect_hilites, 
@@ -260,21 +260,21 @@ ColoredSoft::ColoredSoft(
     shadow_border(shadow_border), round(round), self_shade(self_shade)
 {}
 
-SoftEffect::SoftEffect(uint8_t depth, std::string &&name) :
+SoftEffect::SoftEffect(int depth, std::string &&name) :
     PropDef(depth, std::move(name), PropType::soft_effect)
 {}
-SoftEffect::SoftEffect(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags) :
+SoftEffect::SoftEffect(int depth, std::string &&name, std::unordered_set<std::string> &&tags) :
     PropDef(depth, std::move(name), PropType::soft_effect, std::move(tags))
 {}
 
-Long::Long(uint8_t depth, std::string &&name) :
+Long::Long(int depth, std::string &&name) :
     PropDef(depth, std::move(name), PropType::_long)
 {}
-Long::Long(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags) :
+Long::Long(int depth, std::string &&name, std::unordered_set<std::string> &&tags) :
     PropDef(depth, std::move(name), PropType::_long, std::move(tags))
 {}
 
-Rope::Rope(uint8_t depth, std::string &&name,
+Rope::Rope(int depth, std::string &&name,
     int segment_length, int collision_depth, float segment_radius, float gravity, float friction, float air_friction,
     bool stiff, float edge_direction, float rigid, float self_push, float source_push
 ) : PropDef(depth, std::move(name), PropType::rope),
@@ -282,7 +282,7 @@ Rope::Rope(uint8_t depth, std::string &&name,
     gravity(gravity), friction(friction), air_friction(air_friction), stiff(stiff), edge_direction(edge_direction),
     rigid(rigid), self_push(self_push), source_push(source_push)
 {}
-Rope::Rope(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags,
+Rope::Rope(int depth, std::string &&name, std::unordered_set<std::string> &&tags,
     int segment_length, int collision_depth, float segment_radius, float gravity, float friction, float air_friction,
     bool stiff, float edge_direction, float rigid, float self_push, float source_push
 ) : PropDef(depth, std::move(name), PropType::rope, std::move(tags)),
@@ -291,10 +291,10 @@ Rope::Rope(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&
     rigid(rigid), self_push(self_push), source_push(source_push)
 {}
 
-Antimatter::Antimatter(uint8_t depth, std::string &&name, float contour_exp) :
+Antimatter::Antimatter(int depth, std::string &&name, float contour_exp) :
     PropDef(depth, std::move(name), PropType::antimatter), contour_exp(contour_exp)
 {}
-Antimatter::Antimatter(uint8_t depth, std::string &&name, std::unordered_set<std::string> &&tags, float contour_exp) :
+Antimatter::Antimatter(int depth, std::string &&name, std::unordered_set<std::string> &&tags, float contour_exp) :
     PropDef(depth, std::move(name), PropType::antimatter, std::move(tags)), contour_exp(contour_exp)
 {}
 
@@ -436,7 +436,7 @@ PropSettings PropSettings::antimatter(
     return settings;
 }
 
-Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, Quad const &quad) : 
+Prop::Prop(int depth, std::shared_ptr<std::string> name, Quad const &quad) : 
     depth(depth), 
     und_name(name), 
     prop_def(nullptr), 
@@ -445,7 +445,7 @@ Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, Quad const &quad) :
     settings(PropSettings())
 {}
 
-Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, PropDef *def, Quad const &quad) :
+Prop::Prop(int depth, std::shared_ptr<std::string> name, PropDef *def, Quad const &quad) :
     depth(depth), 
     und_name(name), 
     prop_def(def), 
@@ -454,7 +454,7 @@ Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, PropDef *def, Quad 
     settings(PropSettings())
 {}
 
-Prop::Prop(uint8_t depth, std::shared_ptr<std::string> name, TileDef *def, Quad const &quad) :
+Prop::Prop(int depth, std::shared_ptr<std::string> name, TileDef *def, Quad const &quad) :
     depth(depth), 
     und_name(name), 
     prop_def(nullptr), 

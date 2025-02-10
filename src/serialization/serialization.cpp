@@ -78,17 +78,14 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
     mp::Props *texture_props = dynamic_cast<mp::Props*>(texture_params_node);
     if (texture_props == nullptr) throw deserialization_failure("#texture property is not a property list");
 
-    uint16_t tw, th;
-    std::vector<uint8_t> trepeat;
+    int tw, th;
+    std::vector<int> trepeat;
     std::unordered_set<std::string> ttags;
 
     try {
       mp::Node *size_node = texture_props->map.at("sz").get();
-      int w, h;
-      deser_point(size_node, w, h);
+      deser_point(size_node, tw, th);
 
-      tw = (uint16_t)w;
-      th = (uint16_t)h;
     } catch (std::out_of_range &re) {
       throw deserialization_failure("missing #texture property 'sz'");
     } catch (deserialization_failure &de) {
@@ -100,7 +97,7 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
     auto trepeat_iter = texture_props->map.find("repeatl");
     if (trepeat_iter != texture_props->map.end()) {
       try {
-        trepeat = deser_uint8_vec(trepeat_iter->second.get());
+        trepeat = deser_int_vec(trepeat_iter->second.get());
       } catch (deserialization_failure &de) {
         throw deserialization_failure(
           std::string("failed to deserialize #texture property 'repeatL': ") + de.what()
@@ -124,9 +121,9 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
 
   auto block_params_iter = dict.find("block");
   if (block_params_iter != dict.end()) {
-    std::vector<uint8_t> brepeat;
+    std::vector<int> brepeat;
     int brnd;
-    uint8_t bbuffer;
+    int bbuffer;
     std::unordered_set<std::string> btags;
 
     mp::Props *block_props = dynamic_cast<mp::Props*>(block_params_iter->second.get());
@@ -177,9 +174,9 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
 
   auto slope_params_iter = dict.find("slope");
   if (slope_params_iter != dict.end()) {
-    std::vector<uint8_t> brepeat;
+    std::vector<int> brepeat;
     int brnd;
-    uint8_t bbuffer;
+    int bbuffer;
     std::unordered_set<std::string> btags;
 
     mp::Props *block_props = dynamic_cast<mp::Props*>(block_params_iter->second.get());
@@ -230,9 +227,9 @@ CustomMaterialDef *deser_materialdef(const mp::Node *node) {
 
   auto floor_params_iter = dict.find("floor");
   if (floor_params_iter != dict.end()) {
-    std::vector<uint8_t> brepeat;
+    std::vector<int> brepeat;
     int brnd;
-    uint8_t bbuffer;
+    int bbuffer;
     std::unordered_set<std::string> btags;
 
     mp::Props *block_props = dynamic_cast<mp::Props*>(block_params_iter->second.get());

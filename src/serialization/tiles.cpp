@@ -62,10 +62,10 @@ TileDef *deser_tiledef(const mp::Node *node) {
   if (props == nullptr) throw deserialization_failure("node is not a property list");
   
   std::string name, type;
-  uint8_t width, height, buffer;
-  int8_t rnd;
-  std::vector<int8_t> specs1, specs2, specs3;
-  std::vector<uint8_t> repeat;
+  int width, height, buffer;
+  int rnd;
+  std::vector<int> specs1, specs2, specs3;
+  std::vector<int> repeat;
   std::unordered_set<std::string> tags;
   TileDefType tile_type;
 
@@ -151,7 +151,7 @@ TileDef *deser_tiledef(const mp::Node *node) {
   // specs
   try {
     const auto &spc1_node = dict.at("specs");
-    specs1 = deser_int8_vec(spc1_node.get());
+    specs1 = deser_int_vec(spc1_node.get());
   } catch (std::out_of_range &e) {
     throw deserialization_failure("missing required propery: 'specs'");
   } catch (deserialization_failure &de) {
@@ -177,7 +177,7 @@ TileDef *deser_tiledef(const mp::Node *node) {
   auto spc2_node = dict.find("specs2");
   if (spc2_node != dict.end()) {
     try {
-      specs2 = deser_int8_vec(spc2_node->second.get());
+      specs2 = deser_int_vec(spc2_node->second.get());
     } catch (deserialization_failure &e) {
       const mp::List *list = dynamic_cast<const mp::List*>(spc2_node->second.get());
       if (list != nullptr) {
@@ -191,7 +191,7 @@ TileDef *deser_tiledef(const mp::Node *node) {
   auto spc3_node = dict.find("specs3");
   if (spc3_node != dict.end()) {
     try {
-      specs3 = deser_int8_vec(spc3_node->second.get());
+      specs3 = deser_int_vec(spc3_node->second.get());
     } catch (deserialization_failure &e) {
       const mp::List *list = dynamic_cast<const mp::List*>(spc3_node->second.get());
       if (list != nullptr) {
@@ -216,7 +216,7 @@ TileDef *deser_tiledef(const mp::Node *node) {
   auto rept_node = dict.find("repeatl");
   if (rept_node != dict.end()) {
     try {
-      repeat = deser_uint8_vec(rept_node->second.get());
+      repeat = deser_int_vec(rept_node->second.get());
     } catch (deserialization_failure &e) {
       std::string msg("failed to deserialize property 'repeatL': ");
       msg += e.what();
