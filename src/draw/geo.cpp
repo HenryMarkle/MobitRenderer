@@ -522,6 +522,108 @@ void draw_geo_features_layer(
   }
 }
 
+void draw_geo_entrances(Matrix<GeoCell> const &matrix, GE_Textures &atlas, Color color, float scale) {
+  uint8_t holes, dots;
+  size_t connx, conny;
+  const auto &loose_texture = atlas.entry_loose().get();
+
+  for (size_t x = 0; x < matrix.get_width(); x++) {
+    for (size_t y = 0; y < matrix.get_height(); y++) {
+      const auto &cell = matrix.get_const(x, y, 0);
+
+      if (!cell.has_feature(GeoFeature::shortcut_entrance)) continue;
+    
+      // Cell must only have the entrance feature.
+      if (cell.features != GeoFeature::shortcut_entrance) goto disconnected;
+      // Cell ID must be 7.
+      if (cell.type != GeoType::shortcut_entrance) goto disconnected;
+
+      // Cell must only have one opening and connect to one path.
+      holes = dots = connx = conny = 0;
+      for (int xx = -1; xx < 2; xx++) {
+        for (int yy = -1; yy < 2; yy++) {
+
+          // Ignore the middle cell.
+          if (xx == 0 && yy == 0) continue;
+
+          // The cell must not be out of bounds.
+          const auto *neighbor = matrix.get_const_ptr(x + xx, y + yy, 0);
+          if (neighbor == nullptr) goto disconnected;
+        
+          // The cell must have exactly one hole.
+          if (neighbor->type != GeoType::solid && ++holes > 1) goto disconnected;
+
+          if ( 
+              neighbor->has_feature(GeoFeature::shortcut_path) ||
+              neighbor->has_feature(GeoFeature::dragon_den) ||
+              neighbor->has_feature(GeoFeature::scavenger_hole) ||
+              neighbor->has_feature(GeoFeature::room_entrance) ||
+              neighbor->has_feature(GeoFeature::wack_a_mole_hole)
+          ) {
+            if (
+              ( 
+                (xx ==  0 && yy == -1) || 
+                (xx == -1 && yy ==  0) ||
+                (xx ==  1 && yy ==  0) ||
+                (xx ==  0 && yy ==  1)
+              )
+            ) {
+              if (++dots > 1) goto disconnected;
+            
+              // Track the direction of the connection.
+              connx = xx;
+              conny = yy;            
+            } else goto disconnected;
+          }
+        }
+      }
+
+      if (holes <= 0) goto disconnected;
+
+      if (dots == 1) {
+
+        const Texture2D *texture = nullptr;
+        
+        if (connx ==  0 && conny == -1) { // top
+          texture = atlas.entry_top().get_ptr();
+        } else if (connx == -1 && conny ==  0) { // left
+          texture = atlas.entry_left().get_ptr();
+        } else if (connx ==  1 && conny ==  0) { // right
+          texture = atlas.entry_right().get_ptr();
+        } else if (connx ==  0 && conny ==  1) { // bottom
+          texture = atlas.entry_bottom().get_ptr();
+        } else goto disconnected;
+
+        // Success
+        if (texture != nullptr) DrawTexturePro(
+          *texture,
+          Rectangle{0, 0, static_cast<float>(loose_texture.width), static_cast<float>(loose_texture.height)},
+          Rectangle{x * scale, y * scale, scale, scale},
+          Vector2{0, 0},
+          0,
+          color
+        );
+
+        continue;
+      }
+
+      disconnected:
+      {
+        DrawTexturePro(
+          loose_texture,
+          Rectangle{0, 0, static_cast<float>(loose_texture.width), static_cast<float>(loose_texture.height)},
+          Rectangle{x * scale, y * scale, scale, scale},
+          Vector2{0, 0},
+          0,
+          color
+        );
+
+        continue;
+      }
+    }
+  }
+}
+
 };
 
 };

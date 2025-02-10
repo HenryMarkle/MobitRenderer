@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
         ctx->f3_enabled = !ctx->f3_enabled;
       }
 
-      if (!ctx->get_levels().empty()) {
+      if (!ctx->get_levels().empty() && (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))) {
         if (IsKeyPressed(KEY_ZERO)) {
         }
 

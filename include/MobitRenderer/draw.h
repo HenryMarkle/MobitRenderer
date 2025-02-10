@@ -348,7 +348,9 @@ void draw_geo_and_poles_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Colo
 /// @param atlas A constant reference to the textures atlas.
 /// @param color The brush color.
 /// @param scale The size of each cell in pixels.
-void draw_geo_features_layer(Matrix<GeoCell> const& matrix, const GE_Textures &atlas, uint8_t layer, Color color, float scale = 20.0f);
+void draw_geo_features_layer(Matrix<GeoCell> const &matrix, const GE_Textures &atlas, uint8_t layer, Color color, float scale = 20.0f);
+
+void draw_geo_entrances(Matrix<GeoCell> const &matrix, GE_Textures &atlas, Color color, float scale = 20.0f);
 
 }; // namespace draw
 

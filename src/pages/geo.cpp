@@ -138,6 +138,12 @@ void Geo_Page::draw() noexcept {
       BLACK
     );
 
+    mr::draw::draw_geo_entrances(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      ctx->_textures->geometry_editor,
+      BLACK
+    );
+
     EndTextureMode();
   
     should_redraw_feature1 = false;
