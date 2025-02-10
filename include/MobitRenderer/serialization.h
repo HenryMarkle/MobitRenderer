@@ -78,6 +78,7 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path&);
 TileDefCategory deser_tiledef_category(const mp::Node*);
 TileDef *deser_tiledef(const mp::Node*);
 CustomMaterialDef *deser_materialdef(const mp::Node*);
+std::string deser_default_material(const mp::Node*);
 
 PropDefCategory deser_propdef_category(const mp::Node*);
 PropDef *deser_propdef(const mp::Node*);

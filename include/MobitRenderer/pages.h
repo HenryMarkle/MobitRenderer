@@ -185,8 +185,10 @@ private:
 bool _hovering_on_window;
 
 size_t 
-  _selected_category_index, 
-  _selected_tile_index;
+  _selected_tile_category_index, 
+  _selected_tile_index,
+  _selected_material_category_index,
+  _selected_material_index;
 
 /// @brief Viewport to draw currently selected tile preview.
 RenderTexture2D _tile_preview_rt;
@@ -206,6 +208,8 @@ TileDef
   *_previously_drawn_specs;
   
 TileCell *_hovered_cell;
+
+MaterialDef *_selected_material;
 
 void _redraw_tile_preview_rt() noexcept;
 void _redraw_tile_texture_rt() noexcept;

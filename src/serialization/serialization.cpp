@@ -1210,6 +1210,14 @@ std::unique_ptr<Level> deser_level(const std::filesystem::path &path) {
     );
   }
 
+  // Default material
+
+  try {
+    level->default_material = deser_default_material(nodes->tiles.get());
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(std::string("failed to deserialize default material: ")+de.what());
+  }
+
   // Cameras
 
   try {

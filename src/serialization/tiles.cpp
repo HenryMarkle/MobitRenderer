@@ -511,5 +511,19 @@ void define_tile_matrix(
   }
 }
 
+std::string deser_default_material(const mp::Node *line_node) {
+  const mp::Props *props = dynamic_cast<const mp::Props*>(line_node);
+  if (props == nullptr) throw deserialization_failure("node is not a property list");
+
+  auto iter = props->map.find("defaultmaterial");
+  if (iter == props->map.end()) throw deserialization_failure("#defaultMaterial not found");
+
+  try {
+    auto name = deser_string(iter->second.get());
+    return name;
+  } catch (deserialization_failure &de) {
+    throw deserialization_failure(std::string("failed to deserialize property #defaultMaterial: ")+de.what());
+  }
+}
 
 };

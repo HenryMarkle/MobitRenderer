@@ -59,6 +59,19 @@ public:
   void print(void *ptr, bool same_line = false) noexcept;
   void print(Vector2, bool same_line = false) noexcept;
 
+  //
+
+  void print(const char *, Color color, bool same_line = false) noexcept;
+  void print(const std::string &str, Color color, bool same_line = false) noexcept;
+  void print(int number, Color color, bool same_line = false) noexcept;
+  void print(size_t number, Color color, bool same_line = false) noexcept;
+  void print(float number, Color color, bool same_line = false) noexcept;
+  void print(double number, Color color, bool same_line = false) noexcept;
+  void print(bool boolean, Color color, bool same_line = false) noexcept;
+  /// @brief Prints a memory address (without derefrencing.)
+  void print(void *ptr, Color color, bool same_line = false) noexcept;
+  void print(Vector2, Color color, bool same_line = false) noexcept;
+
   f3(Font font, float font_size, Color text_color, Color background_color);
   ~f3();
 };

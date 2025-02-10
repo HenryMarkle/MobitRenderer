@@ -226,6 +226,7 @@ public:
   std::vector<LevelCamera> cameras;
   std::vector<std::shared_ptr<Prop>> props;
   int seed;
+  std::string default_material;
   
   /// @brief 0 - 360
   int light_angle;

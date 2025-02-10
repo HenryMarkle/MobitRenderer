@@ -257,7 +257,6 @@ void Tile_Page::draw() noexcept {
 
   if (_should_redraw1) {
     BeginTextureMode(ctx->_textures->geo_layer1.get());
-
     ClearBackground(WHITE);
 
     mr::draw::draw_geo_and_poles_layer(
@@ -265,7 +264,23 @@ void Tile_Page::draw() noexcept {
       0,
       BLACK
     );
+    EndTextureMode();
 
+    BeginTextureMode(ctx->_textures->feature_layer1.get());
+    ClearBackground(WHITE);
+    
+    mr::draw::draw_geo_features_layer(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      ctx->_textures->geometry_editor,
+      0, 
+      BLACK
+    );
+
+    mr::draw::draw_geo_entrances(
+      ctx->get_selected_level()->get_const_geo_matrix(),
+      ctx->_textures->geometry_editor,
+      BLACK
+    );
     EndTextureMode();
 
     _should_redraw1 = false;
@@ -616,6 +631,23 @@ void Tile_Page::draw() noexcept {
           );
         }
         EndShaderMode();
+
+        BeginShaderMode(color_shader);
+        {
+          SetShaderValueTexture(
+            color_shader, 
+            GetShaderLocation(color_shader, "texture0"), 
+            ctx->_textures->feature_layer1.get().texture
+          );
+          
+          DrawTexture(
+            ctx->_textures->feature_layer1.get().texture, 
+            0, 
+            0, 
+            WHITE
+          );
+        }
+        EndShaderMode();
       }
     }
     EndTextureMode();
@@ -716,7 +748,7 @@ void Tile_Page::windows() noexcept {
     auto text_height = ImGui::GetTextLineHeight();
 
     // Tile Categories
-    if (ImGui::BeginListBox("##Categories", ImGui::GetContentRegionAvail())) {
+    if (ImGui::BeginListBox("##Categories", ImGui::GetContentRegionAvail()) && !dex->categories().empty()) {
       for (size_t c = 0; c < dex->categories().size(); c++) {
         const auto &category = dex->categories().at(c);
 
@@ -729,10 +761,11 @@ void Tile_Page::windows() noexcept {
 
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 16.0f);
 
-        bool selected = ImGui::Selectable(category.name.c_str(), _selected_category_index == c);
+        bool selected = ImGui::Selectable(category.name.c_str(), _selected_tile_category_index == c);
         if (selected) {
-          _selected_category_index = c;
+          _selected_tile_category_index = c;
           _selected_tile_index = 0;
+          if (!dex->sorted_tiles()[c].empty()) _selected_tile = dex->sorted_tiles()[c][0];
         }
       }
       
@@ -742,8 +775,12 @@ void Tile_Page::windows() noexcept {
     ImGui::NextColumn();
 
     // Tiles
-    if (ImGui::BeginListBox("##CategoryTiles", ImGui::GetContentRegionAvail())) {
-      const auto &category_tiles = dex->sorted_tiles().at(_selected_category_index);
+    if (
+      ImGui::BeginListBox("##CategoryTiles", ImGui::GetContentRegionAvail()) && 
+      !dex->sorted_tiles()[_selected_tile_category_index].empty() &&
+      _selected_tile_category_index < dex->sorted_tiles().size()
+    ) {
+      const auto &category_tiles = dex->sorted_tiles()[_selected_tile_category_index];
 
       for (size_t t = 0; t < category_tiles.size(); t++) {
         auto *tiledef = category_tiles[t];
@@ -763,6 +800,67 @@ void Tile_Page::windows() noexcept {
           ImGui::BeginTooltip();
           rlImGuiImageRenderTexture(&_tile_preview_rt);
           ImGui::EndTooltip();
+        }
+      }
+      
+      ImGui::EndListBox();
+    }
+  }
+
+  ImGui::End();
+
+  auto materials_opened = ImGui::Begin("Materials##TilesPageMaterials");
+  _hovering_on_window |= ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows);
+
+  auto *mdex = ctx->_materialdex;
+  if (materials_opened && mdex != nullptr) {
+    ImGui::Columns(2);
+
+    auto *draw_list = ImGui::GetWindowDrawList();
+    auto text_height = ImGui::GetTextLineHeight();
+
+    if (ImGui::BeginListBox("##Categories", ImGui::GetContentRegionAvail()) && !mdex->categories().empty()) {
+      for (size_t c = 0; c < mdex->categories().size(); c++) {
+        const auto &name = mdex->categories()[c];
+
+        if (ImGui::Selectable((name + "##" + std::to_string(c)).c_str(), _selected_material_category_index == c)) 
+        {
+          _selected_material_category_index = c;
+          _selected_material_index = 0;
+          if (!mdex->sorted_materials()[c].empty()) _selected_material = mdex->sorted_materials()[c][0];
+        }
+      }
+
+      ImGui::EndListBox();
+    }
+    
+    ImGui::NextColumn();
+    
+    if (
+      ImGui::BeginListBox("##Materials", ImGui::GetContentRegionAvail()) && 
+      !mdex->sorted_materials().empty() && 
+      _selected_material_category_index < mdex->sorted_materials().size()
+    ) {
+
+      const auto &materials = mdex->sorted_materials()[_selected_material_category_index];
+    
+      for (size_t m = 0; m < materials.size(); m++) {
+        auto material = materials[m];
+        
+        const auto &color = material->get_color();
+        
+        auto cursor_pos = ImGui::GetCursorScreenPos();
+        draw_list->AddRectFilled(
+          cursor_pos,
+          ImVec2{cursor_pos.x + 10.0f, cursor_pos.y + text_height},
+          ImGui::ColorConvertFloat4ToU32(ImVec4{color.r/255.0f, color.g/255.0f, color.b/255.0f, 1})
+        );
+
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 16.0f);
+        if (ImGui::Selectable((std::string (" ") + material->get_name()).c_str(), _selected_material_index == m)) 
+        {
+          _selected_material_index = m;
+          _selected_material = material;
         }
       }
       
@@ -827,13 +925,29 @@ void Tile_Page::f3() const noexcept {
   f3->print("L ");
   f3->print((int)ctx->level_layer_, true);
 
-  f3->print("Hovered Item ");
-  if (_hovered_tile) f3->print(_hovered_tile->get_name(), true);
-  else f3->print("NULL", true);
+  f3->print("Tile Category Index ");
+  f3->print(_selected_tile_category_index, true);
 
-  f3->print("Selected Item ");
+  f3->print("Tile Index ");
+  f3->print(_selected_tile_index, true);
+
+  f3->print("Material Category Index ");
+  f3->print(_selected_material_category_index, true);
+
+  f3->print("Material Index ");
+  f3->print(_selected_material_index, true);
+
+  f3->print("Hovered Tile ");
+  if (_hovered_tile) f3->print(_hovered_tile->get_name(), true);
+  else f3->print("NULL", MAGENTA, true);
+
+  f3->print("Selected Tile ");
   if (_selected_tile) f3->print(_selected_tile->get_name(), true);
-  else f3->print("NULL", true);
+  else f3->print("NULL", MAGENTA, true);
+
+  f3->print("Selected Material ");
+  if (_selected_material) f3->print(_selected_material->get_name(), true);
+  else f3->print("NULL", MAGENTA, true);
 
   f3->print("Hovered Cell ");
   if (_hovered_cell) {
@@ -901,12 +1015,14 @@ void Tile_Page::f3() const noexcept {
 
       default:
       {
-        f3->print("Default Material ", true);
+        f3->print("Default Material (", true);
+        f3->print(ctx->get_selected_level()->default_material.c_str(), ORANGE, true);
+        f3->print(")", true);
       }
       break;
     }
   } else {
-    f3->print("NULL", true);
+    f3->print("NULL", MAGENTA, true);
   }
 }
 
@@ -960,12 +1076,15 @@ Tile_Page::Tile_Page(context *ctx) :
     _should_redraw_tile2(true),
     _should_redraw_tile3(true),
     _hovering_on_window(false),
-    _selected_category_index(0),
+    _selected_tile_category_index(0),
     _selected_tile_index(0),
+    _selected_material_category_index(0),
+    _selected_material_index(0),
     _tile_preview_rt({0}),
     _tile_texture_rt({0}),
     _tile_specs_rt({0}),
     _selected_tile(nullptr),
+    _selected_material(nullptr),
     _hovered_tile(nullptr),
     _previously_drawn_preview(nullptr),
     _previously_drawn_texture(nullptr),
