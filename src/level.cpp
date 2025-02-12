@@ -20,6 +20,47 @@ using std::filesystem::exists;
 
 namespace mr {
 
+void LevelCamera::reset_angles() noexcept {
+  top_left_angle = top_right_angle = bottom_right_angle = bottom_left_angle =
+      0;
+
+  _calculate_tl();
+  _calculate_tr();
+  _calculate_br();
+  _calculate_bl();
+  _calculate_rects();
+}
+void LevelCamera::reset_radius() noexcept {
+  top_left_radius = top_right_radius = bottom_right_radius =
+      bottom_left_radius = 0;
+
+  _calculate_tl();
+  _calculate_tr();
+  _calculate_br();
+  _calculate_bl();
+  _calculate_rects();
+}
+void LevelCamera::reset() noexcept {
+  top_left_angle = top_right_angle = bottom_right_angle = bottom_left_angle = 0;
+  top_left_radius = top_right_radius = bottom_right_radius = bottom_left_radius = 0;
+
+  _calculate_tl();
+  _calculate_tr();
+  _calculate_br();
+  _calculate_bl();
+  _calculate_rects();
+}
+
+void LevelCamera::_calculate_rects() noexcept {
+  _outer_rect = Rectangle{ position.x, position.y, pixel_width, pixel_height };
+  _inner_rect = Rectangle{
+    position.x + 190,
+    position.y + 20,
+    51 * 20.0f,
+    39 * 20.0f
+  };
+}
+
 LevelCamera::LevelCamera() : 
   position({0,0}),
   top_left_angle(0),
@@ -38,7 +79,9 @@ LevelCamera::LevelCamera() :
   _tr_point({0, 0}),
   _br_point({0, 0}),
   _bl_point({0, 0})
-{}
+{
+  _calculate_rects();
+}
 
 LevelCamera::LevelCamera(Vector2 pos) : 
   position(pos),
@@ -63,6 +106,7 @@ LevelCamera::LevelCamera(Vector2 pos) :
   _calculate_tr();
   _calculate_br();
   _calculate_bl();
+  _calculate_rects();
 }
 
 BufferGeos::BufferGeos() : 

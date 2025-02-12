@@ -11,89 +11,62 @@
 
 namespace mr {
 
-const texture &GE_Textures::bathive() const { return _bathive; }
-const texture &GE_Textures::forbid() const { return _forbid ; }
-const texture &GE_Textures::wormgrass() const { return _wormgrass ; }
-const texture &GE_Textures::rock() const { return _rock ; }
-const texture &GE_Textures::spear() const { return _spear ; }
-const texture &GE_Textures::waterfall() const { return _waterfall ; }
-
-const texture &GE_Textures::passage() const { return _passage ; }
-const texture &GE_Textures::garbageworm() const { return _garbage_worm; }
-const texture &GE_Textures::scav() const { return _scav; }
-const texture &GE_Textures::den() const { return _den; }
-const texture &GE_Textures::wack() const { return _wack; }
-
-const texture &GE_Textures::entry_loose() const { return _entry_loose;}
-const texture &GE_Textures::entry_left() const { return _entry_l;}
-const texture &GE_Textures::entry_top() const { return _entry_t;}
-const texture &GE_Textures::entry_right() const { return _entry_r;}
-const texture &GE_Textures::entry_bottom() const { return _entry_b;}
-
-const texture &GE_Textures::crack() const { return _crack; }
-const texture &GE_Textures::crack_top() const { return _crack_t; }
-const texture &GE_Textures::crack_right() const { return _crack_r; }
-const texture &GE_Textures::crack_bottom() const { return _crack_b; }
-const texture &GE_Textures::crack_left() const { return _crack_l; }
-const texture &GE_Textures::crack_vertical() const { return _crack_v; }
-const texture &GE_Textures::crack_horizontal() const { return _crack_h; }
-const texture &GE_Textures::crack_bl() const { return _crack_bl; }
-const texture &GE_Textures::crack_tl() const { return _crack_tl; }
-const texture &GE_Textures::crack_br() const { return _crack_br; }
-const texture &GE_Textures::crack_tr() const { return _crack_tr; }
-const texture &GE_Textures::crack_blt() const { return _crack_blt; }
-const texture &GE_Textures::crack_ltr() const { return _crack_ltr; }
-const texture &GE_Textures::crack_trb() const { return _crack_trb; }
-const texture &GE_Textures::crack_rbl() const { return _crack_rbl; }
+Atlas::Atlas(std::shared_ptr<Dirs> dirs) : _directories(dirs) {}
+Atlas::Atlas(Atlas &&other) noexcept : _directories(std::move(other._directories)) {}
+Atlas &Atlas::operator=(Atlas &&other) noexcept {
+  if (this == &other) return *this;
+  _directories = std::move(other._directories);
+  return *this;
+}
 
 void GE_Textures::reload() {
-  _bathive    = texture((_textures_dir /         "bathive.png").string().c_str());
-  _forbid     = texture((_textures_dir / "forbidflychains.png").string().c_str());
-  _wormgrass  = texture((_textures_dir /            "worm.png").string().c_str());
-  _rock       = texture((_textures_dir /            "rock.png").string().c_str());
-  _spear      = texture((_textures_dir /           "spear.png").string().c_str());
-  _waterfall  = texture((_textures_dir /       "waterfall.png").string().c_str());
+  const auto &textures_dir = _directories->get_assets() / "Level" / "Geometry";
+
+  _bathive    = texture((textures_dir /         "bathive.png").string().c_str());
+  _forbid     = texture((textures_dir / "forbidflychains.png").string().c_str());
+  _wormgrass  = texture((textures_dir /            "worm.png").string().c_str());
+  _rock       = texture((textures_dir /            "rock.png").string().c_str());
+  _spear      = texture((textures_dir /           "spear.png").string().c_str());
+  _waterfall  = texture((textures_dir /       "waterfall.png").string().c_str());
 
 
-  _passage      = texture((_textures_dir /     "passage.png").string().c_str());
-  _garbage_worm = texture((_textures_dir / "garbageworm.png").string().c_str());
-  _scav         = texture((_textures_dir /        "scav.png").string().c_str());
-  _den          = texture((_textures_dir /         "den.png").string().c_str());
-  _wack         = texture((_textures_dir /        "wack.png").string().c_str());
+  _passage      = texture((textures_dir /     "passage.png").string().c_str());
+  _garbage_worm = texture((textures_dir / "garbageworm.png").string().c_str());
+  _scav         = texture((textures_dir /        "scav.png").string().c_str());
+  _den          = texture((textures_dir /         "den.png").string().c_str());
+  _wack         = texture((textures_dir /        "wack.png").string().c_str());
 
-  _entry_loose  = texture((_textures_dir / "entryloose.png").string().c_str());
-  _entry_l      = texture((_textures_dir / "entryl.png").string().c_str());
-  _entry_t      = texture((_textures_dir / "entryt.png").string().c_str());
-  _entry_b      = texture((_textures_dir / "entryb.png").string().c_str());
-  _entry_r      = texture((_textures_dir / "entryr.png").string().c_str());
+  _entry_loose  = texture((textures_dir / "entryloose.png").string().c_str());
+  _entry_l      = texture((textures_dir / "entryl.png").string().c_str());
+  _entry_t      = texture((textures_dir / "entryt.png").string().c_str());
+  _entry_b      = texture((textures_dir / "entryb.png").string().c_str());
+  _entry_r      = texture((textures_dir / "entryr.png").string().c_str());
 
-  _crack      = texture((_textures_dir /   "cracku.png").string().c_str());
-  _crack_t    = texture((_textures_dir /   "crackt.png").string().c_str());
-  _crack_b    = texture((_textures_dir /   "crackb.png").string().c_str());
-  _crack_l    = texture((_textures_dir /   "crackl.png").string().c_str());
-  _crack_r    = texture((_textures_dir /   "crackr.png").string().c_str());
-  _crack_h    = texture((_textures_dir /   "crackh.png").string().c_str());
-  _crack_v    = texture((_textures_dir /   "crackv.png").string().c_str());
-  _crack_bl   = texture((_textures_dir /  "crackbl.png").string().c_str());
-  _crack_tl   = texture((_textures_dir /  "cracktl.png").string().c_str());
-  _crack_tr   = texture((_textures_dir /  "cracktr.png").string().c_str());
-  _crack_br   = texture((_textures_dir /  "crackbr.png").string().c_str());
-  _crack_blt  = texture((_textures_dir / "crackblt.png").string().c_str());
-  _crack_ltr  = texture((_textures_dir / "crackltr.png").string().c_str());
-  _crack_trb  = texture((_textures_dir / "cracktrb.png").string().c_str());
-  _crack_rbl  = texture((_textures_dir / "crackrbl.png").string().c_str());
+  _crack      = texture((textures_dir /   "cracku.png").string().c_str());
+  _crack_t    = texture((textures_dir /   "crackt.png").string().c_str());
+  _crack_b    = texture((textures_dir /   "crackb.png").string().c_str());
+  _crack_l    = texture((textures_dir /   "crackl.png").string().c_str());
+  _crack_r    = texture((textures_dir /   "crackr.png").string().c_str());
+  _crack_h    = texture((textures_dir /   "crackh.png").string().c_str());
+  _crack_v    = texture((textures_dir /   "crackv.png").string().c_str());
+  _crack_bl   = texture((textures_dir /  "crackbl.png").string().c_str());
+  _crack_tl   = texture((textures_dir /  "cracktl.png").string().c_str());
+  _crack_tr   = texture((textures_dir /  "cracktr.png").string().c_str());
+  _crack_br   = texture((textures_dir /  "crackbr.png").string().c_str());
+  _crack_blt  = texture((textures_dir / "crackblt.png").string().c_str());
+  _crack_ltr  = texture((textures_dir / "crackltr.png").string().c_str());
+  _crack_trb  = texture((textures_dir / "cracktrb.png").string().c_str());
+  _crack_rbl  = texture((textures_dir / "crackrbl.png").string().c_str());
 }
 
 
-GE_Textures::GE_Textures(const std::filesystem::path &d) {
-  _textures_dir = d / "Level" / "Geometry";
-}
+GE_Textures::GE_Textures(std::shared_ptr<Dirs> dirs) : Atlas(dirs) {}
 
 GE_Textures &GE_Textures::operator=(GE_Textures &&other) noexcept {
   if (this == &other)
     return *this;
 
-  _textures_dir = std::move(other._textures_dir);
+  Atlas::operator=(std::move(other));
 
   _bathive = std::move(other._bathive);
   _forbid = std::move(other._forbid);
@@ -127,9 +100,7 @@ GE_Textures &GE_Textures::operator=(GE_Textures &&other) noexcept {
   return *this;
 }
 
-GE_Textures::GE_Textures(GE_Textures &&other) noexcept {
-  _textures_dir = std::move(other._textures_dir);
-
+GE_Textures::GE_Textures(GE_Textures &&other) noexcept : Atlas(std::move(other)) {
   _bathive = std::move(other._bathive);
   _forbid = std::move(other._forbid);
   _wormgrass = std::move(other._wormgrass);
@@ -164,11 +135,13 @@ GE_Textures::~GE_Textures() {}
 
 
 void LE_Textures::reload() {
-  if (!std::filesystem::is_directory(_textures_dir)) {
+  const auto &textures_dir = _directories->get_assets() / "Level" / "Light";
+
+  if (!std::filesystem::exists(textures_dir) || !std::filesystem::is_directory(textures_dir)) {
     #ifdef IS_DEBUG_BUILD
     std::cout 
       << "Warning: light editor's textures directory does not exist: " 
-      << _textures_dir 
+      << textures_dir 
       << std::endl;
     #endif
     
@@ -177,7 +150,7 @@ void LE_Textures::reload() {
 
   _brushes.clear();
 
-  for (const auto &entry : std::filesystem::directory_iterator(_textures_dir)) {
+  for (const auto &entry : std::filesystem::directory_iterator(textures_dir)) {
     if (!std::filesystem::is_regular_file(entry.path())) continue;
     if (entry.path().extension() != ".png") continue;
 
@@ -188,16 +161,45 @@ void LE_Textures::reload() {
 LE_Textures &LE_Textures::operator=(LE_Textures &&other) noexcept {
   if (this == &other) return *this;
 
+  Atlas::operator=(std::move(other));
+
   _brushes = std::move(other._brushes);
 
   return *this;
 }
-LE_Textures::LE_Textures(const std::filesystem::path &path) {
-  _textures_dir = path / "Level" / "Light";
-}
-LE_Textures::LE_Textures(LE_Textures &&other) noexcept {
-  _brushes = std::move(other._brushes);
-}
+LE_Textures::LE_Textures(std::shared_ptr<Dirs> dirs) : Atlas(dirs) {}
+LE_Textures::LE_Textures(LE_Textures &&other) noexcept : Atlas(std::move(other)) {_brushes = std::move(other._brushes);}
 LE_Textures::~LE_Textures() {}
+
+void CE_Textures::reload() {
+  const auto &textures_dir = _directories->get_assets() / "Level" / "Cameras";
+
+  if (!std::filesystem::exists(textures_dir) || !std::filesystem::is_directory(textures_dir)) {
+    #ifdef IS_DEBUG_BUILD
+    std::cout 
+      << "Warning: cameras editor's textures directory does not exist: " 
+      << textures_dir 
+      << std::endl;
+    #endif
+    
+    return;
+  }
+
+  _camera_graf = texture((textures_dir / "graf.png").string().c_str());
+}
+CE_Textures &CE_Textures::operator=(CE_Textures &&other) noexcept {
+  if (this == &other) return *this;
+
+  Atlas::operator=(std::move(other));
+
+  _camera_graf = std::move(other._camera_graf);
+
+  return *this;
+}
+CE_Textures::CE_Textures(std::shared_ptr<Dirs> dirs) : Atlas(dirs) {}
+CE_Textures::CE_Textures(CE_Textures &&other) noexcept : Atlas(std::move(other)) {
+  _camera_graf = std::move(other._camera_graf);
+}
+CE_Textures::~CE_Textures() {}
 
 };

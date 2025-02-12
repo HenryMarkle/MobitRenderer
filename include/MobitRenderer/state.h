@@ -187,6 +187,7 @@ public:
 
   GE_Textures geometry_editor;
   LE_Textures light_editor;
+  CE_Textures cameras_editor;
 
   void reload_all_textures();
 

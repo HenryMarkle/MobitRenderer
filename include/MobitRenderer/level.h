@@ -18,8 +18,6 @@ typedef uint32_t levelpixelsize;
 class LevelCamera {
 
 private:
-  static const int pixel_width = 1400;
-  static const int pixel_height = 800;
 
   int   top_left_angle,  top_right_angle,  bottom_right_angle,  bottom_left_angle;
   float top_left_radius, top_right_radius, bottom_right_radius, bottom_left_radius;
@@ -28,6 +26,8 @@ private:
 
   Vector2 _tl_origin, _tr_origin, _br_origin, _bl_origin;
   Vector2 _tl_point,  _tr_point,  _br_point,  _bl_point;
+
+  Rectangle _outer_rect, _inner_rect;
 
   inline void _calculate_tl(int radius_scale = 100) noexcept {
     _tl_origin = position;
@@ -73,8 +73,12 @@ private:
       _bl_origin.y + scaled_radius * (float)sin(rotated_angle)
     }; 
   }
+  void _calculate_rects() noexcept;
 
 public:
+
+  static const int pixel_width = 1400;
+  static const int pixel_height = 800;
 
   inline const Vector2 &get_position() const noexcept { return position; }
   inline void set_position(Vector2 v) noexcept { 
@@ -84,6 +88,7 @@ public:
     _calculate_tr();
     _calculate_br();
     _calculate_bl();
+    _calculate_rects();
   }
 
   inline const int get_top_left_angle() const noexcept { return top_left_angle; }
@@ -91,76 +96,37 @@ public:
   inline const int get_bottom_right_angle() const noexcept { return bottom_right_angle; }
   inline const int get_bottom_left_angle() const noexcept { return bottom_left_angle; }
   
-  inline void set_top_left_angle(int angle) noexcept { top_left_angle = angle; _calculate_tl(); }
-  inline void set_top_right_angle(int angle) noexcept { top_right_angle = angle; _calculate_tr(); }
-  inline void set_bottom_right_angle(int angle) noexcept { bottom_right_angle = angle; _calculate_br(); }
-  inline void set_bottom_left_angle(int angle) noexcept { bottom_left_angle = angle; _calculate_bl(); }
+  inline void set_top_left_angle(int angle) noexcept { top_left_angle = angle; _calculate_tl(); _calculate_rects(); }
+  inline void set_top_right_angle(int angle) noexcept { top_right_angle = angle; _calculate_tr(); _calculate_rects(); }
+  inline void set_bottom_right_angle(int angle) noexcept { bottom_right_angle = angle; _calculate_br(); _calculate_rects(); }
+  inline void set_bottom_left_angle(int angle) noexcept { bottom_left_angle = angle; _calculate_bl(); _calculate_rects(); }
 
   inline const float get_top_left_radius() const noexcept { return top_left_radius; }
   inline const float get_top_right_radius() const noexcept { return top_right_radius; }
   inline const float get_bottom_right_radius() const noexcept { return bottom_right_radius; }
   inline const float get_bottom_left_radius() const noexcept { return bottom_left_radius; }
 
-  inline void set_top_left_radius(float radius) noexcept { top_left_radius = radius; _calculate_tl(); }
-  inline void set_top_right_radius(float radius) noexcept { top_right_radius = radius; _calculate_tr(); }
-  inline void set_bottom_right_radius(float radius) noexcept { bottom_right_radius = radius; _calculate_br(); }
-  inline void set_bottom_left_radius(float radius) noexcept { bottom_left_radius = radius; _calculate_bl(); }
+  inline void set_top_left_radius(float radius) noexcept { top_left_radius = radius; _calculate_tl(); _calculate_rects(); }
+  inline void set_top_right_radius(float radius) noexcept { top_right_radius = radius; _calculate_tr(); _calculate_rects(); }
+  inline void set_bottom_right_radius(float radius) noexcept { bottom_right_radius = radius; _calculate_br(); _calculate_rects(); }
+  inline void set_bottom_left_radius(float radius) noexcept { bottom_left_radius = radius; _calculate_bl(); _calculate_rects(); }
 
-  inline Vector2 get_top_left_origin() const noexcept { return _tl_origin; }
-  inline Vector2 get_top_right_origin() const noexcept { return _tr_origin; }
-  inline Vector2 get_bottom_right_origin() const noexcept { return _br_origin; }
-  inline Vector2 get_bottom_left_origin() const noexcept { return _bl_origin; }
+  inline const Vector2 &get_top_left_origin() const noexcept { return _tl_origin; }
+  inline const Vector2 &get_top_right_origin() const noexcept { return _tr_origin; }
+  inline const Vector2 &get_bottom_right_origin() const noexcept { return _br_origin; }
+  inline const Vector2 &get_bottom_left_origin() const noexcept { return _bl_origin; }
 
-  inline Vector2 get_top_left_point() const noexcept { return _tl_point; }
-  inline Vector2 get_top_right_point() const noexcept { return _tr_point; }
-  inline Vector2 get_bottom_right_point() const noexcept { return _br_point; }
-  inline Vector2 get_bottom_left_point() const noexcept { return _bl_point; }
+  inline const Vector2 &get_top_left_point() const noexcept { return _tl_point; }
+  inline const Vector2 &get_top_right_point() const noexcept { return _tr_point; }
+  inline const Vector2 &get_bottom_right_point() const noexcept { return _br_point; }
+  inline const Vector2 &get_bottom_left_point() const noexcept { return _bl_point; }
 
-  inline void reset_angles() noexcept {
-    top_left_angle = top_right_angle = bottom_right_angle = bottom_left_angle =
-        0;
+  void reset_angles() noexcept;
+  void reset_radius() noexcept;
+  void reset() noexcept;
 
-    _calculate_tl();
-    _calculate_tr();
-    _calculate_br();
-    _calculate_bl();
-  }
-  inline void reset_radius() noexcept {
-    top_left_radius = top_right_radius = bottom_right_radius =
-        bottom_left_radius = 0;
-  
-    _calculate_tl();
-    _calculate_tr();
-    _calculate_br();
-    _calculate_bl();
-  }
-  inline void reset() noexcept {
-    top_left_angle = top_right_angle = bottom_right_angle = bottom_left_angle = 0;
-    top_left_radius = top_right_radius = bottom_right_radius = bottom_left_radius = 0;
-  
-    _calculate_tl();
-    _calculate_tr();
-    _calculate_br();
-    _calculate_bl();
-  }
-
-  inline const Rectangle get_outer_rect() const noexcept {
-    return Rectangle{
-      position.x,
-      position.y,
-      1400.0f,
-      800.0f
-    };
-  }
-
-  inline const Rectangle get_inner_rect() const noexcept {
-    return Rectangle{
-      position.x + 190,
-      position.y + 20,
-      51 * 20.0f,
-      39 * 20.0f
-    };
-  }
+  inline const Rectangle &get_outer_rect() const noexcept { return _outer_rect; }
+  inline const Rectangle &get_inner_rect() const noexcept { return _inner_rect; }
 
   LevelCamera();
   LevelCamera(Vector2);

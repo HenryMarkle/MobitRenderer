@@ -79,6 +79,20 @@ inline GeoFeature operator~(GeoFeature flag) {
   return static_cast<GeoFeature>(~static_cast<uint8_t>(flag));
 }
 
+inline const char *geo_type_cstr(GeoType g) noexcept {
+  switch (g) {
+    case GeoType::air: return "air";
+    case GeoType::solid: return "solid";
+    case GeoType::platform: return "platform";
+    case GeoType::shortcut_entrance : return "shortcut entrance";
+    case GeoType::glass : return "glass";
+    case GeoType::slope_ne : return "slope ne";
+    case GeoType::slope_es : return "slope es";
+    case GeoType::slope_nw : return "slope nw";
+    case GeoType::slope_sw : return "slope sw";
+    default: return "unkown";
+  }
+}
 
 // 4 bytes
 struct GeoCell {

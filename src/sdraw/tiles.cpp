@@ -91,6 +91,54 @@ void draw_tile_prevs_layer(
         }
         break;
       }
+    
+      cell = tilemtx.get_const_ptr(x, y, layer - 1);
+
+      if (
+        cell != nullptr && 
+        cell->type == TileType::head && 
+        cell->tile_def != nullptr && 
+        !cell->tile_def->get_specs2().empty()
+      ) {
+        auto *def = cell->tile_def;
+        auto &texture = def->get_loaded_texture();
+        if (!def->is_texture_loaded()) continue;
+
+        BeginShaderMode(shader);
+        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
+        mr::draw::draw_tile_prev_from_origin(
+          def, 
+          x*scale, 
+          y*scale, 
+          scale,
+          def->get_color()
+        );
+        EndTextureMode();
+      }
+
+      cell = tilemtx.get_const_ptr(x, y, layer - 2);
+
+      if (
+        cell != nullptr && 
+        cell->type == TileType::head && 
+        cell->tile_def != nullptr && 
+        !cell->tile_def->get_specs3().empty()
+      ) {
+        auto *def = cell->tile_def;
+        auto &texture = def->get_loaded_texture();
+        if (!def->is_texture_loaded()) continue;
+
+        BeginShaderMode(shader);
+        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
+        mr::draw::draw_tile_prev_from_origin(
+          def, 
+          x*scale, 
+          y*scale, 
+          scale,
+          def->get_color()
+        );
+        EndTextureMode();
+      }
     }
   }
 }

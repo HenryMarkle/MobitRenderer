@@ -1,7 +1,3 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -314,6 +310,7 @@ void textures::reload_all_textures() {
 
   geometry_editor.reload();
   light_editor.reload();
+  cameras_editor.reload();
 
   #ifdef FEATURE_PALETTES
   for (auto &palette : palettes) palette.reload();
@@ -453,10 +450,12 @@ void textures::resize_all_level_buffers(int width, int height) {
   }
 }
 
-textures::textures(std::shared_ptr<Dirs> directories, bool preload_textures)
-    : directories(directories), 
-    geometry_editor(directories.get()->get_assets()),
-    light_editor(directories.get()->get_assets())
+textures::textures(std::shared_ptr<Dirs> directories, bool preload_textures) : 
+  directories(directories),
+
+  geometry_editor(directories),
+  light_editor(directories),
+  cameras_editor(directories)
 {
 
   if (preload_textures) {

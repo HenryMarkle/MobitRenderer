@@ -157,12 +157,21 @@ private:
     should_redraw_feature2,
     should_redraw_feature3;
 
+  bool _hovering_on_window;
+
+  /// @brief 0 - place; 1 - erase
+  uint8_t _edit_mode;
+  bool _is_selecting;
+  Vector2 _selection_origin;
+  Rectangle _selection_rect;
+
 public:
 
   void process() override;
   void draw() noexcept override;
   void windows() noexcept override;
   void order_level_redraw() noexcept override;
+  void on_mtx_pos_changed() noexcept override;
   void on_level_loaded() noexcept override;
   void on_level_unloaded() noexcept override;
   void on_level_selected() noexcept override;
@@ -254,6 +263,32 @@ bool
   _should_redraw2,
   _should_redraw3,
   _should_redraw;
+
+bool _hovering_on_window;
+bool _is_dragging_camera, _is_hovering_camera;
+size_t _dragged_camera_index, _hovered_camera_index;
+LevelCamera *_hovered_camera, *_dragged_camera;
+
+void _draw_camera_sprite(
+  const LevelCamera *level_camera,
+  const Vector2 &mouse_pos,
+  const Shader &shader,
+  size_t label
+) const noexcept;
+
+inline void _draw_camera_sprite(
+  const LevelCamera &level_camera,
+  const Vector2 &mouse_pos,
+  const Shader &shader,
+  size_t label
+) const noexcept {
+  _draw_camera_sprite(
+    &level_camera,
+    mouse_pos,
+    shader,
+    label
+  );
+}
 
 public:
 

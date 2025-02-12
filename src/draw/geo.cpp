@@ -286,7 +286,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
 
 
   if (cell.has_feature(GeoFeature::bathive)) {
-    texture = atlas.bathive().get();
+    texture = atlas.bathive();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -297,7 +297,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::forbid_fly_chains)) {
-    texture = atlas.forbid().get();
+    texture = atlas.forbid();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -308,7 +308,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::worm_grass)) {
-    texture = atlas.wormgrass().get();
+    texture = atlas.wormgrass();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -319,7 +319,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::place_rock)) {
-    texture = atlas.rock().get();
+    texture = atlas.rock();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -330,7 +330,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::place_spear)) {
-    texture = atlas.spear().get();
+    texture = atlas.spear();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -341,7 +341,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::waterfall)) {
-    texture = atlas.waterfall().get();
+    texture = atlas.waterfall();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -353,7 +353,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
   }
 
   if (cell.has_feature(GeoFeature::room_entrance)) {
-    texture = atlas.passage().get();
+    texture = atlas.passage();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -364,7 +364,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::garbage_worm_hole)) {
-    texture = atlas.garbageworm().get();
+    texture = atlas.garbageworm();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -375,7 +375,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::scavenger_hole)) {
-    texture = atlas.scav().get();
+    texture = atlas.scav();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -386,7 +386,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::dragon_den)) {
-    texture = atlas.den().get();
+    texture = atlas.den();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -397,7 +397,7 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
   if (cell.has_feature(GeoFeature::wack_a_mole_hole)) {
-    texture = atlas.wack().get();
+    texture = atlas.wack();
     DrawTexturePro(
       texture,
       Rectangle{0, 0, (float)texture.width, (float)texture.height},
@@ -525,7 +525,7 @@ void draw_geo_features_layer(
 void draw_geo_entrances(Matrix<GeoCell> const &matrix, GE_Textures &atlas, Color color, float scale) {
   uint8_t holes, dots;
   size_t connx, conny;
-  const auto &loose_texture = atlas.entry_loose().get();
+  const auto &loose_texture = atlas.entry_loose();
 
   for (size_t x = 0; x < matrix.get_width(); x++) {
     for (size_t y = 0; y < matrix.get_height(); y++) {
@@ -582,27 +582,48 @@ void draw_geo_entrances(Matrix<GeoCell> const &matrix, GE_Textures &atlas, Color
 
       if (dots == 1) {
 
-        const Texture2D *texture = nullptr;
-        
-        if (connx ==  0 && conny == -1) { // top
-          texture = atlas.entry_top().get_ptr();
-        } else if (connx == -1 && conny ==  0) { // left
-          texture = atlas.entry_left().get_ptr();
-        } else if (connx ==  1 && conny ==  0) { // right
-          texture = atlas.entry_right().get_ptr();
-        } else if (connx ==  0 && conny ==  1) { // bottom
-          texture = atlas.entry_bottom().get_ptr();
-        } else goto disconnected;
-
         // Success
-        if (texture != nullptr) DrawTexturePro(
-          *texture,
-          Rectangle{0, 0, static_cast<float>(loose_texture.width), static_cast<float>(loose_texture.height)},
-          Rectangle{x * scale, y * scale, scale, scale},
-          Vector2{0, 0},
-          0,
-          color
-        );
+        if (connx ==  0 && conny == -1) { // top
+          const auto &texture = atlas.entry_top();
+          DrawTexturePro(
+            texture,
+            Rectangle{0, 0, static_cast<float>(loose_texture.width), static_cast<float>(loose_texture.height)},
+            Rectangle{x * scale, y * scale, scale, scale},
+            Vector2{0, 0},
+            0,
+            color
+          );
+        } else if (connx == -1 && conny ==  0) { // left
+          const auto &texture = atlas.entry_left();
+          DrawTexturePro(
+            texture,
+            Rectangle{0, 0, static_cast<float>(loose_texture.width), static_cast<float>(loose_texture.height)},
+            Rectangle{x * scale, y * scale, scale, scale},
+            Vector2{0, 0},
+            0,
+            color
+          );
+        } else if (connx ==  1 && conny ==  0) { // right
+          const auto &texture = atlas.entry_right();
+          DrawTexturePro(
+            texture,
+            Rectangle{0, 0, static_cast<float>(loose_texture.width), static_cast<float>(loose_texture.height)},
+            Rectangle{x * scale, y * scale, scale, scale},
+            Vector2{0, 0},
+            0,
+            color
+          );
+        } else if (connx ==  0 && conny ==  1) { // bottom
+          const auto &texture = atlas.entry_bottom();
+          DrawTexturePro(
+            texture,
+            Rectangle{0, 0, static_cast<float>(loose_texture.width), static_cast<float>(loose_texture.height)},
+            Rectangle{x * scale, y * scale, scale, scale},
+            Vector2{0, 0},
+            0,
+            color
+          );
+        } else goto disconnected;
 
         continue;
       }

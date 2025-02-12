@@ -13,6 +13,9 @@
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/pages.h>
 
+#define EDIT_MODE_PLACE 0
+#define EDIT_MODE_ERASE 1
+
 namespace mr::pages {
 
 void Geo_Page::f3() const noexcept {
@@ -47,32 +50,102 @@ void Geo_Page::f3() const noexcept {
   f3->print("Layer Pointer: Global");
   f3->print("L ");
   f3->print((int)ctx->level_layer_, true);
+
+  f3->newline();
+
+  f3->print("Hovered ");
+  auto *level = ctx->get_selected_level();
+  if (level != nullptr) {
+    const auto &mtx = level->get_const_geo_matrix();
+    const auto *cell = mtx.get_const_ptr(_mtx_mouse_pos.x, _mtx_mouse_pos.y, ctx->level_layer_);
+    if (cell != nullptr) {
+      f3->print(geo_type_cstr(cell->type), SKYBLUE, true);
+    } else f3->print("-", true);
+  } else f3->print("-", true);
+
+  f3->print("Is Selecting ");
+  f3->print(_is_selecting, true);
+
+  f3->print("Edit Mode ");
+  if (_edit_mode == EDIT_MODE_PLACE) f3->print("Place", GREEN, true);
+  else if (_edit_mode == EDIT_MODE_ERASE) f3->print("Erase", RED, true);
+  else f3->print("Unknown", MAGENTA, true);
+}
+
+void Geo_Page::on_mtx_pos_changed() noexcept {
+  float originx = fmin(_selection_origin.x, _mtx_mouse_pos.x * 20.0f);
+  float originy = fmin(_selection_origin.y, _mtx_mouse_pos.y * 20.0f);
+
+  _selection_rect.x = originx;
+  _selection_rect.y = originy;
+  _selection_rect.width = abs(_selection_origin.x - _mtx_mouse_pos.x * 20.0f);
+  _selection_rect.height = abs(_selection_origin.y - _mtx_mouse_pos.y * 20.0f);
+
+  if (_selection_rect.width == 0) _selection_rect.width = 20;
+  else _selection_rect.width += 20;
+
+  if (_selection_rect.height == 0) _selection_rect.height = 20;
+  else _selection_rect.height += 20;
 }
 
 void Geo_Page::process() {
+  _update_mtx_mouse_pos();
+
   auto wheel = GetMouseWheelMove();
+  auto &camera = ctx->get_camera();
+  auto mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
 
-  if (wheel != 0) {
+  if (!_hovering_on_window) {
 
-    auto &camera = ctx->get_camera();
-    auto mouseWorldPosition = GetScreenToWorld2D(GetMousePosition(), camera);
-    
-    camera.offset = GetMousePosition();
-    camera.target = mouseWorldPosition;
-    camera.zoom += wheel * 0.125f;
-    if (camera.zoom < 0.125f) camera.zoom = 0.125f;
+    if (wheel != 0) {
+      
+      camera.offset = GetMousePosition();
+      camera.target = mouse_pos;
+      camera.zoom += wheel * 0.125f;
+      if (camera.zoom < 0.125f) camera.zoom = 0.125f;
+    }
+  
+    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
+      auto delta = GetMouseDelta();
+      auto &camera = ctx->get_camera();
+  
+      delta = Vector2Scale(delta, -1.0f / camera.zoom);
+      
+      camera.target.x += delta.x;
+      camera.target.y += delta.y;
+    }
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) _edit_mode = EDIT_MODE_PLACE;
+    else if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) _edit_mode = EDIT_MODE_ERASE;
+
+    if (_is_selecting) {
+
+      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT) || IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)) {
+        _is_selecting = false;
+        _selection_rect = Rectangle{0, 0, 0, 0};
+        _selection_origin = Vector2{0, 0};
+      }
+    } else {
+      if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) || IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+        _is_selecting = true;
+        _selection_rect = Rectangle {
+          _mtx_mouse_pos.x * 20.0f, 
+          _mtx_mouse_pos.y * 20.0f, 
+          20.0f, 
+          20.0f
+        };
+        _selection_origin = Vector2{ 
+          _mtx_mouse_pos.x * 20.0f, 
+          _mtx_mouse_pos.y * 20.0f 
+        };
+      }
+    }
   }
 
-  if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
-    auto delta = GetMouseDelta();
-    auto &camera = ctx->get_camera();
 
-    delta = Vector2Scale(delta, -1.0f / camera.zoom);
-    
-    camera.target.x += delta.x;
-    camera.target.y += delta.y;
-  }
+  _hovering_on_window = false;
 }
+
 void Geo_Page::draw() noexcept {
   if (should_redraw1) {
     BeginTextureMode(ctx->_textures->geo_layer1.get());
@@ -259,6 +332,16 @@ void Geo_Page::draw() noexcept {
     WHITE
   );
 
+  if (_is_selecting) {
+    DrawRectangleLinesEx(_selection_rect, 2, _edit_mode == EDIT_MODE_PLACE ? WHITE : EDIT_MODE_ERASE ? RED : WHITE);
+  } else {
+    DrawRectangleLinesEx(
+      Rectangle{ _mtx_mouse_pos.x * 20.0f - 2, _mtx_mouse_pos.y * 20.0f - 2, 20.0f + 4, 20.0f + 4 },
+      2,
+      _edit_mode == EDIT_MODE_PLACE ? WHITE : EDIT_MODE_ERASE ? RED : WHITE
+    );
+  }
+
   EndMode2D();
 }
 void Geo_Page::windows() noexcept {}
@@ -284,13 +367,19 @@ void Geo_Page::on_page_selected() noexcept {
 }
 
 Geo_Page::Geo_Page(context *ctx) : LevelPage(ctx), 
+  _hovering_on_window(false),
   should_redraw1(true), 
   should_redraw2(true), 
   should_redraw3(true),
   should_redraw_feature1(true),
   should_redraw_feature2(true),
   should_redraw_feature3(true),
-  should_redraw(true) {}
+  should_redraw(true),
+  _edit_mode(EDIT_MODE_PLACE),
+  _is_selecting(false),
+  _selection_rect(Rectangle{0, 0, 0, 0}),
+  _selection_origin(Vector2{0, 0})
+{}
 
 Geo_Page::~Geo_Page() {}
 
