@@ -3,16 +3,30 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <string>
 
 #include <raylib.h>
 #include <raymath.h>
 
+#include <spdlog/spdlog.h>
+
+#include <MobitRenderer/dirs.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/state.h>
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/definitions.h>
 
 namespace mr::renderer {
+
+class render_error : public std::exception {
+private:
+    std::string msg_;
+
+public:
+    explicit render_error(const std::string &);
+    explicit render_error(const std::string &, const std::exception &);
+    const char *what() const noexcept override;
+};
 
 struct RenderConfig {
 
@@ -76,6 +90,9 @@ protected:
     /// @brief The height of the final level image.
     static const int final_height = 800;
 
+    std::shared_ptr<Dirs> _dirs;
+    std::shared_ptr<spdlog::logger> _logger;
+
     /// @brief Removes the white background.
     Shader _white_remover;
 
@@ -87,16 +104,18 @@ protected:
     /// and removes the white background.
     Shader _invb;
 
-    TileDex     *tiles;
-    PropDex     *props;
-    MaterialDex *materials;
-    CastLibs    *castlibs;
+    TileDex     *_tiles;
+    PropDex     *_props;
+    MaterialDex *_materials;
+    CastLibs    *_castlibs;
 
-    Level *level;
+    const Level *_level;
 
     // Must be terminated if not done in destructor.
-    std::thread preparation_thread;
-    std::atomic<bool> preparation_done;
+    std::thread _preparation_thread;
+    std::atomic<bool> _preparation_done;
+
+    bool _initialized;
 
     /// A lot of draw calls here
     /// TODO: continue here.
@@ -120,13 +139,14 @@ public:
     void initialize();
 
     /// @brief Loads a level to be rendered,
-    /// @throw std::invalid_argument if the level pointer is nullptr.
+    /// @throw std::invalid_argument if the level pointer is nullptr. 
+    /// @throw std::runtime_error the renderer is uninitialized.
     void load(const Level*);
 
     /// @brief Loads data dependant on the level state on a background thread.
     /// When it's done, preparation done is set to true.
     void prepare();
-    inline bool is_preparation_done() const noexcept { return preparation_done; }
+    inline bool is_preparation_done() const noexcept { return _preparation_done; }
 
     /// @brief Renders a portion of the level at a time.
     /// @return Returns true if the level is not completely done.
@@ -135,6 +155,8 @@ public:
     Renderer &operator=(Renderer const&) = delete;
 
     Renderer(
+        std::shared_ptr<Dirs>,
+        std::shared_ptr<spdlog::logger>,
         TileDex*,
         PropDex*,
         MaterialDex*,

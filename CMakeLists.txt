@@ -37,6 +37,7 @@ file(GLOB MAIN_DRAW_SOURCES src/draw/*.cpp)               # sources
 file(GLOB MAIN_SDRAW_SOURCES src/sdraw/*.cpp)             # sources
 file(GLOB MAIN_PAGE_SOURCES src/pages/*.cpp)              # sources
 file(GLOB MAIN_SERDE_SOURCES src/serialization/*.cpp)     # sources
+file(GLOB MAIN_RENDERER_SOURCES src/renderer/*.cpp)       # sources
 
 if(WIN32)
 file(GLOB PLATFORM_IMPL_SOURCES src/platform/windows/*.cpp)
@@ -53,6 +54,7 @@ add_executable(
   ${MAIN_SDRAW_SOURCES}
   ${MAIN_PAGE_SOURCES}
   ${MAIN_SERDE_SOURCES}
+  ${MAIN_RENDERER_SOURCES}
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
