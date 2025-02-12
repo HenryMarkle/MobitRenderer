@@ -115,7 +115,25 @@ protected:
     std::thread _preparation_thread;
     std::atomic<bool> _preparation_done;
 
-    bool _initialized;
+    bool _initialized, _cleaned_up;
+
+    bool 
+        _shaders_initialized,
+        _layers_initialized,
+        _dc_layers_initialized,
+        _ga_layers_initialized,
+        _gb_layers_initialized,
+        _final_initialized;
+
+    bool
+        _layers_cleaned,
+        _dc_layers_cleaned,
+        _ga_layers_cleaned,
+        _gb_layers_cleaned,
+        _final_cleaned;
+
+    size_t _layers_init_progress, _layers_clean_progress;
+    int _layers_compose_progress;
 
     /// A lot of draw calls here
     /// TODO: continue here.
@@ -130,6 +148,8 @@ public:
     RenderTexture2D _ga_layers[30];
     RenderTexture2D _gb_layers[30];
 
+    RenderTexture2D _composed_layers;
+
     /// @brief The final texture of the level.
     RenderTexture2D _final;
 
@@ -138,9 +158,23 @@ public:
     /// @attention Requires OpenGL context.
     void initialize();
 
+    inline bool is_initialized() const noexcept { return _initialized; }
+    inline bool is_cleaned() const noexcept { return _cleaned_up; }
+    inline void reset_cleaned() noexcept { _cleaned_up = false; }
+
+    /// @brief Initializes render textures and data partially each frame; happens independently
+    /// from the state of the level.
+    /// @attention Requires OpenGL context.
+    bool frame_initialize(int threshold = 10);
+
+    /// @brief Cleans up render textures partially each frame.
+    /// @attention Requires OpenGL context.
+    bool frame_cleanup(int threshold = 10);
+
+    void frame_compose(int threshold = 10);
+
     /// @brief Loads a level to be rendered,
     /// @throw std::invalid_argument if the level pointer is nullptr. 
-    /// @throw std::runtime_error the renderer is uninitialized.
     void load(const Level*);
 
     /// @brief Loads data dependant on the level state on a background thread.

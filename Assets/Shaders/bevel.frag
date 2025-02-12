@@ -46,13 +46,13 @@ void main() {
 
     if (isEdge) {
         if ((gx < 0.0 || gy < 0.0) && highlights) {
-            FragColor = vec4(0.0, 0.0, 1.0, 1.0); // Blue for top/left edges
+            finalColor = vec4(0.0, 0.0, 1.0, 1.0); // Blue for top/left edges
         } else if ((gx >= 0.0 || gy >= 0.0) && shadows) {
-            FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red for bottom/right edges
+            finalColor = vec4(1.0, 0.0, 0.0, 1.0); // Red for bottom/right edges
         } else {
-            FragColor = texture(texture0, fragTexCoord); // Keep original texture if no color is enabled
+            finalColor = texture(texture0, fragTexCoord); // Keep original texture if no color is enabled
         }
     } else {
-        FragColor = texture(texture0, fragTexCoord); // Keep original texture
+        finalColor = texture(texture0, fragTexCoord); // Keep original texture
     }
 }
