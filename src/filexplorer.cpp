@@ -179,20 +179,20 @@ bool ProjectExplorer::draw() noexcept {
 
     { // input handling
 
-      if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_DownArrow)) {
+      if (IsKeyPressed(KEY_DOWN)) {
         if (++selected_entry >= entry_paths.size())
           selected_entry = entry_paths.size() - 1;
-      } else if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_UpArrow)) {
+      } else if (IsKeyPressed(KEY_UP)) {
         if (selected_entry-- == 0)
           selected_entry = 0;
-      } else if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_LeftArrow)) {
+      } else if (IsKeyPressed(KEY_LEFT)) {
         go_to(current_dir.parent_path());
-      } else if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_RightArrow)) {
+      } else if (IsKeyPressed(KEY_RIGHT)) {
         if (!entry_paths.empty() && entry_is_dir[selected_entry])
           go_to(entry_paths[selected_entry]);
       }
 
-      if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Enter)) {
+      if (IsKeyPressed(KEY_ENTER)) {
         if (!entry_paths.empty()) {
           if (entry_is_dir[selected_entry]) {
             if (dialog_mode == folder)

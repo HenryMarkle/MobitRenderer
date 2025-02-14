@@ -25,6 +25,7 @@ namespace mr {
 
 void shaders::unload_all() {
   if (!loaded) return;
+  mr::utils::unload_shader(_ink);
   mr::utils::unload_shader(_vflip);
   mr::utils::unload_shader(_apply_alpha);
   mr::utils::unload_shader(_apply_alpha_vflip);
@@ -43,6 +44,9 @@ void shaders::unload_all() {
 
 void shaders::load_all() {
   if (loaded) return;
+
+  auto ink_path = _shaders_dir / "ink.frag";
+  _ink = LoadShader(nullptr, ink_path.string().c_str());
 
   auto vflip_path = _shaders_dir / "vflip.frag";
   _vflip = LoadShader(nullptr, vflip_path.string().c_str());
@@ -101,6 +105,7 @@ shaders &shaders::operator=(shaders &&other) noexcept {
 
   _shaders_dir = other._shaders_dir;
 
+  _ink = other._ink;
   _vflip = other._vflip;
   _apply_alpha = other._apply_alpha;
   _apply_alpha_vflip = other._apply_alpha_vflip;
@@ -116,6 +121,7 @@ shaders &shaders::operator=(shaders &&other) noexcept {
   _voxel_struct_tinted = other._voxel_struct_tinted;
   _varied_voxel_struct = other._varied_voxel_struct;
 
+  other._ink = Shader{0};
   other._vflip = Shader{0};
   other._apply_alpha = Shader{0};
   other._apply_alpha_vflip = Shader{0};
@@ -137,6 +143,7 @@ shaders &shaders::operator=(shaders &&other) noexcept {
 
 shaders::shaders(shaders &&other) noexcept : 
   _shaders_dir(other._shaders_dir), 
+  _ink(other._ink), 
   _vflip(other._vflip), 
   _apply_alpha_vflip(other._apply_alpha_vflip), 
   _apply_alpha(other._apply_alpha), 
@@ -154,6 +161,7 @@ shaders::shaders(shaders &&other) noexcept :
   loaded(other.loaded)
 {
   other.loaded = false;
+  other._ink = Shader{0};
   other._vflip = Shader{0};
   other._apply_alpha = Shader{0};
   other._apply_alpha_vflip = Shader{0};
@@ -173,6 +181,7 @@ shaders::shaders(shaders &&other) noexcept :
 shaders::shaders(std::filesystem::path shaders_dir) : 
   loaded(false),
   _shaders_dir(shaders_dir), 
+  _ink(Shader{0}), 
   _vflip(Shader{0}), 
   _apply_alpha(Shader{0}), 
   _apply_alpha_vflip(Shader{0}), 

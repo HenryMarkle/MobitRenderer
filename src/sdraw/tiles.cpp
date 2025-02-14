@@ -19,33 +19,36 @@ namespace mr::sdraw {
 void draw_tile_prevs_layer(
     const shaders* _shaders,
     Matrix<GeoCell> const &geomtx,
-    Matrix<TileCell> const &tilemtx, 
-    const TileDex *tiles, 
-    const MaterialDex *materials,
+    Matrix<TileCell> const &tilemtx,
     uint8_t layer,
     float scale
 ) {
-  if (layer > 2 || tiles == nullptr || materials == nullptr) 
-    return;
+  if (layer > 2) return;
 
   // terrible names. I know.
 
   const float sxy = scale * 0.25f;
   const float ss = scale * 0.5f;
-  const Shader &shader = _shaders->white_remover_apply_color();
+  const Shader &shader = _shaders->ink();
 
   for (uint16_t x = 0; x < tilemtx.get_width(); x++) {
     for (uint16_t y = 0; y < tilemtx.get_height(); y++) {
       const auto *cell = tilemtx.get_const_ptr(x, y, layer);
-      if (cell == nullptr) continue;
+      if (cell == nullptr) {
+        continue;
+      }
 
       switch (cell->type) {
         case TileType::head:
         {
           auto *def = cell->tile_def;
-          if (def == nullptr) break;
+          if (def == nullptr) {
+            break;
+          }
           auto &texture = def->get_loaded_texture();
-          if (texture.id == 0) break;
+          if (!def->is_texture_loaded()) {
+            break;
+          }
 
           BeginShaderMode(shader);
           SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
@@ -113,7 +116,7 @@ void draw_tile_prevs_layer(
           scale,
           def->get_color()
         );
-        EndTextureMode();
+        EndShaderMode();
       }
 
       cell = tilemtx.get_const_ptr(x, y, layer - 2);
@@ -137,10 +140,44 @@ void draw_tile_prevs_layer(
           scale,
           def->get_color()
         );
-        EndTextureMode();
+        EndShaderMode();
       }
+   
     }
   }
+}
+
+void mtx_patch_tile_prev_from_origin(
+  const TileDef *def,
+  const shaders* _shaders,
+  int x, int y,
+  float scale
+) noexcept {
+  if (def == nullptr || !def->is_texture_loaded() || _shaders == nullptr) return;
+
+  auto offset = def->get_head_offset();
+
+  const auto &texture = def->get_texture();
+  const auto &shader = _shaders->ink();
+
+  BeginShaderMode(shader);
+  SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), texture);
+
+  DrawTexturePro(
+    texture,
+    def->get_preview_rectangle(),
+    Rectangle{
+      (x - offset.x) * scale,
+      (y - offset.y) * scale,
+      scale, 
+      scale
+    },
+    Vector2{0, 0},
+    0,
+    def->get_color()
+  );
+
+  EndShaderMode();
 }
 
 };

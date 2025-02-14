@@ -330,6 +330,14 @@ void draw_tile_tinted(const TileDef *def, int x, int y, float scale, Color tint)
 /// and before EndDrawing()).
 void draw_tile_from_origin_tinted(const TileDef *def, int x, int y, float scale, Color tint);
 
+/// @brief Erases a tile from origin.
+/// @param x Matrix' X coordinates. 
+/// @param y Matrix' Y coordinates. 
+void mtx_erase_tile_prev_from_origin(
+  const TileDef *def,
+  int x, int y,
+  float scale = 20.0f
+) noexcept;
 
 /// @brief Draws an entire layer of a geometry matrix. 
 /// @param matrix A constant reference to the matrix.

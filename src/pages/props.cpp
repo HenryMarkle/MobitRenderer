@@ -253,8 +253,6 @@ void Props_Page::draw() noexcept {
       ctx->_shaders,
       level->get_const_geo_matrix(),
       level->get_const_tile_matrix(),
-      ctx->_tiledex,
-      ctx->_materialdex,
       0,
       20
     );
@@ -274,8 +272,6 @@ void Props_Page::draw() noexcept {
       ctx->_shaders,
       level->get_const_geo_matrix(),
       level->get_const_tile_matrix(),
-      ctx->_tiledex,
-      ctx->_materialdex,
       1,
       20
     );
@@ -295,8 +291,6 @@ void Props_Page::draw() noexcept {
       ctx->_shaders,
       level->get_const_geo_matrix(),
       level->get_const_tile_matrix(),
-      ctx->_tiledex,
-      ctx->_materialdex,
       2,
       20
     );

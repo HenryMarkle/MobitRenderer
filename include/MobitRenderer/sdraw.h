@@ -25,11 +25,19 @@ void draw_tile_prevs_layer(
     const shaders* _shaders,
     Matrix<GeoCell> const &geomtx, 
     Matrix<TileCell> const &tilemtx, 
-    const TileDex *tiles, 
-    const MaterialDex *materials,
     uint8_t layer,
     float scale
 );
+
+/// @brief Draws a tile preview over with white space from origin.
+/// @param x The matrix' X coordinates.
+/// @param y The matrix' Y coordinates.
+void mtx_patch_tile_prev_from_origin(
+    const TileDef *def,
+    const shaders* _shaders,
+    int x, int y,
+    float scale = 20.0f
+) noexcept;
 
 void draw_tile_as_prop(
     const TileDef *def,

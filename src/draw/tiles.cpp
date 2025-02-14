@@ -100,8 +100,9 @@ void draw_tile_prev_from_origin(
   if (def == nullptr || color.a == 0)
     return;
 
+  if (!def->is_texture_loaded()) return;
+  
   auto &texture = def->get_texture();
-  if (texture.id == 0) return;
 
   float width = def->get_width() * scale;
   float height = def->get_height() * scale;
@@ -263,6 +264,26 @@ void draw_tile_tinted(
       color
     );
   }
+}
+
+void mtx_erase_tile_prev_from_origin(
+  const TileDef *def,
+  int x, int y,
+  float scale = 20.0f
+) noexcept {
+  if (def == nullptr) return;
+
+  auto offset = def->get_head_offset();
+
+  DrawRectangleRec(
+    Rectangle {
+      (x - offset.x) * scale,
+      (y - offset.y) * scale,
+      scale,
+      scale
+    },
+    WHITE
+  );
 }
 
 };

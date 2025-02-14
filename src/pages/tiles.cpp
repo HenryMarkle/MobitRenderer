@@ -379,6 +379,38 @@ void Tile_Page::process() {
     }
   }
 
+  if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
+    if (_edit_mode == EDIT_MODE_MATERIAL) {
+      if (_selected_material_index == 0) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_material_index = ctx->_materialdex->sorted_materials()[_selected_material_category_index].size() - 1;
+        }
+      } else _selected_material_index--;
+    } else if (_edit_mode == EDIT_MODE_TILE) {
+      if (_selected_tile_index == 0) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_tile_index = ctx->_tiledex->sorted_tiles()[_selected_tile_category_index].size() - 1;
+        }
+      } else _selected_tile_index--;
+    }
+  } else if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
+    if (_edit_mode == EDIT_MODE_MATERIAL) {
+      if (
+        _selected_material_index == ctx->_materialdex->sorted_materials()[_selected_material_category_index].size() - 1
+      ) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_material_index = 0;
+        }
+      } else _selected_material_index++;
+    } else if (_edit_mode == EDIT_MODE_TILE) {
+      if (_selected_tile_index == ctx->_tiledex->sorted_tiles()[_selected_tile_category_index].size() - 1) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_tile_index = 0;
+        }
+      } else _selected_tile_index++;
+    }
+  }
+
   auto *level = ctx->get_selected_level();
 
   if (level != nullptr) {
@@ -485,8 +517,6 @@ void Tile_Page::draw() noexcept {
       ctx->_shaders,
       level->get_const_geo_matrix(),
       level->get_const_tile_matrix(),
-      ctx->_tiledex,
-      ctx->_materialdex,
       0,
       20
     );
@@ -506,15 +536,13 @@ void Tile_Page::draw() noexcept {
       ctx->_shaders,
       level->get_const_geo_matrix(),
       level->get_const_tile_matrix(),
-      ctx->_tiledex,
-      ctx->_materialdex,
       1,
       20
     );
 
     EndTextureMode();
 
-    _should_redraw_tile1 = false;
+    _should_redraw_tile2 = false;
     _should_redraw = true;
   }
 
@@ -527,15 +555,13 @@ void Tile_Page::draw() noexcept {
       ctx->_shaders,
       level->get_const_geo_matrix(),
       level->get_const_tile_matrix(),
-      ctx->_tiledex,
-      ctx->_materialdex,
       2,
       20
     );
 
     EndTextureMode();
 
-    _should_redraw_tile1 = false;
+    _should_redraw_tile3 = false;
     _should_redraw = true;
   }
 
@@ -571,7 +597,7 @@ void Tile_Page::draw() noexcept {
           SetShaderValueTexture(
             bkg_shader, 
             GetShaderLocation(bkg_shader, "texture0"), 
-            ctx->_textures->geo_layer3.get().texture
+            ctx->_textures->tile_layer3.get().texture
           );
 
           int alpha = 200;
@@ -613,7 +639,7 @@ void Tile_Page::draw() noexcept {
           SetShaderValueTexture(
             bkg_shader, 
             GetShaderLocation(bkg_shader, "texture0"), 
-            ctx->_textures->geo_layer2.get().texture
+            ctx->_textures->tile_layer2.get().texture
           );
 
           int alpha = 200;
@@ -655,7 +681,7 @@ void Tile_Page::draw() noexcept {
           SetShaderValueTexture(
             bkg_shader, 
             GetShaderLocation(bkg_shader, "texture0"), 
-            ctx->_textures->geo_layer1.get().texture
+            ctx->_textures->tile_layer1.get().texture
           );
 
           int alpha = 230;
@@ -699,7 +725,7 @@ void Tile_Page::draw() noexcept {
           SetShaderValueTexture(
             color_shader, 
             GetShaderLocation(color_shader, "texture0"), 
-            ctx->_textures->geo_layer3.get().texture
+            ctx->_textures->tile_layer3.get().texture
           );
 
           DrawTexture(
@@ -737,7 +763,7 @@ void Tile_Page::draw() noexcept {
           SetShaderValueTexture(
             color_shader, 
             GetShaderLocation(color_shader, "texture0"), 
-            ctx->_textures->geo_layer2.get().texture
+            ctx->_textures->tile_layer2.get().texture
           );
 
           DrawTexture(
@@ -775,7 +801,7 @@ void Tile_Page::draw() noexcept {
           SetShaderValueTexture(
             color_shader, 
             GetShaderLocation(color_shader, "texture0"), 
-            ctx->_textures->geo_layer1.get().texture
+            ctx->_textures->tile_layer1.get().texture
           );
 
           DrawTexture(
@@ -1074,8 +1100,6 @@ void Tile_Page::windows() noexcept {
   }
   
   ImGui::End();
-
- 
 
   // Tile texture window
 

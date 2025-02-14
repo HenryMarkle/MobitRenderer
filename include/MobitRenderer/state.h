@@ -69,6 +69,7 @@ class shaders {
 private:
   std::filesystem::path _shaders_dir;
 
+  Shader _ink;
   Shader _vflip;
   Shader _apply_alpha;
   Shader _apply_alpha_vflip;
@@ -96,6 +97,7 @@ public:
 
   inline bool is_loaded() const noexcept { return loaded; }
 
+  inline const Shader &ink() const noexcept { return _ink; }
   inline const Shader &vflip() const noexcept { return _vflip; }
   inline const Shader &apply_alpha() const noexcept { return _apply_alpha; }
   inline const Shader &apply_alpha_vflip() const noexcept { return _apply_alpha_vflip; }
