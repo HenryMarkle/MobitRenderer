@@ -86,11 +86,11 @@ While the program is technically an editor, it is by no means meant to be a repl
 
 The project has varying degrees of user-fault toleration, while I'm doing my best to keep deserialization reasonable, if the program fails to parse your `Init` or project files, it is your fault:
 
-- Every Init.txt file must begin with categories.
+- Every Init.txt file must begin with a category.
 - Duplicate definitions are ignored.
 - Props that conflict with tiles are ignores.
 
-- Project files MUST include all lines, including but not limited to: geometry, tiles, effects, cameras, water, props. I know that the officail and community editors sometimes leave out some parts, but that won't be accepted.
+- Project files MUST include all lines, including but not limited to: geometry, tiles, effects, cameras, water, props. I know that the officail and community editors sometimes leave out some parts, but that won't be accepted here.
 
 ### Parity with the official (and community) editors
 
