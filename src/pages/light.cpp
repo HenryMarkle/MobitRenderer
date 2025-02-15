@@ -50,6 +50,8 @@ void Light_Page::on_page_selected() noexcept {
 void Light_Page::process() {
     if (ctx == nullptr) return;
 
+    _update_arrows_mtx_camera_pos();
+
     auto wheel = GetMouseWheelMove();
     auto &camera = ctx->get_camera();
     auto mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
@@ -233,8 +235,6 @@ void Light_Page::draw() noexcept {
           ctx->_shaders,
           level->get_const_geo_matrix(),
           level->get_const_tile_matrix(),
-          ctx->_tiledex,
-          ctx->_materialdex,
           0,
           20
         );
@@ -251,8 +251,6 @@ void Light_Page::draw() noexcept {
           ctx->_shaders,
           level->get_const_geo_matrix(),
           level->get_const_tile_matrix(),
-          ctx->_tiledex,
-          ctx->_materialdex,
           1,
           20
         );
@@ -269,8 +267,6 @@ void Light_Page::draw() noexcept {
           ctx->_shaders,
           level->get_const_geo_matrix(),
           level->get_const_tile_matrix(),
-          ctx->_tiledex,
-          ctx->_materialdex,
           2,
           20
         );

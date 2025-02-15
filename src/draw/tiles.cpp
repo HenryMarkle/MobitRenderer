@@ -269,7 +269,7 @@ void draw_tile_tinted(
 void mtx_erase_tile_prev_from_origin(
   const TileDef *def,
   int x, int y,
-  float scale = 20.0f
+  float scale
 ) noexcept {
   if (def == nullptr) return;
 

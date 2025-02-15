@@ -53,6 +53,7 @@ bool _is_mouse_in_mtx_bounds;
 mr::ivec2 _mtx_mouse_pos, _mtx_mouse_prev_pos;
 
 void _update_mtx_mouse_pos() noexcept;
+void _update_arrows_mtx_camera_pos() noexcept;
 
 LevelPage(context*);
 
@@ -268,6 +269,17 @@ bool _hovering_on_window;
 bool _is_dragging_camera, _is_hovering_camera;
 size_t _dragged_camera_index, _hovered_camera_index;
 LevelCamera *_hovered_camera, *_dragged_camera;
+
+bool _is_hovering_point;
+int _hovered_point_index;
+size_t _hovered_camera_point_index;
+
+bool _is_dragging_point;
+
+/// @brief 0 - top left; 1 - top right; 2 - bottom right; 3 - bottom left.
+int _dragged_point_index;
+
+size_t _dragged_camera_point_index;
 
 void _draw_camera_sprite(
   const LevelCamera *level_camera,

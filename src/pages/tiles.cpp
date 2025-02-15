@@ -230,6 +230,7 @@ void Tile_Page::process() {
   auto wheel = GetMouseWheelMove();
 
   _update_mtx_mouse_pos();
+  _update_arrows_mtx_camera_pos();
 
   if (!_hovering_on_window) {
     if (wheel != 0) {
@@ -379,7 +380,7 @@ void Tile_Page::process() {
     }
   }
 
-  if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
+  if (IsKeyPressed(KEY_W)) {
     if (_edit_mode == EDIT_MODE_MATERIAL) {
       if (_selected_material_index == 0) {
         if (ctx->get_config()->list_wrap) {
@@ -393,7 +394,7 @@ void Tile_Page::process() {
         }
       } else _selected_tile_index--;
     }
-  } else if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
+  } else if (IsKeyPressed(KEY_S)) {
     if (_edit_mode == EDIT_MODE_MATERIAL) {
       if (
         _selected_material_index == ctx->_materialdex->sorted_materials()[_selected_material_category_index].size() - 1
@@ -408,6 +409,52 @@ void Tile_Page::process() {
           _selected_tile_index = 0;
         }
       } else _selected_tile_index++;
+    }
+  }
+
+  if (IsKeyPressed(KEY_A)) {
+    if (_edit_mode == EDIT_MODE_TILE) {
+      if (_selected_tile_category_index == 0) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_tile_category_index = ctx->_tiledex->sorted_tiles().size() - 1;
+          _selected_material_index = 0;
+        }
+      } else {
+        _selected_tile_category_index--;
+        _selected_material_index = 0;
+      }
+    } else if (_edit_mode == EDIT_MODE_MATERIAL) {
+      if (_selected_material_category_index == 0) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_material_category_index = ctx->_materialdex->sorted_materials().size() - 1;
+          _selected_material_index = 0;
+        }
+      } else {
+        _selected_material_category_index--;
+        _selected_material_index = 0;
+      }
+    }
+  } else if (IsKeyPressed(KEY_D)) { 
+    if (_edit_mode == EDIT_MODE_TILE) {
+      if (_selected_tile_category_index == ctx->_tiledex->sorted_tiles().size() - 1) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_tile_category_index = 0;
+          _selected_tile_index = 0;
+        }
+      } else {
+        _selected_tile_category_index++;
+        _selected_tile_index = 0;
+      }
+    } else if (_edit_mode == EDIT_MODE_MATERIAL) {
+      if (_selected_material_category_index == ctx->_materialdex->sorted_materials().size() - 1) {
+        if (ctx->get_config()->list_wrap) {
+          _selected_material_category_index = 0;
+          _selected_material_index = 0;
+        }
+      } else {
+        _selected_material_category_index++;
+        _selected_material_index = 0;
+      }
     }
   }
 

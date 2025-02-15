@@ -102,6 +102,7 @@ void Camera_Page::_draw_camera_sprite(
 
 void Camera_Page::process() {
   _update_mtx_mouse_pos();
+  _update_arrows_mtx_camera_pos();
 
   auto wheel = GetMouseWheelMove();
   auto &camera = ctx->get_camera();
@@ -129,6 +130,10 @@ void Camera_Page::process() {
     _hovered_camera_index = 0;
     _hovered_camera = nullptr;
 
+    _is_hovering_point = false;
+    _hovered_point_index = 0;
+    _hovered_camera_point_index = 0;
+
     auto *level = ctx->get_selected_level();
     if (level != nullptr) {
       for (size_t c = 0; c < level->cameras.size(); c++) {
@@ -139,15 +144,41 @@ void Camera_Page::process() {
           _hovered_camera = &cam;
           _hovered_camera_index = c;
         }
+
+        if (CheckCollisionPointCircle(mouse_pos, cam.get_top_left_point(), 18)) {
+          _is_hovering_point = true;
+          _hovered_point_index = 1;
+          _hovered_camera_point_index = c;
+        }
+
+        if (CheckCollisionPointCircle(mouse_pos, cam.get_top_right_point(), 18)) {
+          _is_hovering_point = true;
+          _hovered_point_index = 2;
+          _hovered_camera_point_index = c;
+        }
+
+        if (CheckCollisionPointCircle(mouse_pos, cam.get_bottom_right_point(), 18)) {
+          _is_hovering_point = true;
+          _hovered_point_index = 3;
+          _hovered_camera_point_index = c;
+        }
+
+        if (CheckCollisionPointCircle(mouse_pos, cam.get_bottom_left_point(), 18)) {
+          _is_hovering_point = true;
+          _hovered_point_index = 4;
+          _hovered_camera_point_index = c;
+        }
       }
 
       if (_is_dragging_camera) {
-        {
-          auto delta = GetMouseDelta() / camera.zoom;
-          auto new_pos = _dragged_camera->get_position();
+        // {
+        //   auto delta = GetMouseDelta() / camera.zoom;
+        //   auto new_pos = _dragged_camera->get_position();
   
-          _dragged_camera->set_position(new_pos + delta);
-        }
+        //   _dragged_camera->set_position(mouse_pos);
+        // }
+
+        _dragged_camera->set_position(mouse_pos - (Vector2{LevelCamera::pixel_width, LevelCamera::pixel_height})/2.0f);
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && _is_mouse_in_mtx_bounds) {
           _is_dragging_camera = false;
@@ -159,17 +190,54 @@ void Camera_Page::process() {
           _dragged_camera_index = 0;
           _dragged_camera = nullptr;
         }
-      } else {
+      } 
+      else if (_is_dragging_point) {
+        
+        switch (_dragged_point_index) {
+
+          case 1:
+          ctx->get_selected_level()->cameras[_dragged_camera_point_index].set_top_left_point(mouse_pos);
+          break;
+
+          case 2:
+          ctx->get_selected_level()->cameras[_dragged_camera_point_index].set_top_right_point(mouse_pos);
+          break;
+
+          case 3:
+          ctx->get_selected_level()->cameras[_dragged_camera_point_index].set_bottom_right_point(mouse_pos);
+          break;
+
+          case 4:
+          ctx->get_selected_level()->cameras[_dragged_camera_point_index].set_bottom_left_point(mouse_pos);
+          break;
+        }
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+          _is_dragging_point = false;
+          _dragged_point_index = 0;
+          _dragged_camera_point_index = 0;
+        }
+      }
+      else {
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
           level->cameras.push_back(LevelCamera(mouse_pos - Vector2{LevelCamera::pixel_width, LevelCamera::pixel_height}/2.0f));
           _is_dragging_camera = true;
           _dragged_camera_index = level->cameras.size() - 1;
           _dragged_camera = &level->cameras[_dragged_camera_index];
-        } else if (_is_hovering_camera) {
-          if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {            
-            _is_dragging_camera = true;
-            _dragged_camera_index = _hovered_camera_index;
-            _dragged_camera = _hovered_camera;
+        } else {
+          if (_is_hovering_point) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+              _is_dragging_point = true;
+              _dragged_point_index = _hovered_point_index;
+              _dragged_camera_point_index = _hovered_camera_point_index;
+            }
+          }
+          else if (_is_hovering_camera) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {            
+              _is_dragging_camera = true;
+              _dragged_camera_index = _hovered_camera_index;
+              _dragged_camera = _hovered_camera;
+            }
           }
         }
       }
@@ -299,7 +367,7 @@ void Camera_Page::draw() noexcept {
     }
 
     if (_is_dragging_camera) {
-      _draw_camera_sprite(_dragged_camera, mouse_pos, shader, _dragged_camera_index);
+      _draw_camera_sprite(_dragged_camera, mouse_pos - (Vector2{ LevelCamera::pixel_width, LevelCamera::pixel_height })/2.0f, shader, _dragged_camera_index + 1);
     }
 
     EndMode2D();
@@ -337,15 +405,86 @@ void Camera_Page::f3() const noexcept {
   f3->print("Is Dragging Camera ");
   f3->print(_is_dragging_camera, true);
 
-  f3->print("Dragged ");
+  f3->print("Dragged Camera ");
   f3->print(_dragged_camera, true);
 
-  f3->print("Dragged Index ");
+  f3->print("Dragged Camera Index ");
   f3->print(_dragged_camera_index, true);
 
-  f3->print("Dragged Pos");
+  f3->print("Dragged Camera Pos");
   if (_dragged_camera != nullptr) f3->print(_dragged_camera->get_position(), true);
   else f3->print("NULL", MAGENTA, true);
+
+  f3->newline();
+
+  f3->print("Is Hovering Point ");
+  f3->print(_is_hovering_point, true);
+
+  f3->print("Hovered Point Camera Index ");
+  f3->print(_hovered_camera_point_index, true);
+  
+  f3->print("Hovered Point ");
+  switch (_hovered_point_index) {
+    case 1: f3->print("Top Left", MAGENTA, true); break;
+    case 2: f3->print("Top Right", MAGENTA, true); break;
+    case 3: f3->print("Bottom Right", MAGENTA, true); break;
+    case 4: f3->print("Bottom Left", MAGENTA, true); break;
+    default: f3->print("Unknown", MAGENTA, true); break;
+  }
+
+  f3->print("Hovered Point Radius");
+  switch (_hovered_point_index) {
+    case 1: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_top_left_radius(), true); break;
+    case 2: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_top_right_radius(), true); break;
+    case 3: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_bottom_right_radius(), true); break;
+    case 4: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_bottom_left_radius(), true); break;
+    default: f3->print("Unknown", MAGENTA, true); break;
+  }
+
+  f3->print("Hovered Point Angle");
+  switch (_hovered_point_index) {
+    case 1: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_top_left_angle(), true); break;
+    case 2: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_top_right_angle(), true); break;
+    case 3: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_bottom_right_angle(), true); break;
+    case 4: f3->print(ctx->get_selected_level()->cameras[_hovered_camera_point_index].get_bottom_left_angle(), true); break;
+    default: f3->print("Unknown", MAGENTA, true); break;
+  }
+
+  f3->newline();
+
+  f3->print("Is Dragged Point ");
+  f3->print(_is_dragging_point, true);
+
+  f3->print("Dragged Point Camera Index ");
+  f3->print(_dragged_camera_point_index, true);
+  
+  f3->print("Dragged Point ");
+  switch (_dragged_point_index) {
+    case 1: f3->print("Top Left", MAGENTA, true); break;
+    case 2: f3->print("Top Right", MAGENTA, true); break;
+    case 3: f3->print("Bottom Right", MAGENTA, true); break;
+    case 4: f3->print("Bottom Left", MAGENTA, true); break;
+    default: f3->print("Unknown", MAGENTA, true); break;
+  }
+
+  
+  f3->print("Dragged Point Radius");
+  switch (_dragged_point_index) {
+    case 1: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_top_left_radius(), true); break;
+    case 2: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_top_right_radius(), true); break;
+    case 3: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_bottom_right_radius(), true); break;
+    case 4: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_bottom_left_radius(), true); break;
+    default: f3->print("Unknown", MAGENTA, true); break;
+  }
+
+  f3->print("Dragged Point Angle");
+  switch (_dragged_point_index) {
+    case 1: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_top_left_angle(), true); break;
+    case 2: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_top_right_angle(), true); break;
+    case 3: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_bottom_right_angle(), true); break;
+    case 4: f3->print(ctx->get_selected_level()->cameras[_dragged_camera_point_index].get_bottom_left_angle(), true); break;
+    default: f3->print("Unknown", MAGENTA, true); break;
+  }
 }
 
 void Camera_Page::on_level_loaded() noexcept {
@@ -408,7 +547,15 @@ Camera_Page::Camera_Page(context *ctx)
     _hovered_camera_index(0),
 
     _hovered_camera(nullptr),
-    _dragged_camera(nullptr)
+    _dragged_camera(nullptr),
+
+    _is_hovering_point(false),
+    _hovered_point_index(0),
+    _hovered_camera_point_index(0),
+
+    _is_dragging_point(false),
+    _dragged_point_index(0),
+    _dragged_camera_point_index(0)
 {}
 
 Camera_Page::~Camera_Page() {}

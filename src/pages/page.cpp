@@ -56,6 +56,36 @@ void LevelPage::_update_mtx_mouse_pos() noexcept {
     );
 }
 
+void LevelPage::_update_arrows_mtx_camera_pos() noexcept {
+    if (ctx == nullptr) return;
+
+    auto *level = ctx->get_selected_level();
+    if (level == nullptr) return;
+
+    auto &camera = ctx->get_camera();
+    
+    int speed = 1 + 
+        (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) * 5 + 
+        (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) * 5;
+
+    bool left = IsKeyPressed(KEY_LEFT);
+    bool up = IsKeyPressed(KEY_UP);
+    bool right = IsKeyPressed(KEY_RIGHT);
+    bool down = IsKeyPressed(KEY_DOWN);
+
+    if (left) camera.target.x -= 20 * speed;
+    if (up) camera.target.y -= 20 * speed;
+    if (right) camera.target.x += 20 * speed;
+    if (down) camera.target.y += 20 * speed;
+
+    if (left || up || right || down) {
+        if (camera.target.x < - 60) camera.target.x = -60;
+        if (camera.target.y < - 60) camera.target.y = -60;
+        if (camera.target.x > level->get_pixel_width()) camera.target.x = level->get_pixel_width(); 
+        if (camera.target.y > level->get_pixel_height()) camera.target.y = level->get_pixel_height(); 
+    }
+}
+
 void LevelPage::order_level_redraw() noexcept {}
 
 void LevelPage::on_level_selected() noexcept {}

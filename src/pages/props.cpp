@@ -33,6 +33,8 @@ void Props_Page::resize_indices() noexcept {
 void Props_Page::process() noexcept {
   if (ctx == nullptr) return;
 
+  _update_arrows_mtx_camera_pos();
+
   auto wheel = GetMouseWheelMove();
 
   if (!_hovering_on_window) {

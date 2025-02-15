@@ -111,6 +111,47 @@ public:
   inline void set_bottom_right_radius(float radius) noexcept { bottom_right_radius = radius; _calculate_br(); _calculate_rects(); }
   inline void set_bottom_left_radius(float radius) noexcept { bottom_left_radius = radius; _calculate_bl(); _calculate_rects(); }
 
+  inline void set_top_left_point(Vector2 point, int radius_scale = 100) noexcept {
+    top_left_radius = Vector2Distance(point, _tl_origin) / radius_scale;
+    top_left_angle = bottom_right_angle = Vector2Angle(
+      Vector2{_tl_origin.x, _tl_origin.y - 1} - _tl_origin,
+      point - _tl_origin
+    ) * 180.0f / PI;
+
+    _calculate_tl(); 
+    _calculate_rects();
+  }
+  inline void set_top_right_point(Vector2 point, int radius_scale = 100) noexcept {
+    top_right_radius = Vector2Distance(point, _tr_origin) / radius_scale;
+    top_right_angle = bottom_right_angle = Vector2Angle(
+      Vector2{_tr_origin.x, _tr_origin.y - 1} - _tr_origin,
+      point - _tr_origin
+    ) * 180.0f / PI;
+
+    _calculate_tr(); 
+    _calculate_rects();
+  }
+  inline void set_bottom_right_point(Vector2 point, int radius_scale = 100) noexcept {
+    bottom_right_radius = Vector2Distance(point, _br_origin) / radius_scale;
+    bottom_right_angle = Vector2Angle(
+      Vector2{_br_origin.x, _br_origin.y - 1} - _br_origin,
+      point - _br_origin
+    ) * 180.0f / PI;
+
+    _calculate_br(); 
+    _calculate_rects();
+  }
+  inline void set_bottom_left_point(Vector2 point, int radius_scale = 100) noexcept {
+    bottom_left_radius = Vector2Distance(point, _bl_origin) / radius_scale;
+    bottom_left_angle = Vector2Angle(
+      Vector2{_bl_origin.x, _bl_origin.y - 1} - _bl_origin, 
+      point - _bl_origin
+    ) * 180.0f / PI;
+
+    _calculate_bl(); 
+    _calculate_rects();
+  }
+
   inline const Vector2 &get_top_left_origin() const noexcept { return _tl_origin; }
   inline const Vector2 &get_top_right_origin() const noexcept { return _tr_origin; }
   inline const Vector2 &get_bottom_right_origin() const noexcept { return _br_origin; }

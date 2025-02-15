@@ -1,7 +1,3 @@
-#if defined(_WIN32) || defined(_WIN64)
-  #define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <memory>
 #include <cstdint>
 
@@ -90,6 +86,7 @@ void Geo_Page::on_mtx_pos_changed() noexcept {
 
 void Geo_Page::process() {
   _update_mtx_mouse_pos();
+  _update_arrows_mtx_camera_pos();
 
   auto wheel = GetMouseWheelMove();
   auto &camera = ctx->get_camera();

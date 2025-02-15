@@ -20,7 +20,7 @@ void Settings_Page::windows() noexcept {
         ImGuiWindowFlags_NoTitleBar)
     ) {
         ImGui::SetWindowPos({0, 18});
-        ImGui::SetWindowSize(ImVec2{GetScreenWidth(), GetScreenHeight() - 18.0f});
+        ImGui::SetWindowSize(ImVec2{static_cast<float>(GetScreenWidth()), GetScreenHeight() - 18.0f});
 
         auto config = ctx->get_config();
 
