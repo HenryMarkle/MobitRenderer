@@ -105,7 +105,7 @@ jobs:
           name: "MobitRenderer v${{ env.VERSION }}"
           body: "${{ env.CHANGELOG }}"
           files: |
-            MobitRenderer-${{ env.VERSION }}-windows.zip
-            MobitRenderer-${{ env.VERSION }}-linux.tar.gz
+            MobitRenderer-${{ env.VERSION }}-windows-x64.zip
+            MobitRenderer-${{ env.VERSION }}-linux-x64.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
