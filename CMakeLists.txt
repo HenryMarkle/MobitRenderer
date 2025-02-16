@@ -6,7 +6,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
-if(NOT(WIN32))
+# raylib
+if(WIN32)
+  include_directories(libs/raylib_mingw/include)
+  link_directories(libs/raylib_mingw/lib)
+else()
   add_subdirectory(libs/raylib)
 endif()
 add_subdirectory(libs/spdlog)
@@ -21,13 +25,9 @@ target_include_directories(imgui PUBLIC libs/imgui libs/imgui/backends)
 file(GLOB RLIMGUI_SOURCES libs/rlimgui/*.cpp)
 add_library(rlimgui STATIC ${RLIMGUI_SOURCES})
 target_include_directories(rlimgui PUBLIC libs/rlimgui)
-target_link_libraries(rlimgui PRIVATE imgui)
+target_link_libraries(rlimgui PRIVATE raylib imgui)
+#add_dependencies(rlimgui raylib imgui)
 
-# raylib
-if (WIN32)
-  include_directories(libs/raylib_mingw/include)
-  link_directories(libs/raylib_mingw/lib)
-endif()
 
 # Main files
 include_directories(include)                              # headers
@@ -43,19 +43,26 @@ if(WIN32)
 file(GLOB PLATFORM_IMPL_SOURCES src/platform/windows/*.cpp)
 elseif(LINUX)
 file(GLOB PLATFORM_IMPL_SOURCES src/platform/linux/*.cpp)
-else(APPLE)
+elseif(APPLE)
 endif()
 
 add_executable(
-  MobitRenderer 
+  MobitRenderer
   ${PLATFORM_IMPL_SOURCES}
-  ${MAIN_SOURCES} 
+  ${MAIN_SOURCES}
   ${MAIN_DRAW_SOURCES}
   ${MAIN_SDRAW_SOURCES}
   ${MAIN_PAGE_SOURCES}
   ${MAIN_SERDE_SOURCES}
   ${MAIN_RENDERER_SOURCES}
 )
+
+#target_include_directories(
+#  MobitRenderer
+#  PRIVATE
+#  libs/imgui
+#  libs/rlimgui
+#)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   # Copy assets
@@ -97,7 +104,7 @@ else()
   target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=0)
 endif()
 
-if (FEATURE_DATAPACKS)
+if(FEATURE_DATAPACKS)
   target_compile_definitions(MobitRenderer PRIVATE FEATURE_DATAPACKS=1)
 else()
   target_compile_definitions(MobitRenderer PRIVATE FEATURE_DATAPACKS=0)
@@ -109,7 +116,11 @@ else()
   target_compile_definitions(MobitRenderer PRIVATE FEATURE_PALETTES=0)
 endif()
 
-target_compile_definitions(MobitRenderer PRIVATE BUILD_TYPE="${CMAKE_BUILD_TYPE}")
+target_compile_definitions(
+  MobitRenderer
+  PRIVATE
+  BUILD_TYPE="${CMAKE_BUILD_TYPE}"
+)
 
 # Define version
 file(READ "${CMAKE_SOURCE_DIR}/version.txt" VERSION_CONTENT)
@@ -126,9 +137,20 @@ target_compile_definitions(MobitRenderer PRIVATE APP_NAME="Mobit Renderer")
 # )
 
 # Copy imgui.ini
-file(COPY ${CMAKE_SOURCE_DIR}/imgui.ini DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+file(
+  COPY
+  ${CMAKE_SOURCE_DIR}/imgui.ini
+  DESTINATION
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+)
+
 # Copy config.toml
-file(COPY ${CMAKE_SOURCE_DIR}/config.toml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+file(
+  COPY
+  ${CMAKE_SOURCE_DIR}/config.toml
+  DESTINATION
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+)
 
 # Embed changelog
 set(CHLG_INPUT_FILE "${CMAKE_SOURCE_DIR}/changelog.txt")
@@ -154,16 +176,18 @@ target_include_directories(MobitRenderer PRIVATE "${CMAKE_BINARY_DIR}")
 target_include_directories(MobitRenderer PRIVATE libs/tomlplusplus/include)
 
 if(WIN32)
-  target_link_libraries(MobitRenderer PRIVATE ${CMAKE_SOURCE_DIR}/libs/raylib_mingw/lib/libraylib.a)
+  target_link_libraries(
+    MobitRenderer
+    PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/raylib_mingw/lib/libraylib.a
+    gdi32
+    winmm
+  )
 else()
   target_link_libraries(MobitRenderer PRIVATE raylib)
 endif()
 
 target_link_libraries(MobitRenderer PRIVATE MobitParser imgui rlimgui spdlog)
-
-if(WIN32)
-  target_link_libraries(MobitRenderer PRIVATE gdi32 winmm)
-endif()
 
 include(CTest)
 enable_testing()

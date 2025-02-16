@@ -11,4 +11,4 @@ void Effects_Page::on_page_selected() noexcept {}
 Effects_Page::Effects_Page(context *ctx) : LevelPage(ctx) {}
 Effects_Page::~Effects_Page() {}
 
-};
+}; // namespace mr::pages
