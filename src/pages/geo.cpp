@@ -1,6 +1,7 @@
 #include <memory>
 #include <cstdint>
 #include <vector>
+#include <string>
 
 #ifdef IS_DEBUG_BUILD
 #include <iostream>
@@ -810,15 +811,28 @@ void Geo_Page::draw() noexcept {
 
   if (ctx->get_config()->geometry.ruler.visible) {
     const auto *level = ctx->get_selected_level();
-    Color color = WHITE;
-    color.a = ctx->get_config()->geometry.ruler.opacity;
 
     mr::draw::draw_ruler(
       _mtx_mouse_pos.x, 
       _mtx_mouse_pos.y, 
       level->get_width(), 
       level->get_height(), 
-      color
+      Color {255, 255, 255, static_cast<uint8_t>(ctx->get_config()->geometry.ruler.opacity)}
+    );
+  }
+
+  if (ctx->get_config()->geometry.coordinates.visible) {
+    const auto *level = ctx->get_selected_level();
+
+    DrawTextEx(
+      ctx->_fonts->get_small_default_font(), 
+      _is_selecting 
+        ? TextFormat("w%d h%d", static_cast<int>(_selection_rect.width)/20, static_cast<int>(_selection_rect.height)/20) 
+        : TextFormat("x%d y%d", _mtx_mouse_pos.x, _mtx_mouse_pos.y),
+      Vector2 { (_mtx_mouse_pos.x + 1) * 20.0f, (_mtx_mouse_pos.y - 1) * 20.0f },
+      22,
+      0.03f,
+      Color {255, 255, 255, static_cast<uint8_t>(ctx->get_config()->geometry.coordinates.opacity)}
     );
   }
 
