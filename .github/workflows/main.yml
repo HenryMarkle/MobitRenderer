@@ -29,8 +29,8 @@ jobs:
 
       - name: Configure and Build (Windows)
         run: |
-          cmake -B build -G "MinGW Makefiles"
-          cmake --build build --config Release
+          cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DFEATURE_PALETTES -DFEATURE_DATAPACKS
+          cmake --build build
 
       - name: Package Windows Build
         run: |
@@ -59,7 +59,7 @@ jobs:
 
       - name: Configure and Build (Linux)
         run: |
-          cmake -B build
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DFEATURE_PALETTES -DFEATURE_DATAPACKS
           cmake --build build --config Release
 
       - name: Package Linux Build
