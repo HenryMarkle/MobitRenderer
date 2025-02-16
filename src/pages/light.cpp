@@ -530,8 +530,6 @@ void Light_Page::windows() noexcept {
             
             size_t counter = 0;
             for (auto &brush : ctx->_textures->light_editor.brushes()) {
-                std::string id("##");
-
                 auto available_width = ImGui::GetContentRegionAvail().x;
                 
                 auto cursor_pos = ImGui::GetCursorScreenPos();

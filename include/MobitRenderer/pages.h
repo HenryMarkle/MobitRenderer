@@ -6,9 +6,12 @@
 #include <thread>
 #include <vector>
 
+#include <raylib.h>
+
 #include <spdlog/logger.h>
 
 #include <MobitRenderer/default_array.h>
+#include <MobitRenderer/matrix.h>
 #include <MobitRenderer/imwin.h>
 #include <MobitRenderer/state.h>
 #include <MobitRenderer/level.h>
@@ -165,6 +168,30 @@ private:
   bool _is_selecting;
   Vector2 _selection_origin;
   Rectangle _selection_rect;
+
+  bool _erase_all, _erase_all_features;
+
+  uint8_t _geo_category_index, _geo_index;
+
+  bool _allowed() const noexcept;
+
+  void _place(
+    uint16_t x, 
+    uint16_t y, 
+    uint16_t z, 
+    uint16_t width = 1, 
+    uint16_t height = 1, 
+    uint16_t depth = 1
+  ) noexcept;
+
+  void _erase(
+    uint16_t x, 
+    uint16_t y, 
+    uint16_t z, 
+    uint16_t width = 1, 
+    uint16_t height = 1, 
+    uint16_t depth = 1
+  ) noexcept;
 
 public:
 

@@ -25,6 +25,14 @@ enum class GeoType : uint8_t {
   glass = 9
 };
 
+inline bool is_geo_type_slope(GeoType t) noexcept {
+  return 
+    t == GeoType::slope_ne ||
+    t == GeoType::slope_nw ||
+    t == GeoType::slope_es ||
+    t == GeoType::slope_sw;
+}
+
 enum class GeoFeature : uint16_t {
   none = 0,
   horizontal_pole = 1 << 0,
@@ -46,37 +54,37 @@ enum class GeoFeature : uint16_t {
 };
 
 inline GeoFeature operator|(GeoFeature lhs, GeoFeature rhs) {
-  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) |
-                                 static_cast<uint8_t>(rhs));
+  return static_cast<GeoFeature>(static_cast<uint16_t>(lhs) |
+                                 static_cast<uint16_t>(rhs));
 }
 
 inline GeoFeature operator|(GeoFeature lhs, uint16_t rhs) {
-  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) | rhs);
+  return static_cast<GeoFeature>(static_cast<uint16_t>(lhs) | rhs);
 }
 
 
 inline GeoFeature operator&(GeoFeature lhs, GeoFeature rhs) {
-  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) &
-                                 static_cast<uint8_t>(rhs));
+  return static_cast<GeoFeature>(static_cast<uint16_t>(lhs) &
+                                 static_cast<uint16_t>(rhs));
 }
 
 inline GeoFeature operator&(GeoFeature lhs, uint16_t rhs) {
-  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) & rhs);
+  return static_cast<GeoFeature>(static_cast<uint16_t>(lhs) & rhs);
 }
 
 
 inline GeoFeature operator^(GeoFeature lhs, GeoFeature rhs) {
-  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) ^
-                                 static_cast<uint8_t>(rhs));
+  return static_cast<GeoFeature>(static_cast<uint16_t>(lhs) ^
+                                 static_cast<uint16_t>(rhs));
 }
 
 inline GeoFeature operator^(GeoFeature lhs, uint16_t rhs) {
-  return static_cast<GeoFeature>(static_cast<uint8_t>(lhs) ^ rhs);
+  return static_cast<GeoFeature>(static_cast<uint16_t>(lhs) ^ rhs);
 }
 
 
 inline GeoFeature operator~(GeoFeature flag) {
-  return static_cast<GeoFeature>(~static_cast<uint8_t>(flag));
+  return static_cast<GeoFeature>(~static_cast<uint16_t>(flag));
 }
 
 inline const char *geo_type_cstr(GeoType g) noexcept {
@@ -99,16 +107,37 @@ struct GeoCell {
   GeoType type;
   GeoFeature features;
 
-  inline bool is_solid() {
-    return type == GeoType::solid || type == GeoType::glass;
-  }
-
   inline bool has_feature(GeoFeature feature) const { return (features & feature) == feature; }
   inline bool has_feature(uint16_t feature) const { return static_cast<uint16_t>(features & feature) == feature; }
   inline void switch_feature(GeoFeature feature) { features = features ^ feature; }
   inline void enable(GeoFeature feature) { features = features | feature; }
   inline void disable(GeoFeature feature) { features = features & ~feature; }
   inline void clear_features() { features = GeoFeature::none; }
+
+  inline bool is_solid() const noexcept { 
+    return 
+      type == GeoType::solid || 
+      type == GeoType::glass; 
+  }
+  inline bool is_air() const noexcept { 
+    return type == GeoType::air; 
+  }
+  inline bool is_slope() const noexcept { 
+    return 
+      type == GeoType::slope_es || 
+      type == GeoType::slope_ne ||
+      type == GeoType::slope_nw ||
+      type == GeoType::slope_sw;
+  }
+
+  inline bool operator==(GeoCell c) const noexcept { return type == c.type && features == c.features; }
+  inline bool operator!=(GeoCell c) const noexcept { return type != c.type || features != c.features; }
+  
+  inline bool operator[](GeoFeature f) const noexcept { return has_feature(f); }
+  inline bool operator[](uint16_t f) const noexcept { return has_feature(f); }
+
+  GeoCell() : type(GeoType::air), features(GeoFeature::none) {}
+  GeoCell(GeoType type, GeoFeature features = GeoFeature::none) : type(type), features(features) {}
 };
 
 //
@@ -131,34 +160,36 @@ struct TileCell {
   TileCell(std::string name, bool material = false);
 };
 
+typedef uint16_t matrix_t;
+
 template <typename T> class Matrix {
 private:
   std::vector<T>
       matrix; // Might change it to a shared pointer (shared_ptr<vector<T>>)
-  uint16_t width, height, depth;
+  matrix_t width, height, depth;
 
-  uint64_t index(uint16_t x, uint16_t y, uint16_t z) const;
+  uint64_t index(matrix_t x, matrix_t y, matrix_t z) const;
 
 public:
-  uint16_t get_width() const;
-  uint16_t get_height() const;
-  uint16_t get_depth() const;
+  matrix_t get_width() const;
+  matrix_t get_height() const;
+  matrix_t get_depth() const;
 
-  bool is_in_bounds(uint16_t x, uint16_t y, uint16_t z) const;
+  bool is_in_bounds(matrix_t x, matrix_t y, matrix_t z) const;
 
   // Crash if index is out of bounds and copies the cell.
-  T get_copy(uint16_t x, uint16_t y, uint16_t z) const;
+  T get_copy(matrix_t x, matrix_t y, matrix_t z) const;
 
   // Crash if index is out-of-bounds
-  T &get(uint16_t x, uint16_t y, uint16_t z);
-  const T &get_const(uint16_t x, uint16_t y, uint16_t z) const;
+  T &get(matrix_t x, matrix_t y, matrix_t z);
+  const T &get_const(matrix_t x, matrix_t y, matrix_t z) const;
 
   // Return nullptr if index is out-of-bounds
-  T *get_ptr(uint16_t x, uint16_t y, uint16_t z) noexcept;
-  const T *get_const_ptr(uint16_t x, uint16_t y, uint16_t z) const noexcept;
+  T *get_ptr(matrix_t x, matrix_t y, matrix_t z) noexcept;
+  const T *get_const_ptr(matrix_t x, matrix_t y, matrix_t z) const noexcept;
 
-  void set(uint16_t x, uint16_t y, uint16_t z, T element);
-  void set_noexcept(uint16_t x, uint16_t y, uint16_t z, T &&element) noexcept;
+  void set(matrix_t x, matrix_t y, matrix_t z, T element);
+  void set_noexcept(matrix_t x, matrix_t y, matrix_t z, T &&element) noexcept;
   
   void resize(int16_t left, int16_t top, int16_t right, int16_t bottom);
 
@@ -169,20 +200,20 @@ public:
   Matrix(Matrix<T> &&);
 
   Matrix(
-    uint16_t width, 
-    uint16_t height, 
-    uint16_t depth = 3
+    matrix_t width, 
+    matrix_t height, 
+    matrix_t depth = 3
   );
   ~Matrix();
 };
 
 template <typename T>
-uint64_t Matrix<T>::index(uint16_t x, uint16_t y, uint16_t z) const {
+uint64_t Matrix<T>::index(matrix_t x, matrix_t y, matrix_t z) const {
   return x + (y * width) + (z * width * height);
 }
 
 template <typename T>
-Matrix<T>::Matrix(uint16_t _width, uint16_t _height, uint16_t _depth) {
+Matrix<T>::Matrix(matrix_t _width, matrix_t _height, matrix_t _depth) {
   if (_width == 0 || _height == 0 || _depth == 0)
     throw std::invalid_argument("matrix dimensions cannot be zero");
 
@@ -229,19 +260,19 @@ template <typename T> Matrix<T> &Matrix<T>::operator=(Matrix<T> &&other) {
 
 template <typename T> Matrix<T>::~Matrix() {}
 
-template <typename T> uint16_t Matrix<T>::get_width() const { return width; }
+template <typename T> matrix_t Matrix<T>::get_width() const { return width; }
 
-template <typename T> uint16_t Matrix<T>::get_height() const { return height; }
+template <typename T> matrix_t Matrix<T>::get_height() const { return height; }
 
-template <typename T> uint16_t Matrix<T>::get_depth() const { return depth; }
+template <typename T> matrix_t Matrix<T>::get_depth() const { return depth; }
 
 template <typename T>
-bool Matrix<T>::is_in_bounds(uint16_t x, uint16_t y, uint16_t z) const {
+bool Matrix<T>::is_in_bounds(matrix_t x, matrix_t y, matrix_t z) const {
   return x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth;
 }
 
 template <typename T>
-T Matrix<T>::get_copy(uint16_t x, uint16_t y, uint16_t z) const {
+T Matrix<T>::get_copy(matrix_t x, matrix_t y, matrix_t z) const {
   if (!is_in_bounds(x, y, z))
     throw std::out_of_range("matrix index is out bounds");
 
@@ -249,7 +280,7 @@ T Matrix<T>::get_copy(uint16_t x, uint16_t y, uint16_t z) const {
 }
 
 template <typename T>
-T &Matrix<T>::get(uint16_t x, uint16_t y, uint16_t z) {
+T &Matrix<T>::get(matrix_t x, matrix_t y, matrix_t z) {
   if (!is_in_bounds(x, y, z))
     throw std::out_of_range("matrix index is out of bounds");
 
@@ -257,7 +288,7 @@ T &Matrix<T>::get(uint16_t x, uint16_t y, uint16_t z) {
 }
 
 template <typename T>
-const T &Matrix<T>::get_const(uint16_t x, uint16_t y, uint16_t z) const {
+const T &Matrix<T>::get_const(matrix_t x, matrix_t y, matrix_t z) const {
   if (!is_in_bounds(x, y, z))
     throw std::out_of_range("matrix index is out of bounds");
 
@@ -265,7 +296,7 @@ const T &Matrix<T>::get_const(uint16_t x, uint16_t y, uint16_t z) const {
 }
 
 template <typename T>
-T *Matrix<T>::get_ptr(uint16_t x, uint16_t y, uint16_t z) noexcept {
+T *Matrix<T>::get_ptr(matrix_t x, matrix_t y, matrix_t z) noexcept {
   if (!is_in_bounds(x, y, z))
     return nullptr;
 
@@ -273,8 +304,8 @@ T *Matrix<T>::get_ptr(uint16_t x, uint16_t y, uint16_t z) noexcept {
 }
 
 template <typename T>
-const T *Matrix<T>::get_const_ptr(uint16_t x, uint16_t y,
-                                  uint16_t z) const noexcept {
+const T *Matrix<T>::get_const_ptr(matrix_t x, matrix_t y,
+                                  matrix_t z) const noexcept {
   if (!is_in_bounds(x, y, z))
     return nullptr;
 
@@ -282,7 +313,7 @@ const T *Matrix<T>::get_const_ptr(uint16_t x, uint16_t y,
 }
 
 template <typename T>
-void Matrix<T>::set(uint16_t x, uint16_t y, uint16_t z, T element) {
+void Matrix<T>::set(matrix_t x, matrix_t y, matrix_t z, T element) {
   if (!is_in_bounds(x, y, z))
     throw std::out_of_range("matrix index is out of bounds");
 
@@ -290,7 +321,7 @@ void Matrix<T>::set(uint16_t x, uint16_t y, uint16_t z, T element) {
 }
 
 template <typename T>
-void Matrix<T>::set_noexcept(uint16_t x, uint16_t y, uint16_t z,
+void Matrix<T>::set_noexcept(matrix_t x, matrix_t y, matrix_t z,
                              T &&element) noexcept {
   if (!is_in_bounds(x, y, z))
     return;
@@ -307,8 +338,8 @@ void Matrix<T>::resize(int16_t left, int16_t top, int16_t right,
   if (-left == width || -right == width || -top == height || -bottom == height)
     return;
 
-  uint16_t new_width = width + left + right;
-  uint16_t new_height = height + top + bottom;
+  matrix_t new_width = width + left + right;
+  matrix_t new_height = height + top + bottom;
 
   std::vector<T> new_matrix{};
 
@@ -316,19 +347,19 @@ void Matrix<T>::resize(int16_t left, int16_t top, int16_t right,
 
   // Copy over
 
-  for (uint16_t x = 0; x < width; x++) {
-    uint16_t new_x = x + left;
+  for (matrix_t x = 0; x < width; x++) {
+    matrix_t new_x = x + left;
 
     if (new_x < 0 || new_x >= new_width)
       break;
 
-    for (uint16_t y = 0; y < height; y++) {
-      uint16_t new_y = y + top;
+    for (matrix_t y = 0; y < height; y++) {
+      matrix_t new_y = y + top;
 
       if (new_y < 0 || new_y >= new_height)
         break;
 
-      for (uint16_t z = 0; z < depth; z++) {
+      for (matrix_t z = 0; z < depth; z++) {
         new_matrix[index(new_x, new_y, z)] = matrix[index(x, y, z)];
       }
     }

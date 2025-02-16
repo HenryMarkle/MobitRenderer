@@ -1,3 +1,7 @@
+#ifdef IS_DEBUG_BUILD
+#include <iostream>
+#endif
+
 #include <raylib.h>
 
 #include <MobitRenderer/atlas.h>
@@ -36,9 +40,9 @@ void draw_geo_shape(
       auto ty = y + scale;
 
       DrawTriangle(
-        Vector2{ x ,  y },
-        Vector2{ tx,  y },
         Vector2{ x , ty },
+        Vector2{ tx,  y },
+        Vector2{ x ,  y },
         color
       );
     }
@@ -50,9 +54,9 @@ void draw_geo_shape(
       auto ty = y + scale;
 
       DrawTriangle(
+        Vector2{ x , ty },
         Vector2{ x ,  y },
         Vector2{ tx, ty },
-        Vector2{ x , ty },
         color
       );
     }
@@ -64,9 +68,9 @@ void draw_geo_shape(
       auto ty = y + scale;
 
       DrawTriangle(
-        Vector2{ tx,  y },
         Vector2{ tx, ty },
         Vector2{ x , ty },
+        Vector2{ tx,  y },
         color
       );
     }
@@ -78,9 +82,9 @@ void draw_geo_shape(
       auto ty = y + scale;
 
       DrawTriangle(
-        Vector2{ x ,  y },
-        Vector2{ tx, y },
         Vector2{ tx, ty },
+        Vector2{ x ,  y },
+        Vector2{ tx,  y },
         color
       );
     }
@@ -109,11 +113,15 @@ void draw_mtx_geo_type(
   } break;
 
   case GeoType::platform: {
-    DrawRectangleRec(Rectangle{x * scale,
-                               y * scale,
-                               scale,
-                               scale / 2.0f},
-                     color);
+    DrawRectangleRec(
+      Rectangle{
+        x * scale,
+        y * scale,
+        scale,
+        scale / 2.0f
+      },
+      color
+    );
   } break;
 
   case GeoType::slope_ne: {
@@ -123,8 +131,12 @@ void draw_mtx_geo_type(
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{tx, ty}, Vector2{tsx, tsy},
-                 Vector2{tx, tsy}, color);
+    DrawTriangle(
+      Vector2{tsx, tsy},
+      Vector2{tx,   ty}, 
+      Vector2{tx,  tsy}, 
+      color
+    );
   } break;
 
   case GeoType::slope_nw: {
@@ -134,8 +146,12 @@ void draw_mtx_geo_type(
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{tsx, ty}, Vector2{tsx, tsy},
-                 Vector2{tx, tsy}, color);
+    DrawTriangle(
+      Vector2{tsx,  ty}, 
+      Vector2{tsx, tsy},
+      Vector2{tx,  tsy},
+      color
+    );
   } break;
 
   case GeoType::slope_es: {
@@ -145,8 +161,12 @@ void draw_mtx_geo_type(
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{tx, ty}, Vector2{tsx, ty},
-                 Vector2{tx, tsy}, color);
+    DrawTriangle(
+      Vector2{tsx, ty},
+      Vector2{tx,  ty}, 
+      Vector2{tx, tsy}, 
+      color
+    );
   } break;
 
   case GeoType::slope_sw: {
@@ -156,8 +176,12 @@ void draw_mtx_geo_type(
     float tsx = tx + scale;
     float tsy = ty + scale;
 
-    DrawTriangle(Vector2{tx, ty}, Vector2{tsx, ty},
-                 Vector2{tsx, tsy}, color);
+    DrawTriangle(
+      Vector2{tsx,  ty},
+      Vector2{tx,   ty}, 
+      Vector2{tsx, tsy}, 
+      color
+    );
   } break;
 
   case GeoType::air: break;
@@ -281,133 +305,28 @@ void draw_mtx_geo_features(GeoCell cell, int x, int y, float scale,
     );
   }
 
-  Texture2D texture;
+  Texture2D const *texture = nullptr;
 
+  if (cell.has_feature(GeoFeature::bathive)) { texture = &atlas.bathive(); }
+  if (cell.has_feature(GeoFeature::forbid_fly_chains)) { texture = &atlas.forbid(); }
+  if (cell.has_feature(GeoFeature::worm_grass)) { texture = &atlas.wormgrass(); }
+  if (cell.has_feature(GeoFeature::place_rock)) { texture = &atlas.rock(); }
+  if (cell.has_feature(GeoFeature::place_spear)) { texture = &atlas.spear(); }
+  if (cell.has_feature(GeoFeature::waterfall)) { texture = &atlas.waterfall(); }
+  if (cell.has_feature(GeoFeature::room_entrance)) { texture = &atlas.passage(); }
+  if (cell.has_feature(GeoFeature::garbage_worm_hole)) { texture = &atlas.garbageworm(); }
+  if (cell.has_feature(GeoFeature::scavenger_hole)) { texture = &atlas.scav(); }
+  if (cell.has_feature(GeoFeature::dragon_den)) { texture = &atlas.den(); }
+  if (cell.has_feature(GeoFeature::wack_a_mole_hole)) { texture = &atlas.wack(); }
 
-
-  if (cell.has_feature(GeoFeature::bathive)) {
-    texture = atlas.bathive();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::forbid_fly_chains)) {
-    texture = atlas.forbid();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::worm_grass)) {
-    texture = atlas.wormgrass();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::place_rock)) {
-    texture = atlas.rock();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::place_spear)) {
-    texture = atlas.spear();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::waterfall)) {
-    texture = atlas.waterfall();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-
-  if (cell.has_feature(GeoFeature::room_entrance)) {
-    texture = atlas.passage();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::garbage_worm_hole)) {
-    texture = atlas.garbageworm();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::scavenger_hole)) {
-    texture = atlas.scav();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::dragon_den)) {
-    texture = atlas.den();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-  if (cell.has_feature(GeoFeature::wack_a_mole_hole)) {
-    texture = atlas.wack();
-    DrawTexturePro(
-      texture,
-      Rectangle{0, 0, (float)texture.width, (float)texture.height},
-      target,
-      {0, 0},
-      0,
-      color
-    );
-  }
-
+  if (texture != nullptr) DrawTexturePro(
+    *texture,
+    Rectangle{0, 0, static_cast<float>(texture->width), static_cast<float>(texture->height)},
+    target,
+    {0, 0},
+    0,
+    color
+  );
 }
 
 void draw_mtx_geo_poles(
@@ -518,6 +437,74 @@ void draw_geo_features_layer(
       auto cell1 = matrix.get_copy(x, y, 0);
 
       draw_mtx_geo_features(cell1, x, y, 20, BLACK, atlas);
+    }
+  }
+}
+
+void draw_geo_cracked(
+  Matrix<GeoCell> const &matrix, 
+  GE_Textures &atlas, 
+  uint8_t layer, 
+  Color color, 
+  float scale
+) {
+  static const uint8_t cleft   =  2;
+  static const uint8_t ctop    =  4;
+  static const uint8_t cright  =  8;
+  static const uint8_t cbottom = 16;
+
+  for (matrix_t x = 0; x < matrix.get_width(); x++) {
+    for (matrix_t y = 0; y < matrix.get_height(); y++) {
+      const auto &cell = matrix.get_const(x, y, layer);
+      
+      if (!cell.has_feature(GeoFeature::cracked_terrain)) continue;
+      if (cell.is_air()) continue;
+
+      const auto *left = matrix.get_const_ptr(x - 1, y, layer);
+      const auto *top = matrix.get_const_ptr(x, y - 1, layer);
+      const auto *right = matrix.get_const_ptr(x + 1, y, layer);
+      const auto *bottom = matrix.get_const_ptr(x, y + 1, layer);
+      
+      // 00000000 none
+      // 00000001 left
+      // 00000010 top
+      // 00000100 right
+      // 00001000 bottom
+      uint8_t conn = 0;
+
+      if (left != nullptr && left->is_air()) conn |= cleft;
+      if (top != nullptr && top->is_air()) conn |= ctop;
+      if (right != nullptr && right->is_air()) conn |= cright;
+      if (bottom != nullptr && bottom->is_air()) conn |= cbottom;
+
+      if (left != nullptr   && left->is_solid() && left->has_feature(GeoFeature::cracked_terrain))     conn |= cleft;
+      if (top != nullptr    && top->is_solid() && top->has_feature(GeoFeature::cracked_terrain))       conn |= ctop;
+      if (right != nullptr  && right->is_solid() && right->has_feature(GeoFeature::cracked_terrain))   conn |= cright;
+      if (bottom != nullptr && bottom->is_solid() && bottom->has_feature(GeoFeature::cracked_terrain)) conn |= cbottom;
+
+      auto iter = atlas.cracked_map().find(conn);
+      if (iter == atlas.cracked_map().end()) continue;
+
+      auto *texture = iter->second;
+
+      if (texture != nullptr) DrawTexturePro(
+        *texture,
+        Rectangle { 
+          0, 
+          0, 
+          static_cast<float>(texture->width), 
+          static_cast<float>(texture->height) 
+        },
+        Rectangle {
+          x * scale,
+          y * scale,
+          scale,
+          scale
+        },
+        Vector2 {0, 0},
+        0,
+        color
+      );
     }
   }
 }

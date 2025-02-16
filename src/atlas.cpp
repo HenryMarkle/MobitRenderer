@@ -43,6 +43,7 @@ void GE_Textures::reload() {
   _entry_r      = texture((textures_dir / "entryr.png").string().c_str());
 
   _crack      = texture((textures_dir /   "cracku.png").string().c_str());
+  _crack_c    = texture((textures_dir /   "crackc.png").string().c_str());
   _crack_t    = texture((textures_dir /   "crackt.png").string().c_str());
   _crack_b    = texture((textures_dir /   "crackb.png").string().c_str());
   _crack_l    = texture((textures_dir /   "crackl.png").string().c_str());
@@ -57,6 +58,44 @@ void GE_Textures::reload() {
   _crack_ltr  = texture((textures_dir / "crackltr.png").string().c_str());
   _crack_trb  = texture((textures_dir / "cracktrb.png").string().c_str());
   _crack_rbl  = texture((textures_dir / "crackrbl.png").string().c_str());
+
+  _ui_category_one = texture((textures_dir / "Interface" / "category 1.png").string().c_str());
+  _ui_category_two = texture((textures_dir / "Interface" / "category 2.png").string().c_str());
+  _ui_category_three = texture((textures_dir / "Interface" / "category 3.png").string().c_str());
+  _ui_category_four = texture((textures_dir / "Interface" / "category 4.png").string().c_str());
+  _ui_crack = texture((textures_dir / "Interface" / "crack.png").string().c_str());
+  _ui_path = texture((textures_dir / "Interface" / "path.png").string().c_str());
+  _ui_platform = texture((textures_dir / "Interface" / "platform.png").string().c_str());
+
+  {
+    _cracked_map.clear();
+  
+    static const uint8_t left   =  2;
+    static const uint8_t top    =  4;
+    static const uint8_t right  =  8;
+    static const uint8_t bottom = 16;
+
+    _cracked_map[0] = _crack.get_ptr();
+    _cracked_map[left] = _crack_l.get_ptr();
+    _cracked_map[top] = _crack_t.get_ptr();
+    _cracked_map[right] = _crack_r.get_ptr();
+    _cracked_map[bottom] = _crack_b.get_ptr();
+
+    _cracked_map[left | top] = _crack_tl.get_ptr();
+    _cracked_map[top | right] = _crack_tr.get_ptr();
+    _cracked_map[right | bottom] = _crack_br.get_ptr();
+    _cracked_map[bottom | left] = _crack_bl.get_ptr();
+
+    _cracked_map[top | bottom] = _crack_v.get_ptr();
+    _cracked_map[left | right] = _crack_h.get_ptr();
+
+    _cracked_map[left | top | right] = _crack_ltr.get_ptr();
+    _cracked_map[top | right | bottom] = _crack_trb.get_ptr();
+    _cracked_map[right | bottom | left] = _crack_rbl.get_ptr();
+    _cracked_map[bottom | left | top] = _crack_blt.get_ptr();
+
+    _cracked_map[left | top | right | bottom] = _crack_c.get_ptr();
+  }
 }
 
 

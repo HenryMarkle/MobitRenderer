@@ -29,7 +29,7 @@ void Camera_Page::_draw_camera_sprite(
     4,
     WHITE
   );
-  DrawRectangleRec(
+  if (level_camera != _dragged_camera) DrawRectangleRec(
     rect, 
     Color{0, 255, 0, 50}
   );
@@ -38,7 +38,6 @@ void Camera_Page::_draw_camera_sprite(
       rect, 
       Color{255, 255, 255, 30}
     );
-
   }
 
   BeginShaderMode(shader);
@@ -171,14 +170,12 @@ void Camera_Page::process() {
       }
 
       if (_is_dragging_camera) {
-        // {
-        //   auto delta = GetMouseDelta() / camera.zoom;
-        //   auto new_pos = _dragged_camera->get_position();
+        {
+          auto delta = GetMouseDelta() / camera.zoom;
+          auto new_pos = _dragged_camera->get_position();
   
-        //   _dragged_camera->set_position(mouse_pos);
-        // }
-
-        _dragged_camera->set_position(mouse_pos - (Vector2{LevelCamera::pixel_width, LevelCamera::pixel_height})/2.0f);
+          _dragged_camera->set_position(new_pos + delta);
+        }
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && _is_mouse_in_mtx_bounds) {
           _is_dragging_camera = false;

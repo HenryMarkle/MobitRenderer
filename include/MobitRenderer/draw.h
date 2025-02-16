@@ -371,6 +371,15 @@ void draw_geo_and_poles_layer(Matrix<GeoCell> const& matrix, uint8_t layer, Colo
 /// @param scale The size of each cell in pixels.
 void draw_geo_features_layer(Matrix<GeoCell> const &matrix, const GE_Textures &atlas, uint8_t layer, Color color, float scale = 20.0f);
 
+/// @brief Draws cracked terrain
+void draw_geo_cracked(
+  Matrix<GeoCell> const &matrix, 
+  GE_Textures &atlas, 
+  uint8_t layer,
+  Color color, 
+  float scale = 20.0f
+);
+
 void draw_geo_entrances(Matrix<GeoCell> const &matrix, GE_Textures &atlas, Color color, float scale = 20.0f);
 
 }; // namespace draw
