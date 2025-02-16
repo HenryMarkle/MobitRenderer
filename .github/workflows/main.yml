@@ -15,7 +15,7 @@ jobs:
 
       - name: Download and extract W64Devkit
         run: |
-          Invoke-WebRequest -Uri "https://github.com/skeeto/w64devkit/releases/download/v2.1.0/w64devkit-x64-2.1.0.exe" -OutFile "w64devkit.zip"
+          Invoke-WebRequest -Uri "https://github.com/skeeto/w64devkit/releases/latest/download/w64devkit.zip" -OutFile "w64devkit.zip"
           Expand-Archive -Path "w64devkit.zip" -DestinationPath "$env:RUNNER_TEMP\w64devkit"
           echo "$env:RUNNER_TEMP\w64devkit\w64devkit\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
