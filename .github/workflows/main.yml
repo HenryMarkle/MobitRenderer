@@ -1,10 +1,9 @@
-name: Build with CMake
+name: Build and Release
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
+    tags:
+      - "v*"  # Runs only on version tags like v1.0, v2.3.1
 
 jobs:
   build-windows:
@@ -13,19 +12,100 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download W64Devkit
-        run: curl.exe -L -o "$env:RUNNER_TEMP\w64devkit.exe" https://github.com/skeeto/w64devkit/releases/download/v2.1.0/w64devkit-x64-2.1.0.exe
+      - name: Read Version
+        id: get_version
+        run: echo "VERSION=$(Get-Content version.txt)" >> $env:GITHUB_ENV
+        shell: pwsh
 
-      - name: Extract W64Devkit
+      - name: Download and Extract w64devkit
         run: |
-          Start-Process -FilePath "$env:RUNNER_TEMP\w64devkit.exe" -ArgumentList "-y" -NoNewWindow -Wait
-          echo "$env:RUNNER_TEMP\w64devkit\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          curl.exe -L -o w64devkit.zip https://github.com/skeeto/w64devkit/releases/download/v2.1.0/w64devkit-x64-2.1.0.zip
+          tar -xf w64devkit.zip -C ${{ runner.temp }}
+        shell: cmd
 
-      - name: Verify compiler
-        run: g++ --version
+      - name: Set Up w64devkit
+        run: echo "${{ runner.temp }}\w64devkit\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+        shell: pwsh
 
-      - name: Configure CMake
-        run: cmake -B build -G "MinGW Makefiles"
+      - name: Configure and Build (Windows)
+        run: |
+          cmake -B build -G "MinGW Makefiles"
+          cmake --build build --config Release
 
-      - name: Build
-        run: cmake --build build --config Release
+      - name: Package Windows Build
+        run: |
+          mkdir MobitRenderer-windows
+          cp -r build/bin/* MobitRenderer-windows/
+          zip -r MobitRenderer-${{ env.VERSION }}-windows.zip MobitRenderer-windows/
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MobitRenderer-windows
+          path: MobitRenderer-${{ env.VERSION }}-windows.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read Version
+        id: get_version
+        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Configure and Build (Linux)
+        run: |
+          cmake -B build
+          cmake --build build --config Release
+
+      - name: Package Linux Build
+        run: |
+          mkdir MobitRenderer-linux
+          cp -r build/bin/* MobitRenderer-linux/
+          tar -czvf MobitRenderer-${{ env.VERSION }}-linux.tar.gz MobitRenderer-linux/
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MobitRenderer-linux
+          path: MobitRenderer-${{ env.VERSION }}-linux.tar.gz
+
+  release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read Version and Changelog
+        run: |
+          echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          cat changelog.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Download Windows Build
+        uses: actions/download-artifact@v4
+        with:
+          name: MobitRenderer-windows
+
+      - name: Download Linux Build
+        uses: actions/download-artifact@v4
+        with:
+          name: MobitRenderer-linux
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: "MobitRenderer v${{ env.VERSION }}"
+          body: "${{ env.CHANGELOG }}"
+          files: |
+            MobitRenderer-${{ env.VERSION }}-windows.zip
+            MobitRenderer-${{ env.VERSION }}-linux.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
