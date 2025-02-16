@@ -17,11 +17,13 @@ list_wrap = false
 # The whole init won't load if any error occurrs.
 strict_deserialization = false
 
-props =     { visible = true , opacity = 255 }
-tiles =     { visible = true , opacity = 255 }
-water =     { visible = true , opacity =  70 }
-materials = { visible = true , opacity = 255 }
-grid =      { visible = false, opacity =  90 }
+props =       { visible = true , opacity = 255 }
+tiles =       { visible = true , opacity = 255 }
+water =       { visible = true , opacity =  70 }
+materials =   { visible = true , opacity = 255 }
+grid =        { visible = false, opacity =  90 }
+ruler =       { visible = true , opacity =  90 }
+coordinates = { visible = true , opacity = 255 }
 
 [general.prerendering]
 
@@ -42,11 +44,13 @@ basic_view = true # The classic RGB level view.
 # Requires basic_view to be enabled.
 # opacity: 0 - 255
 # 'inherit' means take the setting from [general].
-props = { inherit = true, visible = true, opacity = 255 }
-tiles = { inherit = true, visible = true, opacity = 255 }
-water = { inherit = true, visible = true, opacity =  70 }
-materials = { visible = true, opacity =  255 }
-grid =      { inherit = false, visible = false, opacity =  90 }
+props =       { inherit = true, visible = true, opacity = 255 }
+tiles =       { inherit = true, visible = true, opacity = 255 }
+water =       { inherit = true, visible = true, opacity =  70 }
+materials =   { inherit = false, visible = true, opacity =  255 }
+grid =        { inherit = false, visible = false, opacity =  90 }
+ruler =       { inherit = true, visible = true , opacity =  90 }
+coordinates = { inherit = true, visible = true , opacity = 255 }
 
 [page.geometry.basic_view_colors]
 
@@ -57,11 +61,13 @@ water = { r = 0, g = 0, b = 255, a = 70 }
 
 [page.tiles]
 
-props = { inherit = true, visible = true, opacity = 255 }
-tiles = { inherit = true, visible = true, opacity = 255 }
-water = { inherit = true, visible = true, opacity = 70 }
-materials = { visible = true, opacity = 255 }
-grid =      { inherit = true, visible = false, opacity =  90 }
+props =       { inherit = true, visible = true, opacity = 255 }
+tiles =       { inherit = true, visible = true, opacity = 255 }
+water =       { inherit = true, visible = true, opacity = 70 }
+materials =   { visible = true, opacity = 255 }
+grid =        { inherit = true, visible = false, opacity =  90 }
+ruler =       { inherit = true, visible = true , opacity =  90 }
+coordinates = { inherit = true, visible = true , opacity = 255 }
 
 [page.cameras]
 
@@ -70,6 +76,8 @@ tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
 grid =      { inherit = true, visible = false, opacity =  90 }
+ruler =       { inherit = false, visible = false , opacity =  90 }
+coordinates = { inherit = false, visible = false , opacity = 255 }
 
 [page.light]
 
@@ -78,6 +86,8 @@ tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
 grid =      { inherit = true, visible = false, opacity =  90 }
+ruler =       { inherit = false, visible = false, opacity =  90 }
+coordinates = { inherit = false, visible = false, opacity = 255 }
 
 [page.effects]
 
@@ -86,6 +96,8 @@ tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
 grid =      { inherit = true, visible = false, opacity =  90 }
+ruler =       { inherit = true, visible = true , opacity =  90 }
+coordinates = { inherit = true, visible = true , opacity = 255 }
 
 canvas = { r = 255, g = 0, b = 255, a = 100 }
 effect = { r = 0, g = 255, b = 0, a = 120 }
@@ -97,6 +109,8 @@ tiles = { inherit = true, visible = true, opacity = 255 }
 water = { inherit = true, visible = true, opacity = 70 }
 materials = { visible = true, opacity = 255 }
 grid =      { inherit = true, visible = false, opacity =  90 }
+ruler =       { inherit = true, visible = true , opacity =  90 }
+coordinates = { inherit = true, visible = true , opacity = 255 }
 
 
 [paths.data]

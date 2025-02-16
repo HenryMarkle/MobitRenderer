@@ -808,6 +808,20 @@ void Geo_Page::draw() noexcept {
     WHITE
   );
 
+  if (ctx->get_config()->geometry.ruler.visible) {
+    const auto *level = ctx->get_selected_level();
+    Color color = WHITE;
+    color.a = ctx->get_config()->geometry.ruler.opacity;
+
+    mr::draw::draw_ruler(
+      _mtx_mouse_pos.x, 
+      _mtx_mouse_pos.y, 
+      level->get_width(), 
+      level->get_height(), 
+      color
+    );
+  }
+
   if (_is_selecting) {
     DrawRectangleLinesEx(_selection_rect, 2, _edit_mode == EDIT_MODE_PLACE ? WHITE : EDIT_MODE_ERASE ? RED : WHITE);
   } else if (_is_mouse_in_mtx_bounds) {

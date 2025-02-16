@@ -21,7 +21,7 @@ struct SpritePrerender {
 };
 
 struct GeoPageConfig {
-  SpriteVisiblity props, tiles, materials, water, grid;
+  SpriteVisiblity props, tiles, materials, water, grid, ruler, coordinates;
   Color layer1, layer2, layer3, water_color;
   bool basic_view;
 
@@ -29,7 +29,7 @@ struct GeoPageConfig {
 };
 
 struct GenericPageConfig {
-  SpriteVisiblity props, tiles, materials, water, grid;
+  SpriteVisiblity props, tiles, materials, water, grid, ruler, coordinates;
   GenericPageConfig();
 };
 

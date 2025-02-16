@@ -28,6 +28,8 @@ GeoPageConfig::GeoPageConfig() :
     tiles(SpriteVisiblity()), 
     water(SpriteVisiblity()), 
     grid(SpriteVisiblity()), 
+    ruler(SpriteVisiblity()), 
+    coordinates(SpriteVisiblity()), 
     materials(SpriteVisiblity()),
     layer1(BLACK),
     layer2(Color {0, 255, 0, 70}),
@@ -41,6 +43,8 @@ GenericPageConfig::GenericPageConfig() :
     tiles(SpriteVisiblity()), 
     water(SpriteVisiblity()), 
     grid(SpriteVisiblity()), 
+    ruler(SpriteVisiblity()), 
+    coordinates(SpriteVisiblity()), 
     materials(SpriteVisiblity())
 {}
 
@@ -86,6 +90,12 @@ std::shared_ptr<Config> Config::from_file(const std::filesystem::path &p) {
     
     general_config.grid.visible = general["grid"]["visible"].value_or(true);
     general_config.grid.opacity = general["grid"]["opacity"].value_or(90);
+    
+    general_config.ruler.visible = general["ruler"]["visible"].value_or(true);
+    general_config.ruler.opacity = general["ruler"]["opacity"].value_or(90);
+    
+    general_config.coordinates.visible = general["coordinates"]["visible"].value_or(true);
+    general_config.coordinates.opacity = general["coordinates"]["opacity"].value_or(255);
 
     config.default_sprites = general_config;
     
@@ -150,6 +160,20 @@ std::shared_ptr<Config> Config::from_file(const std::filesystem::path &p) {
         } else {
             config.geometry.grid.visible = geometry["grid"]["visible"].value_or(false);
             config.geometry.grid.opacity = geometry["grid"]["opacity"].value_or(90);
+        }
+
+        if (geometry["ruler"]["inherit"].value_or(true)) {
+            config.geometry.ruler = general_config.ruler;
+        } else {
+            config.geometry.ruler.visible = geometry["ruler"]["visible"].value_or(false);
+            config.geometry.ruler.opacity = geometry["ruler"]["opacity"].value_or(90);
+        }
+
+        if (geometry["coordinates"]["inherit"].value_or(true)) {
+            config.geometry.coordinates = general_config.coordinates;
+        } else {
+            config.geometry.coordinates.visible = geometry["coordinates"]["visible"].value_or(false);
+            config.geometry.coordinates.opacity = geometry["coordinates"]["opacity"].value_or(90);
         }
 
         const auto &basic_view_colors = geometry["basic_view_colors"];
@@ -286,5 +310,19 @@ void deser_generic_page_config(
     } else {
         data.grid.visible = node["grid"]["visible"].value_or(true);
         data.grid.opacity = node["grid"]["opacity"].value_or(90);
+    }
+
+    if (node["ruler"]["inherit"].value_or(true)) {
+        data.ruler = default_data.ruler;
+    } else {
+        data.ruler.visible = node["ruler"]["visible"].value_or(true);
+        data.ruler.opacity = node["ruler"]["opacity"].value_or(90);
+    }
+
+    if (node["coordinates"]["inherit"].value_or(true)) {
+        data.coordinates = default_data.coordinates;
+    } else {
+        data.coordinates.visible = node["coordinates"]["visible"].value_or(true);
+        data.coordinates.opacity = node["coordinates"]["opacity"].value_or(90);
     }
 }

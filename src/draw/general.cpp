@@ -554,6 +554,36 @@ void draw_double_frame(int x, int y, levelpixelsize width, levelpixelsize height
     );
 }
 
+void draw_ruler(int x, int y, int width, int height, Color color, float scale) noexcept {
+    DrawLineEx(
+        Vector2 { 0, y * scale },
+        Vector2 { width * scale, y * scale },
+        3,
+        color
+    );
+
+    DrawLineEx(
+        Vector2 { 0, y * scale + scale },
+        Vector2 { width * scale, y * scale + scale },
+        3,
+        color
+    );
+
+    DrawLineEx(
+        Vector2 { x * scale, 0 },
+        Vector2 { x * scale, height * scale },
+        3,
+        color
+    );
+
+    DrawLineEx(
+        Vector2 { x * scale + scale, 0 },
+        Vector2 { x * scale + scale, height * scale },
+        3,
+        color
+    );
+}
+
 };
     
 };

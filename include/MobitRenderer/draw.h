@@ -108,6 +108,13 @@ void draw_frame(levelpixelsize width, levelpixelsize height, Color color = WHITE
 void draw_double_frame(levelpixelsize width, levelpixelsize height) noexcept;
 void draw_double_frame(int x, int y, levelpixelsize width, levelpixelsize height) noexcept;
 
+/// @brief Draws a ruler
+/// @param x Matrix X coordinates
+/// @param y Matrix Y coordinates
+/// @param width Matrix' width
+/// @param height Matrix' height
+void draw_ruler(int x, int y, int width, int height, Color color, float scale = 20.0f) noexcept;
+
 void draw_geo_shape(GeoType type, float x, float y, float scale, Color color);
 
 /// @brief Draws a geo cell based on the provided type.
