@@ -9,3 +9,4 @@
 /out/
 out/
 Assets/Palettes/*
+compile_commands.json
