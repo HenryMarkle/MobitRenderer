@@ -99,6 +99,7 @@ if(WIN32)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_definitions(MobitRenderer PRIVATE PROJECT_SRC_DIR="${CMAKE_SOURCE_DIR}")
   target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=1)
 else()
   target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=0)

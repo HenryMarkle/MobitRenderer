@@ -37,17 +37,12 @@ Dirs::Dirs() {
 
   executable = mr::get_executable_dir();
 
-  #ifdef IS_DEBUG_BUILD
-  data = executable / ".." / ".." / "Data";
-  datapacks = executable / ".." / ".." / "DataPacks";
-  assets = executable / ".." / ".." / "Assets";
+  const auto src_dir = std::filesystem::path(PROJECT_SRC_DIR);
 
-  // VS Code's annoying configuration
-  if (!exists(data) && !exists(assets)) {
-    data = executable / ".." / ".." / ".." / "Data";
-    datapacks = executable / ".." / ".." / ".." / "DataPacks";
-    assets = executable / ".." / ".." / ".." / "Assets";
-  }
+  #ifdef IS_DEBUG_BUILD
+  data = src_dir / "Data";
+  datapacks = src_dir / "DataPacks";
+  assets = src_dir / "Assets";
   #else
   data = executable / "Data";
   datapacks = executable / "DataPacks";

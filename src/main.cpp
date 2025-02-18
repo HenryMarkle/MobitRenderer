@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
     { // Handle global shortcuts
 
       if (IsKeyPressed(KEY_F3)) {
-        ctx->f3_enabled = !ctx->f3_enabled;
+        ctx->get_config()->f3 = !ctx->get_config()->f3;
       }
 
       if (!ctx->get_levels().empty() && (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))) {
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
       }
       rlImGuiEnd();
 
-      if (ctx->f3_enabled) {
+      if (ctx->get_config()->f3) {
         auto *f3 = ctx->f3_.get();
 
         f3->print(APP_NAME);
