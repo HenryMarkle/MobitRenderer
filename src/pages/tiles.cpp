@@ -409,6 +409,50 @@ void Tile_Page::_place_cell() noexcept {
     if (_selected_tile == nullptr) return;
     if (!_is_tile_legal) return;
 
+    const auto offset = _selected_tile->get_head_offset();
+    const auto startx = _mtx_mouse_pos.x - offset.x;
+    const auto starty = _mtx_mouse_pos.y - offset.y;
+
+    for (matrix_t x = startx; x < startx + _selected_tile->get_width(); x++) {
+      for (matrix_t y = starty; y < starty + _selected_tile->get_height(); y++) {
+        if (x == _mtx_mouse_pos.x && y == _mtx_mouse_pos.y) {
+          level->get_tile_matrix().set(x, y, ctx->level_layer_, TileCell(_selected_tile));
+          continue;
+        }
+
+        level
+          ->get_tile_matrix()
+          .set(
+            x, 
+            y, 
+            ctx->level_layer_, 
+            TileCell(_mtx_mouse_pos.x, _mtx_mouse_pos.y, ctx->level_layer_, _selected_tile)
+          );
+
+        if (_selected_tile->get_specs2().empty() || ctx->level_layer_ == 2) continue;
+
+        level
+          ->get_tile_matrix()
+          .set(
+            x, 
+            y, 
+            ctx->level_layer_ + 1, 
+            TileCell(_mtx_mouse_pos.x, _mtx_mouse_pos.y, ctx->level_layer_, _selected_tile)
+          );
+
+        if (_selected_tile->get_specs3().empty() || ctx->level_layer_ != 0) continue;
+
+        level
+          ->get_tile_matrix()
+          .set(
+            x, 
+            y, 
+            2, 
+            TileCell(_mtx_mouse_pos.x, _mtx_mouse_pos.y, ctx->level_layer_, _selected_tile)
+          );
+      }
+    }
+
     const auto &shader = ctx->_shaders->ink();
 
     BeginTextureMode(rt);
@@ -443,7 +487,7 @@ void Tile_Page::_place_cell() noexcept {
       EndTextureMode();
     }
 
-    if (!_selected_tile->get_specs2().empty() && ctx->level_layer_ == 0) {
+    if (!_selected_tile->get_specs3().empty() && ctx->level_layer_ == 0) {
       BeginTextureMode(ctx->_textures->tile_layer3.get());
       BeginShaderMode(shader);
       SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), _selected_tile->get_loaded_texture());
