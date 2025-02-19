@@ -37,8 +37,7 @@ void draw_mtx_tile_prev(const TileDef *def, int x, int y,
   );
 }
 
-void draw_mtx_tile_prev_from_origin(const TileDef *def, int x,
-                                   int y, float scale, Color color) {
+void draw_mtx_tile_prev_from_origin(const TileDef *def, int x, int y, float scale, Color color) {
   if (def == nullptr || color.a == 0)
     return;
 

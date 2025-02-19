@@ -26,6 +26,24 @@ void unload_rendertexture(RenderTexture2D &rt) {
   rt = {0};
 }
 
+bool is_material_legal(
+  const Matrix<TileCell> &tile_matrix,
+  const Matrix<GeoCell> &geo_matrix,
+  uint16_t x,
+  uint16_t y,
+  uint16_t z
+) {
+  if (!tile_matrix.is_in_bounds(x, y, z)) return false;
+
+  if (geo_matrix.get_const(x, y, z).is_air()) return false;
+
+  const auto &cell = tile_matrix.get_const(x, y, z);
+
+  if (cell.type == TileType::head || cell.type == TileType::body) return false;
+
+  return true;
+}
+
 bool is_tile_legal(
   const TileDef *tile, 
   const Matrix<TileCell> &tile_matrix,

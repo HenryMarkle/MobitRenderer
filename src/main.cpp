@@ -1,34 +1,29 @@
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <sstream>
-#include <exception>
 #include <unordered_map>
-#include <unordered_set>
-#include <iostream>
-#include <iomanip>
-#include <filesystem>
 
-#include <raylib.h>
 #include <imgui.h>
+#include <raylib.h>
 #include <rlImGui.h>
 
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
+#include <MobitRenderer/castlibs.h>
 #include <MobitRenderer/definitions.h>
-#include <MobitRenderer/serialization.h>
+#include <MobitRenderer/dex.h>
+#include <MobitRenderer/dirs.h>
+#include <MobitRenderer/events.h>
 #include <MobitRenderer/imwin.h>
+#include <MobitRenderer/level.h>
 #include <MobitRenderer/managed.h>
 #include <MobitRenderer/matrix.h>
 #include <MobitRenderer/pages.h>
-#include <MobitRenderer/state.h>
-#include <MobitRenderer/events.h>
-#include <MobitRenderer/dex.h>
-#include <MobitRenderer/castlibs.h>
-#include <MobitRenderer/dirs.h>
 #include <MobitRenderer/renderer.h>
-#include <MobitRenderer/level.h>
+#include <MobitRenderer/serialization.h>
+#include <MobitRenderer/state.h>
 #include <MobitRenderer/winmodes.h>
 
 #define STRINGIFY_DEFINED(x) #x
@@ -38,15 +33,17 @@ using spdlog::logger;
 using std::shared_ptr;
 using std::string;
 
-typedef std::unordered_map<mr::context_event_type, void (*)(mr::context *, mr::pages::pager *, const std::any &)> 
-        event_handlers;
+typedef std::unordered_map<mr::context_event_type,
+                           void (*)(mr::context *, mr::pages::pager *,
+                                    const std::any &)>
+    event_handlers;
 
 // Implementations appended to the end of the file.
 //
 int _missing_dirs_window(const mr::Dirs *d);
 //
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
   // Automated rendering mode
   if (argc > 1) {
@@ -64,17 +61,17 @@ int main(int argc, char* argv[]) {
   // Initializing logging
   //
   try {
-    #ifdef _WIN32
-    logger = spdlog::basic_logger_mt("main logger",
-                                     (directories->get_logs() / "logs.txt").string());
-    #else
+#ifdef _WIN32
+    logger = spdlog::basic_logger_mt(
+        "main logger", (directories->get_logs() / "logs.txt").string());
+#else
     logger = spdlog::basic_logger_mt("main logger",
                                      (directories->get_logs() / "logs.txt"));
-    #endif
+#endif
 
-    #ifdef IS_DEBUG_BUILD
+#ifdef IS_DEBUG_BUILD
     logger->set_level(spdlog::level::level_enum::debug);
-    #endif
+#endif
   } catch (const spdlog::spdlog_ex &ex) {
     std::cout << "Initializing logger has failed" << std::endl;
     throw ex;
@@ -82,10 +79,9 @@ int main(int argc, char* argv[]) {
   //
 
   logger->info("------ starting program");
-  
+
   logger->info("Mobit Renderer v{}", APP_VERSION);
   logger->info("build configuration: {}", BUILD_TYPE);
-
 
   logger->info("initializing context");
 
@@ -99,10 +95,12 @@ int main(int argc, char* argv[]) {
   ctx->_castlibs = castlibs;
 
   logger->info("loading tiles");
-  
+
   auto *tiledex = new mr::TileDex();
   tiledex->register_from(directories->get_tiles() / "Init.txt", castlibs);
-  tiledex->register_from(directories->get_cast() / "Drought_393439_Drought Needed Init.txt", castlibs);
+  tiledex->register_from(directories->get_cast() /
+                             "Drought_393439_Drought Needed Init.txt",
+                         castlibs);
   ctx->_tiledex = tiledex;
 
   logger->info("loading props");
@@ -118,33 +116,39 @@ int main(int argc, char* argv[]) {
   materialdex->load_internals();
   ctx->_materialdex = materialdex;
 
-  #ifdef FEATURE_DATAPACKS
+#ifdef FEATURE_DATAPACKS
   if (directories->is_datapacks_found()) { // Data packs
     logger->info("loading data packs");
 
-    for (auto &entry : std::filesystem::directory_iterator(directories->get_tilepacks())) {
-      if (!entry.is_directory()) continue;
-      
+    for (auto &entry :
+         std::filesystem::directory_iterator(directories->get_tilepacks())) {
+      if (!entry.is_directory())
+        continue;
+
       auto init_path = entry.path() / "Init.txt";
 
-      if (!std::filesystem::exists(init_path)) continue;
+      if (!std::filesystem::exists(init_path))
+        continue;
 
       logger->info("loading tile pack init {}", init_path.string().c_str());
       tiledex->register_from(init_path, castlibs);
     }
 
-    for (auto &entry : std::filesystem::directory_iterator(directories->get_proppacks())) {
-      if (!entry.is_directory()) continue;
-      
+    for (auto &entry :
+         std::filesystem::directory_iterator(directories->get_proppacks())) {
+      if (!entry.is_directory())
+        continue;
+
       auto init_path = entry.path() / "Init.txt";
 
-      if (!std::filesystem::exists(init_path)) continue;
+      if (!std::filesystem::exists(init_path))
+        continue;
 
       logger->info("loading prop pack init {}", init_path.string().c_str());
       tiledex->register_from(init_path, castlibs);
     }
   }
-  #endif
+#endif
 
   logger->info("initializing window");
 
@@ -152,7 +156,7 @@ int main(int argc, char* argv[]) {
 
   InitWindow(1200, 800, "Mobit Renderer");
 
-  SetWindowState(FLAG_WINDOW_RESIZABLE);
+  SetWindowState(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
 
   SetWindowMinSize(1200, 800);
 
@@ -219,7 +223,8 @@ int main(int argc, char* argv[]) {
         ctx->get_config()->f3 = !ctx->get_config()->f3;
       }
 
-      if (!ctx->get_levels().empty() && (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))) {
+      if (!ctx->get_levels().empty() &&
+          (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))) {
         if (IsKeyPressed(KEY_ZERO)) {
         }
 
@@ -243,7 +248,7 @@ int main(int argc, char* argv[]) {
           pager->select(9);
         }
       }
-    
+
       if (IsKeyPressed(KEY_S) && IsKeyDown(KEY_R)) {
         shaders->reload_all();
       }
@@ -267,15 +272,22 @@ int main(int argc, char* argv[]) {
         auto menubarOpened = ImGui::BeginMainMenuBar();
 
         if (current_page != 0 && menubarOpened) {
-          auto goto_main = ImGui::MenuItem("Main", nullptr, current_page == 1, true);
-          auto goto_geo = ImGui::MenuItem("Geometry", nullptr, current_page == 2, true);
-          auto goto_tiles = ImGui::MenuItem("Tiles", nullptr, current_page == 3, true);
-          auto goto_cameras = ImGui::MenuItem("Cameras", nullptr, current_page == 4, true);
-          auto goto_light = ImGui::MenuItem("Light", nullptr, current_page == 5, true);
+          auto goto_main =
+              ImGui::MenuItem("Main", nullptr, current_page == 1, true);
+          auto goto_geo =
+              ImGui::MenuItem("Geometry", nullptr, current_page == 2, true);
+          auto goto_tiles =
+              ImGui::MenuItem("Tiles", nullptr, current_page == 3, true);
+          auto goto_cameras =
+              ImGui::MenuItem("Cameras", nullptr, current_page == 4, true);
+          auto goto_light =
+              ImGui::MenuItem("Light", nullptr, current_page == 5, true);
           ImGui::MenuItem("Dimensions", nullptr, current_page == 6, false);
           ImGui::MenuItem("Effects", nullptr, current_page == 7, false);
-          auto goto_props = ImGui::MenuItem("Props", nullptr, current_page == 8, true);
-          auto goto_settings = ImGui::MenuItem("Settings", nullptr, current_page == 9, true);
+          auto goto_props =
+              ImGui::MenuItem("Props", nullptr, current_page == 8, true);
+          auto goto_settings =
+              ImGui::MenuItem("Settings", nullptr, current_page == 9, true);
 
           if (goto_main) {
             pager->select(1);
@@ -285,14 +297,11 @@ int main(int argc, char* argv[]) {
             pager->select(3);
           } else if (goto_cameras) {
             pager->select(4);
-          }
-          else if (goto_light) {
+          } else if (goto_light) {
             pager->select(5);
-          }
-          else if (goto_props) {
+          } else if (goto_props) {
             pager->select(8);
-          }
-          else if (goto_settings) {
+          } else if (goto_settings) {
             pager->select(9);
           }
         }
@@ -307,12 +316,12 @@ int main(int argc, char* argv[]) {
         f3->print(APP_NAME);
         f3->print(" v", true);
         f3->print(APP_VERSION, true);
-        
-        #ifdef IS_DEBUG_BUILD
-          f3->print(" Debug", true);
-        #else
-          f3->print(" Release", true);
-        #endif
+
+#ifdef IS_DEBUG_BUILD
+        f3->print(" Debug", true);
+#else
+        f3->print(" Release", true);
+#endif
 
         f3->print("FPS ");
         f3->print(GetFPS(), true);
@@ -324,14 +333,14 @@ int main(int argc, char* argv[]) {
         f3->print(pager->get_previous_index(), true);
 
         auto *current_level = ctx->get_selected_level();
-        
+
         if (current_level != nullptr) {
           f3->print("Project ");
           f3->print(current_level->get_name(), true);
 
           f3->print("W ");
           f3->print(current_level->get_width(), true);
-          
+
           f3->print(" H ", true);
           f3->print(current_level->get_height(), true);
         }
@@ -387,13 +396,10 @@ int _missing_dirs_window(const mr::Dirs *d) {
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
-    DrawText(
-      "Missing Required Folders", 
-      (GetScreenWidth() - MeasureText("Missing Required Folders", 50))/2,
-      50,
-      50,
-      WHITE
-    );
+    DrawText("Missing Required Folders",
+             (GetScreenWidth() - MeasureText("Missing Required Folders", 50)) /
+                 2,
+             50, 50, WHITE);
 
     DrawText("Assets/", 100, 230, 30, WHITE);
     DrawText("Assets/Shaders/", 100, 270, 30, WHITE);
@@ -404,56 +410,29 @@ int _missing_dirs_window(const mr::Dirs *d) {
     DrawText("Data/Props/", 100, 440, 30, WHITE);
     DrawText("Data/Cast/", 100, 480, 30, WHITE);
 
-    DrawText(
-      d->is_assets_found() ? "OK" : "MISSING", 
-      500, 230, 30, 
-      d->is_assets_found() ? GREEN : ORANGE
-    );
-    DrawText(
-      d->is_shaders_found() ? "OK" : "MISSING", 
-      500, 270, 30, 
-      d->is_shaders_found() ? GREEN : ORANGE
-    );
+    DrawText(d->is_assets_found() ? "OK" : "MISSING", 500, 230, 30,
+             d->is_assets_found() ? GREEN : ORANGE);
+    DrawText(d->is_shaders_found() ? "OK" : "MISSING", 500, 270, 30,
+             d->is_shaders_found() ? GREEN : ORANGE);
 
-    DrawText(
-      d->is_data_found() ? "OK" : "MISSING", 
-      500, 320, 30, 
-      d->is_data_found() ? GREEN : ORANGE
-    );
-    DrawText(
-      d->is_tiles_found() ? "OK" : "MISSING", 
-      500, 360, 30, 
-      d->is_tiles_found() ? GREEN : ORANGE
-    );
-    DrawText(
-      d->is_materials_found() ? "OK" : "MISSING", 
-      500, 400, 30, 
-      d->is_materials_found() ? GREEN : ORANGE
-    );
-    DrawText(
-      d->is_props_found() ? "OK" : "MISSING", 
-      500, 440, 30, 
-      d->is_props_found() ? GREEN : ORANGE
-    );
-    DrawText(
-      d->is_cast_found() ? "OK" : "MISSING", 
-      500, 480, 30, 
-      d->is_cast_found() ? GREEN : ORANGE
-    );
+    DrawText(d->is_data_found() ? "OK" : "MISSING", 500, 320, 30,
+             d->is_data_found() ? GREEN : ORANGE);
+    DrawText(d->is_tiles_found() ? "OK" : "MISSING", 500, 360, 30,
+             d->is_tiles_found() ? GREEN : ORANGE);
+    DrawText(d->is_materials_found() ? "OK" : "MISSING", 500, 400, 30,
+             d->is_materials_found() ? GREEN : ORANGE);
+    DrawText(d->is_props_found() ? "OK" : "MISSING", 500, 440, 30,
+             d->is_props_found() ? GREEN : ORANGE);
+    DrawText(d->is_cast_found() ? "OK" : "MISSING", 500, 480, 30,
+             d->is_cast_found() ? GREEN : ORANGE);
 
     const auto *version_text = APP_NAME " v" APP_VERSION;
 
-    #ifdef IS_DEBUG_BUILD
+#ifdef IS_DEBUG_BUILD
     version_text = TextFormat("%s Debug", version_text);
-    #endif
+#endif
 
-    DrawText(
-      version_text,
-      10,
-      GetScreenHeight() - 40,
-      30,
-      WHITE
-    );
+    DrawText(version_text, 10, GetScreenHeight() - 40, 30, WHITE);
 
     EndDrawing();
   }
@@ -461,5 +440,3 @@ int _missing_dirs_window(const mr::Dirs *d) {
 
   return 0;
 }
-
-
