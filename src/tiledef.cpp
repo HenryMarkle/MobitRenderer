@@ -1,8 +1,12 @@
 #include <string>
 #include <filesystem>
 #include <unordered_set>
-#include <iostream>
 #include <math.h>
+
+#ifdef IS_DEBUG_BUILD
+#include <algorithm>
+#include <iostream>
+#endif
 
 #include <raylib.h>
 
@@ -23,21 +27,57 @@ namespace mr {
 void TileDef::load_texture() {
   if (_is_texture_loaded) return;
 
-  if (!std::filesystem::exists(texture_path)) {
+  auto target_path = texture_path;
+
+  #if defined(__linux__) || defined(__APPLE__)
+  {
+    const auto &name = texture_path.filename().string();
+
+    auto to_lower = [](const std::string &str) {
+      std::string lower_str = str;
+      std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(),
+                     [](unsigned char c) { return std::tolower(c); });
+      return lower_str;
+    };
+
+    auto target_lower = to_lower(name);
+    auto found = false;
+
+    for (const auto &entry : std::filesystem::directory_iterator(texture_path.parent_path())) { 
+      if (entry.is_regular_file()) {
+        std::string entry_filename = entry.path().filename().string();
+        if (to_lower(entry_filename) == target_lower) {
+          target_path = entry.path();
+          found = true;
+          break;
+        }
+      }
+    }
+
+    if (!found) {
+      #ifdef IS_DEBUG_BUILD
+      std::cout << "Warning: tile texture not found: " << texture_path << std::endl;
+      #endif
+      return;
+    }
+  }
+  #endif
+
+  if (!std::filesystem::exists(target_path)) {
     #ifdef IS_DEBUG_BUILD
-    std::cout << "Warning: tile texture not found: " << texture_path << std::endl;
+    std::cout << "Warning: tile texture not found: " << target_path << std::endl;
     #endif
 
     return;
   }
 
   if (type != TileDefType::box) {
-    auto img = LoadImage(texture_path.string().c_str());
+    auto img = LoadImage(target_path.string().c_str());
     ImageCrop(&img, Rectangle{0, 1, (float)img.width, (float)img.height-1});
     texture = LoadTextureFromImage(img);
     UnloadImage(img);
   } else {
-    texture = LoadTexture(texture_path.string().c_str());
+    texture = LoadTexture(target_path.string().c_str());
   }
 
   _is_texture_loaded = true;

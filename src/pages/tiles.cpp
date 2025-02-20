@@ -156,6 +156,7 @@ void Tile_Page::_redraw_tile_specs_rt() noexcept {
 
   BeginTextureMode(_tile_specs_rt);
   {
+    ClearBackground({0,0,0,0});
     for (size_t x = 0; x < _selected_tile->get_width(); x++) {
       for (size_t y = 0; y < _selected_tile->get_height(); y++) {
         auto index = y + x * _selected_tile->get_height();
@@ -254,6 +255,31 @@ void Tile_Page::_erase_cell() noexcept {
 
   // Causes problems!
   // if (_hovered_cell->type == TileType::_default) return;
+
+  if (_edit_mode == EDIT_MODE_MATERIAL) {
+    BeginTextureMode(rt);
+    for (int x = 0; x < 1 + _brush_size*2; x++) {
+      for (int y = 0; y < 1 + _brush_size*2; y++) {
+        const auto tx = _mtx_mouse_pos.x - _brush_size + x;
+        const auto ty = _mtx_mouse_pos.y - _brush_size + y;
+
+        if (!mr::utils::is_material_legal(
+          level->get_tile_matrix(), 
+          level->get_geo_matrix(), 
+          tx,
+          ty,
+          ctx->level_layer_
+        )) continue;
+
+        level->get_tile_matrix().set_noexcept(tx, ty, ctx->level_layer_, TileCell());
+        DrawRectangleRec(
+          Rectangle{tx * 20.0f, ty * 20.0f, 20.0f, 20.0f}, 
+          WHITE
+        );
+      }
+    }
+    EndTextureMode();
+  }
 
   switch (_hovered_cell->type) {
   case TileType::material:
@@ -511,16 +537,32 @@ void Tile_Page::_place_cell() noexcept {
     auto &cell = level->get_tile_matrix().get(_mtx_mouse_pos.x, _mtx_mouse_pos.y, ctx->level_layer_);
     cell = TileCell(_selected_material);
 
-    BeginTextureMode(rt);
     auto &geocell = level->get_const_geo_matrix().get_const(_mtx_mouse_pos.x, _mtx_mouse_pos.y, ctx->level_layer_);
 
-    mr::draw::draw_geo_shape(
-      geocell.type, 
-      (_mtx_mouse_pos.x * 20.0f) + 20.0f * 0.25f,
-      (_mtx_mouse_pos.y * 20.0f) + 20.0f * 0.25f,
-      20.0f * 0.5f,
-      _selected_material->get_color()
-    );
+    BeginTextureMode(rt);
+    for (int x = 0; x < 1 + _brush_size*2; x++) {
+      for (int y = 0; y < 1 + _brush_size*2; y++) {
+        const auto tx = _mtx_mouse_pos.x - _brush_size + x;
+        const auto ty = _mtx_mouse_pos.y - _brush_size + y;
+
+        if (!mr::utils::is_material_legal(
+          level->get_tile_matrix(), 
+          level->get_geo_matrix(), 
+          tx,
+          ty,
+          ctx->level_layer_
+        )) continue;
+
+        level->get_tile_matrix().set_noexcept(tx, ty, ctx->level_layer_, TileCell());
+        mr::draw::draw_geo_shape(
+          geocell.type, 
+          (tx * 20.0f) + 20.0f * 0.25f,
+          (ty * 20.0f) + 20.0f * 0.25f,
+          20.0f * 0.5f,
+          _selected_material->get_color()
+        );
+      }
+    }
     EndTextureMode();
   }
 
@@ -538,15 +580,19 @@ void Tile_Page::process() {
 
   if (!_hovering_on_window) {
     if (wheel != 0) {
-
-      auto &camera = ctx->get_camera();
-      auto mouseWorldPosition = GetScreenToWorld2D(GetMousePosition(), camera);
-
-      camera.offset = GetMousePosition();
-      camera.target = mouseWorldPosition;
-      camera.zoom += wheel * 0.125f;
-      if (camera.zoom < 0.125f)
-        camera.zoom = 0.125f;
+      if (_is_mouse_in_mtx_bounds && (IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT))) {
+        if (wheel < 0 && _brush_size > 0) _brush_size--; 
+        else if (wheel > 0 && _brush_size < 255) _brush_size++;
+      } else {
+        auto &camera = ctx->get_camera();
+        auto mouseWorldPosition = GetScreenToWorld2D(GetMousePosition(), camera);
+  
+        camera.offset = GetMousePosition();
+        camera.target = mouseWorldPosition;
+        camera.zoom += wheel * 0.125f;
+        if (camera.zoom < 0.125f)
+          camera.zoom = 0.125f;
+      }
     }
 
     if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
@@ -607,6 +653,7 @@ void Tile_Page::process() {
               if (tiles[t]->get_name() == _selected_tile->get_name()) {
                 _selected_tile_category_index = c;
                 _selected_tile_index = t;
+                _edit_mode = EDIT_MODE_TILE;
                 goto break_lookup;
               }
             }
@@ -633,6 +680,7 @@ void Tile_Page::process() {
               if (tiles[t]->get_name() == _selected_tile->get_name()) {
                 _selected_tile_category_index = c;
                 _selected_tile_index = t;
+                _edit_mode = EDIT_MODE_TILE;
                 goto break_lookup;
               }
             }
@@ -648,9 +696,10 @@ void Tile_Page::process() {
           for (size_t c = 0; c < categories.size(); c++) {
             const auto &materials = categories[c];
             for (size_t m = 0; m < materials.size(); m++) {
-              if (materials[m]->get_name() == _selected_tile->get_name()) {
+              if (materials[m]->get_name() == _selected_material->get_name()) {
                 _selected_material_category_index = c;
                 _selected_material_index = m;
+                _edit_mode = EDIT_MODE_MATERIAL;
                 goto break_lookup;
               }
             }
@@ -670,6 +719,7 @@ void Tile_Page::process() {
                 _selected_material_category_index = c;
                 _selected_material_index = m;
                 _selected_material = materials[m];
+                _edit_mode = EDIT_MODE_MATERIAL;
                 goto break_lookup;
               }
             }
@@ -1164,11 +1214,15 @@ void Tile_Page::draw() noexcept {
           if (_hovered_cell->tile_def != nullptr) {
             auto offset = _hovered_cell->tile_def->get_head_offset();
             DrawRectangleLinesEx(
-                Rectangle{(_mtx_mouse_pos.x - offset.x) * 20.0f,
-                          (_mtx_mouse_pos.y - offset.y) * 20.0f,
-                          _hovered_cell->tile_def->get_width() * 20.0f,
-                          _hovered_cell->tile_def->get_height() * 20.0f},
-                2, WHITE);
+              Rectangle{
+                (_mtx_mouse_pos.x - offset.x) * 20.0f,
+                (_mtx_mouse_pos.y - offset.y) * 20.0f,
+                _hovered_cell->tile_def->get_width() * 20.0f,
+                _hovered_cell->tile_def->get_height() * 20.0f
+              },
+              2, 
+              WHITE
+            );
           }
         } break;
 
@@ -1185,10 +1239,16 @@ void Tile_Page::draw() noexcept {
         } break;
 
         default: {
-          DrawRectangleLinesEx(Rectangle{_mtx_mouse_pos.x * 20.0f,
-                                         _mtx_mouse_pos.y * 20.0f, 20.0f,
-                                         20.0f},
-                               2, WHITE);
+          DrawRectangleLinesEx(
+            Rectangle{
+              (_mtx_mouse_pos.x - _brush_size) * 20.0f,
+              (_mtx_mouse_pos.y - _brush_size) * 20.0f, 
+              20.0f * _brush_size*2 + 20.0f,
+              20.0f * _brush_size*2 + 20.0f
+            },
+            2, 
+            WHITE
+          );
         } break;
         }
       }
@@ -1231,6 +1291,23 @@ void Tile_Page::windows() noexcept {
     else
       _edit_mode = EDIT_MODE_MATERIAL;
   }
+
+  ImGui::Spacing();
+
+  if (_edit_mode != EDIT_MODE_MATERIAL) ImGui::BeginDisabled();
+  bool default_checked = false;
+  if (_selected_material != nullptr && ctx->get_selected_level() != nullptr) {
+    default_checked = ctx->get_selected_level()->default_material == _selected_material->get_name();
+  }
+  if (ImGui::Checkbox("Default Material", &default_checked)) {
+    if (default_checked) {
+      ctx->get_selected_level()->default_material = _selected_material->get_name();
+    }
+  }
+  if (_edit_mode != EDIT_MODE_MATERIAL) ImGui::EndDisabled();
+
+  ImGui::SetNextItemWidth(100);
+  ImGui::InputInt("Seed", &ctx->get_selected_level()->seed);
 
   ImGui::Spacing();
 
@@ -1537,6 +1614,9 @@ void Tile_Page::f3() const noexcept {
     f3->print(" Without Geometry", MAGENTA, true);
   else
     f3->print(" Unknown", MAGENTA, true);
+
+  f3->print("Brush Size ");
+  f3->print(static_cast<int>(_brush_size), true);
 }
 
 void Tile_Page::on_level_loaded() noexcept {
@@ -1608,7 +1688,7 @@ Tile_Page::Tile_Page(context *ctx)
       _selected_tile(nullptr), _selected_material(nullptr),
       _hovered_tile(nullptr), _previously_drawn_preview(nullptr),
       _previously_drawn_texture(nullptr), _hovered_cell(nullptr),
-      _erase_click_lock(false), _place_click_lock(false) {}
+      _erase_click_lock(false), _place_click_lock(false), _brush_size(0) {}
 
 Tile_Page::~Tile_Page() {
   if (_tile_preview_rt.id != 0)

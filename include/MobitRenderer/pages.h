@@ -205,6 +205,8 @@ private:
   /// @brief 0 - permissive; 1 - with geometry; 2 - without geometry
   uint8_t _force_mode;
 
+  uint8_t _brush_size;
+
   size_t _selected_tile_category_index, _selected_tile_index,
       _selected_material_category_index, _selected_material_index;
 
