@@ -1,3 +1,5 @@
+#include <filesystem>
+#include <algorithm>
 #include <cstdint>
 
 #include <raylib.h>
@@ -114,6 +116,28 @@ bool is_tile_legal(
   }
 
   return true;
+}
+
+void find_file_case_insensitive(std::filesystem::path &path) {
+  const auto &name = path.filename().string();
+
+  auto to_lower = [](const std::string &str) {
+    std::string lower_str = str;
+    std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(),
+                    [](unsigned char c) { return std::tolower(c); });
+    return lower_str;
+  };
+
+  const auto target_lower = to_lower(name);
+
+  for (const auto &entry : std::filesystem::directory_iterator(path.parent_path())) { 
+    if (entry.is_regular_file()) {
+      std::string entry_filename = entry.path().filename().string();
+      if (to_lower(entry_filename) == target_lower) {
+        path = entry.path();
+      }
+    }
+  }
 }
 
 };

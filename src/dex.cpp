@@ -13,6 +13,7 @@
 #include <MobitParser/nodes.h>
 
 #include <MobitRenderer/dex.h>
+#include <MobitRenderer/utils.h>
 #include <MobitRenderer/castlibs.h>
 #include <MobitRenderer/exceptions.h>
 #include <MobitRenderer/definitions.h>
@@ -154,7 +155,13 @@ void TileDex::register_from(path const&file, CastLibs const*libs) {
                     }
                 } 
                 else {
+                    #if defined(__linux__) || defined(__APPLE__)
+                    auto texture_path = init_dir / (tiledef->get_name() + ".png");
+                    mr::utils::find_file_case_insensitive(texture_path);
+                    tiledef->set_texture_path(texture_path);
+                    #else
                     tiledef->set_texture_path(init_dir / (tiledef->get_name() + ".png"));
+                    #endif
                 }
 
                 tiledef->set_category(current_category.name);

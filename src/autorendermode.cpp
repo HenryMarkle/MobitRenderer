@@ -349,6 +349,7 @@ int auto_render_window(int argc, char* argv[]) {
 
     try {
         renderer->load(level.get());
+        renderer->prepare();
     } catch (std::exception &e) {
         logger->error("failed to load renderer: {}", e.what());
         if (!no_echo) std::cout << "failed to load renderer: " << e.what() << std::endl;
@@ -420,8 +421,6 @@ int auto_render_window(int argc, char* argv[]) {
 
             if (renderer->frame_initialize(15)) {
                 logger->info("renderer initialized");
-                logger->info("preparing renderer");
-                renderer->prepare();
             }
 
             continue;
@@ -488,6 +487,8 @@ int auto_render_window(int argc, char* argv[]) {
         
             continue;
         }
+
+        if (renderer->get_render_progress() < 7) renderer->frame_render();
 
         {
             // if (IsKeyPressed(KEY_ONE)) current_page = 1;

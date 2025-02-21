@@ -4,12 +4,15 @@
 #include <thread>
 #include <atomic>
 #include <string>
+#include <random>
 
 #include <raylib.h>
 #include <raymath.h>
 
 #include <spdlog/spdlog.h>
 
+#include <MobitRenderer/vec.h>
+#include <MobitRenderer/quad.h>
 #include <MobitRenderer/dirs.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/state.h>
@@ -66,6 +69,59 @@ struct RenderConfig {
     std::vector<size_t> cameras;
 };
 
+struct Render_TileCell {
+    int rnd;
+    matrix_t x, y, z;
+    const TileCell *cell;
+};
+
+class RandomGen {
+
+private:
+
+    uint _seed, _init;
+
+    
+    inline static int _random_derive(uint param) noexcept {
+        auto var1 = static_cast<int>((param << 0xd ^ param) - (static_cast<int>(param) >> 0x15));
+        auto var2 = static_cast<uint>(((var1 * var1 * 0x3d73 + 0xc0ae5) * var1 + 0xd208dd0d & 0x7fffffff) + var1);
+        return static_cast<int>((var2 * 0x2000 ^ var2) - (static_cast<int>(var2) >> 0x15));
+    }
+    
+    public:
+    
+    inline void init_rng() noexcept {
+        _seed = 1;
+        _init = 0xA3000000;
+    }
+
+    // inline int next(uint max) noexcept {
+    //     if (_seed == 0) init_rng();
+
+    //     if ((_seed & 1) == 0) _seed = static_cast<uint>(_seed >> 1);
+    //     else _seed = static_cast<uint>(_seed >> 1 ^ _init);
+
+    //     auto var1 = _random_derive(static_cast<uint>(_seed * 0x47));
+    //     if (max > 1) var1 = static_cast<int>((long)static_cast<ulong>(var1 & 0x7FFFFFFF) % static_cast<long>(max));
+        
+    //     return var1;
+    // }
+
+    inline int next(int max) noexcept {
+        if (_seed == 0) init_rng();
+
+        if ((_seed & 1) == 0) _seed = static_cast<uint>(_seed >> 1);
+        else _seed = static_cast<uint>(_seed >> 1 ^ _init);
+
+        auto var1 = _random_derive(static_cast<uint>(_seed * 0x47));
+        if (max > 1) var1 = static_cast<int>((long)static_cast<ulong>(var1 & 0x7FFFFFFF) % static_cast<long>(max));
+        
+        return var1;
+    }
+
+    RandomGen(uint seed) : _seed(seed), _init(0xA3000000) {}
+};
+
 /// @brief Responsible for rendering the final level image.
 /// @attention Requires OpenGL context.
 class Renderer {
@@ -95,14 +151,23 @@ protected:
 
     /// @brief Removes the white background.
     Shader _white_remover;
+    int _white_remover_texture_loc;
+
+    Shader _white_remover_vflip;
+    int _white_remover_vflip_texture_loc;
+
+    Shader _composer;
+    int _composer_texture_loc, _composer_tint_loc;
 
     /// @brief Adds highlight/shadow at the edges of an rgb texture and 
     /// removes the white background.
     Shader _bevel;
+    int _bevel_texture_loc;
 
     /// @brief Draws a texture using Inverse-Bilinear Interpolation algorithm
     /// and removes the white background.
     Shader _invb;
+    int _invb_texture_loc;
 
     TileDex     *_tiles;
     PropDex     *_props;
@@ -115,6 +180,8 @@ protected:
     std::thread _preparation_thread;
     std::atomic<bool> _preparation_done;
 
+    RandomGen _rand;
+
     bool _initialized, _cleaned_up;
 
     bool 
@@ -123,6 +190,7 @@ protected:
         _dc_layers_initialized,
         _ga_layers_initialized,
         _gb_layers_initialized,
+        _lightmap_initialized,
         _final_initialized;
 
     bool
@@ -130,14 +198,39 @@ protected:
         _dc_layers_cleaned,
         _ga_layers_cleaned,
         _gb_layers_cleaned,
+        _lightmap_cleaned,
         _final_cleaned;
 
     size_t _layers_init_progress, _layers_clean_progress;
     int _layers_compose_progress;
 
+    /// 1 - tiles
+    /// 2 - materials
+    /// 3 - props
+    /// 4 - effects
+    /// 5 - light
+    /// 6 - generate text
+    /// 7 - done
+    int _render_progress;
+
+    void _set_render_progress(int);
+
+    void _prepare();
+
+    uint8_t _tile_layer_progress;
+
+    std::vector<Render_TileCell> 
+        _tiles_to_render1,
+        _tiles_to_render2,
+        _tiles_to_render3;
+
     /// A lot of draw calls here
     /// TODO: continue here.
     ///
+
+    void _draw_tile_origin_mtx(TileDef *def, matrix_t x, matrix_t y, uint8_t layer) noexcept;
+
+    void _draw_tiles_layer(uint8_t layer) noexcept;
 
 public:
 
@@ -149,6 +242,8 @@ public:
     RenderTexture2D _gb_layers[30];
 
     RenderTexture2D _composed_layers;
+
+    RenderTexture2D _final_lightmap;
 
     /// @brief The final texture of the level.
     RenderTexture2D _final;
@@ -182,9 +277,11 @@ public:
     void prepare();
     inline bool is_preparation_done() const noexcept { return _preparation_done; }
 
+    inline int get_render_progress() const noexcept { return _render_progress; }
+
     /// @brief Renders a portion of the level at a time.
     /// @return Returns true if the level is not completely done.
-    bool render_frame();
+    bool frame_render();
 
     Renderer &operator=(Renderer const&) = delete;
 

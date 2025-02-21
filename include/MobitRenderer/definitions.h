@@ -40,6 +40,8 @@ private:
   const std::vector<int> specs, specs2, specs3;
   const bool multilayer;
   const std::vector<int> repeat;
+  // const int first_layer_y;
+  // const int total_layers;
   const std::unordered_set<std::string> tags;
   std::filesystem::path texture_path;
   Rectangle _preview_rectangle;
