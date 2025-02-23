@@ -6,6 +6,7 @@ in vec2 fragTexCoord;
 in vec4 fragColor;
 
 uniform vec2 vertex_pos[4];
+uniform float tex_coord_pos[4];
 
 out vec4 FragColor;
 
@@ -54,14 +55,26 @@ vec2 invbilinear( vec2 p, vec2 a, vec2 b, vec2 c, vec2 d )
 }
 
 void main() {
-    vec2 a = vertex_pos[1]; // top left
+    
 	vec2 b = vertex_pos[0]; // top right
-	vec2 c = vertex_pos[3]; // bottom right
+    vec2 a = vertex_pos[1]; // top left
 	vec2 d = vertex_pos[2]; // bottom left
+	vec2 c = vertex_pos[3]; // bottom right
 
 	vec2 uv = invbilinear(fragTexCoord, a, b, c, d);
 
-    vec4 newColor = texture(textureSampler, uv) * fragColor;
+    uv.x = tex_coord_pos[0] + uv.x*(tex_coord_pos[2] - tex_coord_pos[0]);
+    uv.y = tex_coord_pos[1] + uv.y*(tex_coord_pos[3] - tex_coord_pos[1]);
 
-    FragColor = newColor;
+    if (uv.x > 1 || uv.x < 0 || uv.y > 1 || uv.y < 0) {
+        discard;
+    } else {
+        vec4 newColor = texture(textureSampler, uv) * fragColor;
+
+        if (newColor.r == 1 && newColor.g == 1 && newColor.b == 1 && newColor.a == 1) {
+            discard;
+        }
+
+        FragColor = newColor;
+    }
 }

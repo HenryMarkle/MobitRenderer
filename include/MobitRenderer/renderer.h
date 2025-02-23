@@ -168,6 +168,14 @@ protected:
     /// and removes the white background.
     Shader _invb;
     int _invb_texture_loc;
+    int _invb_vertices_loc;
+    int _invb_tex_coord_loc;
+
+    Shader _red_encoder;
+    int _red_encoder_texture_loc;
+    int _red_encoder_lightmap_loc;
+    int _red_encoder_depth_loc;
+    int _red_encoder_flipv_loc;
 
     TileDex     *_tiles;
     PropDex     *_props;
@@ -229,8 +237,11 @@ protected:
     ///
 
     void _draw_tile_origin_mtx(TileDef *def, matrix_t x, matrix_t y, uint8_t layer) noexcept;
+    void _draw_material_origin_mtx(MaterialDef *def, matrix_t x, matrix_t y, uint8_t layer) noexcept;
+    void _draw_prop(Prop *prop) noexcept;
 
     void _draw_tiles_layer(uint8_t layer) noexcept;
+    void _draw_materials_layer(uint8_t layer) noexcept;
 
 public:
 
@@ -267,6 +278,16 @@ public:
     bool frame_cleanup(int threshold = 10);
 
     void frame_compose(int threshold = 10);
+    void frame_compose(
+        int min_layer,
+        int max_layer,
+        int offsetx,
+        int offsety,
+        bool fog,
+        int threshold = 10
+    );
+
+    void frame_render_final(int threshold = 10);
 
     /// @brief Loads a level to be rendered,
     /// @throw std::invalid_argument if the level pointer is nullptr. 

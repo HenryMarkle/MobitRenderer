@@ -3,6 +3,7 @@
 #include <atomic>
 #include <string>
 #include <random>
+#include <math.h>
 #include <stdexcept>
 #include <algorithm>
 
@@ -183,13 +184,20 @@ bool Renderer::frame_initialize(int threshold) {
         _composer = LoadShader(nullptr, (shaders_dir / "white_remover_apply_white_tint_vflip.frag").string().c_str());
         _bevel = LoadShader(nullptr, (shaders_dir / "bevel.frag").string().c_str());
         _invb = LoadShader((shaders_dir / "invb.vert").string().c_str(), (shaders_dir / "invb.frag").string().c_str());
+        _red_encoder = LoadShader(nullptr, (shaders_dir / "red_encoder.frag").string().c_str());
         
         _white_remover_texture_loc = GetShaderLocation(_white_remover, "texture0");
         _white_remover_vflip_texture_loc = GetShaderLocation(_white_remover_vflip, "texture0");
         _composer_texture_loc = GetShaderLocation(_composer, "texture0");
         _composer_tint_loc = GetShaderLocation(_composer, "tint");
         _bevel_texture_loc = GetShaderLocation(_bevel, "texture0");
-        _invb_texture_loc = GetShaderLocation(_invb, "texture0");
+        _invb_texture_loc = GetShaderLocation(_invb, "textureSampler");
+        _invb_vertices_loc = GetShaderLocation(_invb, "vertex_pos");
+        _invb_tex_coord_loc = GetShaderLocation(_invb, "tex_coord_pos");
+        _red_encoder_texture_loc = GetShaderLocation(_red_encoder, "texture0");
+        _red_encoder_lightmap_loc = GetShaderLocation(_red_encoder, "lightmap");
+        _red_encoder_depth_loc = GetShaderLocation(_red_encoder, "depth");
+        _red_encoder_flipv_loc = GetShaderLocation(_red_encoder, "flipv");
 
         _shaders_initialized = true;
         return false;
@@ -402,6 +410,108 @@ void Renderer::frame_compose(int threshold) {
     if (_layers_compose_progress <= -1) { _layers_compose_progress = 29; }
 }
 
+void Renderer::frame_compose(
+    int min_layer,
+    int max_layer,
+    int offsetx,
+    int offsety,
+    bool fog,
+    int threshold
+) {
+    if (!_initialized) return;
+
+    int progress = 0;
+
+    BeginTextureMode(_composed_layers);
+    while (
+        progress < threshold && 
+        _layers_compose_progress >= 0
+    ) {
+        if (_layers_compose_progress == 29) ClearBackground(WHITE);
+
+        if (_layers_compose_progress <= max_layer && _layers_compose_progress >= min_layer) {
+            const auto &l = _layers[_layers_compose_progress];
+            
+            BeginShaderMode(_composer);
+            SetShaderValueTexture(_composer, _composer_texture_loc, l.texture);
+            float tint = fog * (_layers_compose_progress) / 32.0f;
+            SetShaderValue(_composer, _composer_tint_loc, &tint, SHADER_UNIFORM_FLOAT);
+            DrawTexture(l.texture, 5 - offsetx * _layers_compose_progress, 5 - offsety * _layers_compose_progress, WHITE);
+            EndShaderMode();
+        }
+
+        _layers_compose_progress--;
+        progress--;
+    }
+    EndTextureMode();
+
+    if (_layers_compose_progress <= -1) { _layers_compose_progress = 29; }
+}
+
+void Renderer::frame_render_final(int threshold) {
+    if (!_initialized) return;
+    if (_layers_compose_progress <= -1) return;
+    if (_layers_compose_progress == 29) ClearBackground(WHITE);
+
+    int progress = 0;
+
+    auto camera = _level->cameras[0];
+
+    camera.set_position(Vector2{0, 0});
+    
+    auto quad = Quad(
+        camera.get_top_left_point(),
+        camera.get_top_right_point(),
+        camera.get_bottom_right_point(),
+        camera.get_bottom_left_point()
+    );
+    
+    // quad = Quad(
+    //     Vector2{0,0},
+    //     Vector2{final_width, 0},
+    //     Vector2{final_width, final_height},
+    //     Vector2{0, final_height}
+    // );
+
+    int flipv = 1;
+
+    BeginTextureMode(_final);
+    while (progress < threshold && (_layers_compose_progress) >= 0) {
+        const auto &l = _layers[_layers_compose_progress];
+      
+        // idk why the hell they're subtracted
+        quad.topleft -= Vector2 {1, 1};
+        quad.topright -= Vector2 {-1, 1};
+        quad.bottomright -= Vector2 {-1, -1};
+        quad.bottomleft -= Vector2 {1, -1};
+        
+        BeginShaderMode(_red_encoder);
+        SetShaderValueTexture(_red_encoder, _red_encoder_texture_loc, l.texture);
+        SetShaderValueTexture(_red_encoder, _red_encoder_lightmap_loc, _level->get_lightmap().texture);
+        SetShaderValue(_red_encoder, _red_encoder_depth_loc, &_layers_compose_progress, SHADER_UNIFORM_INT);
+        SetShaderValue(_red_encoder, _red_encoder_flipv_loc, &flipv, SHADER_UNIFORM_INT);
+
+        mr::draw::draw_texture(
+            l.texture,
+            Rectangle{
+                0,
+                0,
+                final_width,
+                final_height
+            },
+            quad
+        );
+
+        EndShaderMode();
+
+        _layers_compose_progress--;
+        progress--;
+    }
+    EndTextureMode();
+
+    if (_layers_compose_progress <= -1) { _layers_compose_progress = 29; }
+}
+
 void Renderer::load(const Level *level) {
     _logger->info("[Renderer] loading level");
 
@@ -506,25 +616,29 @@ bool Renderer::frame_render() {
 
     if (_render_progress == RENDER_PROGRESS_MATERIALS) {
 
-        // _set_render_progress(RENDER_PROGRESS_PROPS);
+        _set_render_progress(RENDER_PROGRESS_PROPS);
         return false;
     }
 
     if (_render_progress == RENDER_PROGRESS_PROPS) {
 
-        // _set_render_progress(RENDER_PROGRESS_EFFECTS);
+        for (auto &p : _level->props) {
+            _draw_prop(p.get());
+        }
+
+        _set_render_progress(RENDER_PROGRESS_EFFECTS);
         return false;
     }
 
     if (_render_progress == RENDER_PROGRESS_EFFECTS) {
 
-        // _set_render_progress(RENDER_PROGRESS_LIGHT);
+        _set_render_progress(RENDER_PROGRESS_LIGHT);
         return false;
     }
 
     if (_render_progress == RENDER_PROGRESS_LIGHT) {
 
-        // _set_render_progress(RENDER_PROGRESS_DONE);
+        _set_render_progress(RENDER_PROGRESS_DONE);
         return false;
     }
 

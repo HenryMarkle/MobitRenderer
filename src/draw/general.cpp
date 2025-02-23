@@ -67,6 +67,7 @@ void draw_texture(const Texture2D *texture, const IQuad *quad) {
   rlTexCoord2f(ttrx, ttry);
   rlVertex2i(vtrx, vtry);
 
+  rlEnd();
 
   rlSetTexture(0);
 }
@@ -129,6 +130,7 @@ void draw_texture(const Texture2D &texture, const IQuad &quad) {
   rlTexCoord2f(ttrx, ttry);
   rlVertex2i(vtrx, vtry);
 
+  rlEnd();
 
   rlSetTexture(0);
 }
@@ -191,6 +193,7 @@ void draw_texture(const Texture2D *texture, const Quad *quad) {
   rlTexCoord2f(ttrx, ttry);
   rlVertex2i(vtrx, vtry);
 
+  rlEnd();
 
   rlSetTexture(0);
 }
@@ -253,6 +256,7 @@ void draw_texture(const Texture2D &texture, const Quad &quad) {
   rlTexCoord2f(ttrx, ttry);
   rlVertex2i(vtrx, vtry);
 
+  rlEnd();
 
   rlSetTexture(0);
 }
@@ -315,92 +319,83 @@ void draw_texture(const Texture2D &texture, const Quad &quad, Color color) {
     rlTexCoord2f(ttrx, ttry);
     rlVertex2i(vtrx, vtry);
 
+    rlEnd();
 
     rlSetTexture(0);
 }
 
 void draw_texture(
   const Texture2D &texture, 
-  Rectangle src, 
+  const Rectangle &src, 
   const Quad &quad
 ) noexcept {
+    bool flipx = quad.topleft.x > quad.topright.x && quad.bottomleft.x > quad.bottomright.x;
+    bool flipy = quad.topleft.y > quad.bottomleft.y && quad.topright.y > quad.bottomright.y;
+    
+
+    // int vtrx = flipx ? quad.topleft.x : quad.topright.x;
+    // int vtry = flipy ? quad.bottomright.y : quad.topright.y;
+
+    // int vtlx = flipx ? quad.topright.x : quad.topleft.x;
+    // int vtly = flipy ? quad.bottomleft.y : quad.topleft.y;
+
+    // int vblx = flipx ? quad.bottomright.x : quad.bottomleft.x;
+    // int vbly = flipy ? quad.topleft.y : quad.bottomleft.y;
+
+    // int vbrx = flipx ? quad.bottomleft.x : quad.bottomright.x;
+    // int vbry = flipy ? quad.topright.y : quad.bottomright.y;
+
+    int vtrx = quad.topright.x;
+    int vtry = quad.topright.y;
+
+    int vtlx = quad.topleft.x;
+    int vtly = quad.topleft.y;
+
+    int vblx = quad.bottomleft.x;
+    int vbly = quad.bottomleft.y;
+
+    int vbrx = quad.bottomright.x;
+    int vbry = quad.bottomright.y;
+
+    float left_v   =  src.x                 / texture.width;
+    float right_v  = (src.x + src.width)    / texture.width;
+    float top_v    =  src.y                 / texture.height;
+    float bottom_v = (src.y + src.height)   / texture.height;
+
+    if (flipx) std::swap(left_v, right_v);
+    if (flipy) std::swap(top_v, bottom_v);
+
+
     rlSetTexture(texture.id);
 
     rlBegin(RL_QUADS);
 
     rlColor4ub(255, 255, 255, 255);
 
-    bool flipx = quad.topleft.x > quad.topright.x && quad.bottomleft.x > quad.bottomright.x;
-    bool flipy = quad.topleft.y > quad.bottomleft.y && quad.topright.y > quad.bottomright.y;
-    
-
-    int vtrx = flipx ? quad.topleft.x : quad.topright.x;
-    int vtry = flipy ? quad.bottomright.y : quad.topright.y;
-
-    int vtlx = flipx ? quad.topright.x : quad.topleft.x;
-    int vtly = flipy ? quad.bottomleft.y : quad.topleft.y;
-
-    int vblx = flipx ? quad.bottomright.x : quad.bottomleft.x;
-    int vbly = flipy ? quad.topleft.y : quad.bottomleft.y;
-
-    int vbrx = flipx ? quad.bottomleft.x : quad.bottomright.x;
-    int vbry = flipy ? quad.topright.y : quad.bottomright.y;
-
-
-    float topright_vx = (src.x + src.width) / texture.width;
-    float topright_vy = (src.y)             / texture.height;
-
-    float topleft_vx = (src.x) / texture.width;
-    float topleft_vy = (src.y) / texture.height;
-
-    float bottomleft_vx = (src.x)              / texture.width;
-    float bottomleft_vy = (src.y + src.height) / texture.height;
-
-    float bottomright_vx = (src.x + src.width)  / texture.width;
-    float bottomright_vy = (src.y + src.height) / texture.height;
-
-
-    float ttrx = flipx ? topleft_vx     : topright_vx;
-    float ttry = flipy ? bottomright_vy : topright_vy;
-
-    float ttlx = flipx ? topright_vx   : topleft_vx;
-    float ttly = flipy ? bottomleft_vy : topleft_vy;
-
-    float tblx = flipx ? bottomright_vx : bottomleft_vx;
-    float tbly = flipy ? topleft_vy     : bottomleft_vy;
-
-    float tbrx = flipx ? bottomleft_vx : bottomright_vx;
-    float tbry = flipy ? topright_vy   : bottomright_vy;
-
-
     // top right
-    rlTexCoord2f(ttrx, ttry);
-    rlVertex2i(vtrx, vtry);
+    rlTexCoord2f(right_v, top_v);
+    rlVertex2f(vtrx, vtry);
 
     // top left
-    rlTexCoord2f(ttlx, ttly);
-    rlVertex2i(vtlx, vtly);
+    rlTexCoord2f(left_v, top_v);
+    rlVertex2f(vtlx, vtly);
     
     // bottom left
-    rlTexCoord2f(tblx, tbly);
-    rlVertex2i(vblx, vbly);
+    rlTexCoord2f(left_v, bottom_v);
+    rlVertex2f(vblx, vbly);
 
     // bottom right
-    rlTexCoord2f(tbrx, tbry);
-    rlVertex2i(vbrx, vbry);
+    rlTexCoord2f(right_v, bottom_v);
+    rlVertex2f(vbrx, vbry);
 
-
-    // top right
-    rlTexCoord2f(ttrx, ttry);
-    rlVertex2i(vtrx, vtry);
-
-
+    rlEnd();
+    
     rlSetTexture(0);
 }
 
 void draw_texture(
   const Texture2D &texture, 
-  Rectangle src, 
+  const Rectangle &src, 
   const Quad &quad, 
   Color color
 ) noexcept {
@@ -474,6 +469,7 @@ void draw_texture(
     rlTexCoord2f(ttrx, ttry);
     rlVertex2i(vtrx, vtry);
 
+    rlEnd();
 
     rlSetTexture(0);
 }

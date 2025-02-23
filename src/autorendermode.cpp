@@ -390,6 +390,12 @@ int auto_render_window(int argc, char* argv[]) {
     int current_page = 1;
     size_t selected_layer_index = 0;
 
+    #ifdef IS_DEBUG_BUILD
+    int prev_min_layer = 0, prev_max_layer = 29;
+    int prev_offset_x = 1, prev_offset_y = 1;
+    bool prev_fog = true;
+    #endif
+
     while (!WindowShouldClose()) {
 
         if (!renderer->is_initialized()) {
@@ -503,11 +509,14 @@ int auto_render_window(int argc, char* argv[]) {
             BeginDrawing();
             #ifdef IS_DEBUG_BUILD
             ClearBackground(DARKGRAY);
+            renderer->frame_compose(prev_min_layer, prev_max_layer, prev_offset_x, prev_offset_y, prev_fog);
             #else
             ClearBackground(WHITE);
-            #endif
-            
             renderer->frame_compose();
+            #endif
+
+            renderer->frame_render_final();
+            
 
             #ifdef IS_DEBUG_BUILD
             rlImGuiBegin();
@@ -646,6 +655,20 @@ int auto_render_window(int argc, char* argv[]) {
                     ImGui::Spacing();
 
 
+                }
+                ImGui::End();
+
+                if (ImGui::Begin("Preview Utilities##AutoRendererUtils")) {
+                    ImGui::Checkbox("Fog", &prev_fog);
+                    
+                    ImGui::SeparatorText("Offset");
+                    
+                    ImGui::SliderInt("X", &prev_offset_x, -4, 4);
+                    ImGui::SliderInt("Y", &prev_offset_y, -4, 4);
+
+                    ImGui::SeparatorText("Layers");
+                    ImGui::SliderInt("Man", &prev_min_layer, 0, prev_max_layer);
+                    ImGui::SliderInt("Min", &prev_max_layer, prev_min_layer, 29);
                 }
                 ImGui::End();
 

@@ -90,13 +90,13 @@ void draw_texture(const Texture2D &texture, const Quad &quad, Color color);
 
 void draw_texture(
   const Texture2D &texture, 
-  Rectangle src, 
+  const Rectangle &src, 
   const Quad &quad
 ) noexcept;
 
 void draw_texture(
   const Texture2D &texture, 
-  Rectangle src, 
+  const Rectangle &src, 
   const Quad &quad, 
   Color color
 ) noexcept;

@@ -20,6 +20,12 @@
 /// the responsibility of the caller to do that.
 namespace mr::sdraw {
 
+void draw_texture_darkest(
+    const Texture2D &texture, 
+    const Rectangle &source, 
+    const Rectangle &destination
+) noexcept;
+
 /// @brief Draws an entire layer of a tile matrix (previews)
 void draw_tile_prevs_layer(
     const shaders* _shaders,

@@ -489,7 +489,14 @@ void PropDex::register_from(std::filesystem::path const &file, CastLibs const *l
                     }
                 } 
                 else {
+
+                    #if defined(__linux__) || defined(__APPLE__)
+                    auto texture_path = init_dir / (propdef->name + ".png");
+                    mr::utils::find_file_case_insensitive(texture_path);
+                    propdef->set_texture_path(texture_path);
+                    #else
                     propdef->set_texture_path(init_dir / (propdef->name + ".png"));
+                    #endif
                 }
 
                 propdef->set_category(current_category.name);
