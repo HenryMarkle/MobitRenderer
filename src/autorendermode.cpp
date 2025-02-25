@@ -392,7 +392,7 @@ int auto_render_window(int argc, char* argv[]) {
 
     #ifdef IS_DEBUG_BUILD
     int prev_min_layer = 0, prev_max_layer = 29;
-    int prev_offset_x = 1, prev_offset_y = 1;
+    float prev_offset_x = 1, prev_offset_y = 1;
     bool prev_fog = true;
     #endif
 
@@ -495,6 +495,35 @@ int auto_render_window(int argc, char* argv[]) {
         }
 
         if (renderer->get_render_progress() < 7) renderer->frame_render();
+        else if (!renderer->is_quadification_done()) renderer->frame_quadify_layers();
+        else if (!renderer->is_light_render_done()) renderer->frame_render_light(); 
+        else {
+            #ifdef IS_DEBUG_BUILD
+                #ifdef FEATURE_PALETTES
+                if (use_palette) {
+                    renderer->frame_compose_palette(
+                        prev_min_layer, 
+                        prev_max_layer, 
+                        prev_offset_x, 
+                        prev_offset_y,
+                        prev_fog,
+                        palettes[selected_palette_index] 
+                    );
+                } else {
+                    ClearBackground(DARKGRAY);
+                    renderer->frame_compose(prev_min_layer, prev_max_layer, prev_offset_x, prev_offset_y, prev_fog);
+                }
+                #else
+                ClearBackground(DARKGRAY);
+                renderer->frame_compose(prev_min_layer, prev_max_layer, prev_offset_x, prev_offset_y, prev_fog);
+                #endif
+            #else
+            ClearBackground(WHITE);
+            renderer->frame_compose();
+            #endif
+
+            renderer->frame_render_final();
+        }
 
         {
             // if (IsKeyPressed(KEY_ONE)) current_page = 1;
@@ -507,16 +536,6 @@ int auto_render_window(int argc, char* argv[]) {
 
         {
             BeginDrawing();
-            #ifdef IS_DEBUG_BUILD
-            ClearBackground(DARKGRAY);
-            renderer->frame_compose(prev_min_layer, prev_max_layer, prev_offset_x, prev_offset_y, prev_fog);
-            #else
-            ClearBackground(WHITE);
-            renderer->frame_compose();
-            #endif
-
-            renderer->frame_render_final();
-            
 
             #ifdef IS_DEBUG_BUILD
             rlImGuiBegin();
@@ -663,8 +682,8 @@ int auto_render_window(int argc, char* argv[]) {
                     
                     ImGui::SeparatorText("Offset");
                     
-                    ImGui::SliderInt("X", &prev_offset_x, -4, 4);
-                    ImGui::SliderInt("Y", &prev_offset_y, -4, 4);
+                    ImGui::SliderFloat("X", &prev_offset_x, -4, 4);
+                    ImGui::SliderFloat("Y", &prev_offset_y, -4, 4);
 
                     ImGui::SeparatorText("Layers");
                     ImGui::SliderInt("Man", &prev_min_layer, 0, prev_max_layer);
@@ -823,6 +842,21 @@ int auto_render_window(int argc, char* argv[]) {
 
                         ImGui::EndTable();
                     }
+                }
+                ImGui::End();
+
+                if (ImGui::Begin("Lightmap##AutoRendererLightmap")) {
+                    rlImGuiImageRenderTexture(&level->get_lightmap());
+                }
+                ImGui::End();
+
+                if (ImGui::Begin("Composed Lightmap##AutoRendererComposedLightmap")) {
+                    rlImGuiImageRenderTexture(&renderer->_composed_lightmap);
+                }
+                ImGui::End();
+
+                if (ImGui::Begin("Final Lightmap##AutoRendererFinalLightmap")) {
+                    rlImGuiImageRenderTexture(&renderer->_final_lightmap);
                 }
                 ImGui::End();
 

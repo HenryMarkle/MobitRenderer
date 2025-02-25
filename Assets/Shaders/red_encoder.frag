@@ -27,6 +27,9 @@ void main()
     if (flipv == 1) {
         c = texture(texture0, vec2(fragTexCoord.x, 1.0 - fragTexCoord.y));
         l = texture(lightmap, vec2(fragTexCoord.x, 1.0 - fragTexCoord.y));
+
+        //finalColor = l;
+        //return;
     } else {
         c = texture(texture0, fragTexCoord);
         l = texture(lightmap, fragTexCoord);

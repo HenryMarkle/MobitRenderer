@@ -119,26 +119,25 @@ public:
   ~TileDef();
 };
 
-enum class MaterialRenderType {
-  unified,
-  tiles,
-  pipe,
-  invisible,
-  large_trash,
-  dirt,
-  ceramic,
-  dense_pipe,
-  ridge,
-  ceramic_a,
-  ceramic_b,
-  random_pipes,
-  rock,
-  rough_rock,
-  sandy,
-  mega_trash,
-  wv,
-
-  custom_unified
+enum class MaterialRenderType : uint8_t {
+  unified        = 0,
+  tiles          = 1,
+  pipe           = 2,
+  invisible      = 3,
+  large_trash    = 4,
+  dirt           = 5,
+  ceramic        = 6,
+  dense_pipe     = 7,
+  ridge          = 8,
+  ceramic_a      = 9,
+  ceramic_b      = 10,
+  random_pipes   = 11,
+  rock           = 12,
+  rough_rock     = 13,
+  sandy          = 14,
+  mega_trash     = 15,
+  wv             = 16,
+  custom_unified = 17
 };
 
 class MaterialDef {

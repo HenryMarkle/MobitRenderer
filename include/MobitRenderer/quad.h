@@ -116,6 +116,15 @@ struct Quad {
             Vector2 { bottomleft.x + v.x, bottomleft.y + v.y }
         );
     }
+    inline Quad &operator+=(IVector2 v) noexcept {
+        topleft.x += v.x; topleft.y += v.y;
+        topright.x += v.x; topright.y += v.y;
+        bottomright.x += v.x; bottomright.y += v.y;
+        bottomleft.x += v.x; bottomleft.y += v.y;
+
+        return *this;
+    }
+
     inline Quad operator+(Vector2 v) const noexcept {
         return Quad(
             Vector2Add(topleft, v),
@@ -123,6 +132,14 @@ struct Quad {
             Vector2Add(bottomright, v),
             Vector2Add(bottomleft, v)
         );
+    }
+    inline Quad &operator+=(Vector2 v) noexcept {
+        topleft += v;
+        topright += v;
+        bottomright += v;
+        bottomleft += v;
+
+        return *this;
     }
   
     inline Quad operator-(IVector2 v) const noexcept {
@@ -133,6 +150,15 @@ struct Quad {
             Vector2 { bottomleft.x - v.x, bottomleft.y - v.y }
         );
     }
+    inline Quad &operator-=(IVector2 v) noexcept {
+        topleft.x -= v.x; topleft.y -= v.y;
+        topright.x -= v.x; topright.y -= v.y;
+        bottomright.x -= v.x; bottomright.y -= v.y;
+        bottomleft.x -= v.x; bottomleft.y -= v.y;
+
+        return *this;
+    }
+
     inline Quad operator-(Vector2 v) const noexcept {
         return Quad(
             Vector2Subtract(topleft, v),
@@ -141,6 +167,15 @@ struct Quad {
             Vector2Subtract(bottomleft, v)
         );
     }
+    inline Quad &operator-=(Vector2 v) noexcept {
+        topleft -= v;
+        topright -= v;
+        bottomright -= v;
+        bottomleft -= v;
+
+        return *this;
+    }
+
     inline Quad operator*(float scale) const noexcept {
         return Quad(
             topleft * scale,
@@ -149,6 +184,15 @@ struct Quad {
             bottomleft * scale
         );
     }
+    inline Quad &operator*=(float scale) noexcept {
+        topleft *= scale;
+        topright *= scale;
+        bottomright *= scale;
+        bottomleft *= scale;
+
+        return *this;
+    }
+
     inline Quad operator/(float scale) const noexcept {
         return Quad(
             topleft / scale,
@@ -157,20 +201,46 @@ struct Quad {
             bottomleft / scale
         );
     }
-    inline Quad &operator*=(float scale) noexcept {
-        topleft *= scale;
-        topright *= scale;
-        bottomright *= scale;
-        bottomleft *= scale;
-        
-        return *this;
-    }
     inline Quad &operator/=(float scale) noexcept {
         topleft /= scale;
         topright /= scale;
         bottomright /= scale;
         bottomleft /= scale;
 
+        return *this;
+    }
+
+    inline Quad operator+(Quad q) noexcept {
+        return Quad(
+            topleft + q.topleft,
+            topright + q.topright,
+            bottomright + q.bottomright,
+            bottomleft + q.bottomleft
+        );
+    }
+    inline Quad operator-(Quad q) noexcept {
+        return Quad(
+            topleft - q.topleft,
+            topright - q.topright,
+            bottomright - q.bottomright,
+            bottomleft - q.bottomleft
+        );
+    }
+
+    inline Quad &operator+=(Quad q) noexcept {
+        topleft += q.topleft;
+        topright += q.topright;
+        bottomright += q.bottomright;
+        bottomleft += q.bottomleft;
+        
+        return *this;
+    }
+    inline Quad &operator-=(Quad q) noexcept {
+        topleft -= q.topleft;
+        topright -= q.topright;
+        bottomright -= q.bottomright;
+        bottomleft -= q.bottomleft;
+        
         return *this;
     }
 

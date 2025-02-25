@@ -5,6 +5,7 @@
 #include <atomic>
 #include <string>
 #include <random>
+#include <cstdint>
 
 #include <raylib.h>
 #include <raymath.h>
@@ -67,24 +68,44 @@ struct RenderConfig {
 
     /// @brief An array of selected cameras (indices) to render.
     std::vector<size_t> cameras;
+
+    RenderConfig() :
+        no_light(false),
+        no_props(false),
+        no_effects(false),
+        no_tiles(false),
+        skip_undefined(true),
+        skip_undefined_effects(true),
+        skip_undefined_materials(true),
+        skip_undefined_tiles(true),
+        skip_undefined_props(true),
+        cameras({}) 
+    {}
 };
 
 struct Render_TileCell {
     int rnd;
     matrix_t x, y, z;
     const TileCell *cell;
+
+    Render_TileCell() : rnd(0), x(0), y(0), z(0), cell(nullptr) {}
+    Render_TileCell(int rnd, matrix_t x, matrix_t y, matrix_t z, const TileCell *cell) :
+        rnd(rnd),
+        x(x), y(y), z(z),
+        cell(cell)
+    {}
 };
 
 class RandomGen {
 
 private:
 
-    uint _seed, _init;
+    uint32_t _seed, _init;
 
     
-    inline static int _random_derive(uint param) noexcept {
+    inline static int _random_derive(uint32_t param) noexcept {
         auto var1 = static_cast<int>((param << 0xd ^ param) - (static_cast<int>(param) >> 0x15));
-        auto var2 = static_cast<uint>(((var1 * var1 * 0x3d73 + 0xc0ae5) * var1 + 0xd208dd0d & 0x7fffffff) + var1);
+        auto var2 = static_cast<uint32_t>(((var1 * var1 * 0x3d73 + 0xc0ae5) * var1 + 0xd208dd0d & 0x7fffffff) + var1);
         return static_cast<int>((var2 * 0x2000 ^ var2) - (static_cast<int>(var2) >> 0x15));
     }
     
@@ -110,16 +131,16 @@ private:
     inline int next(int max) noexcept {
         if (_seed == 0) init_rng();
 
-        if ((_seed & 1) == 0) _seed = static_cast<uint>(_seed >> 1);
-        else _seed = static_cast<uint>(_seed >> 1 ^ _init);
+        if ((_seed & 1) == 0) _seed = static_cast<uint32_t>(_seed >> 1);
+        else _seed = static_cast<uint32_t>(_seed >> 1 ^ _init);
 
-        auto var1 = _random_derive(static_cast<uint>(_seed * 0x47));
-        if (max > 1) var1 = static_cast<int>((long)static_cast<ulong>(var1 & 0x7FFFFFFF) % static_cast<long>(max));
+        auto var1 = _random_derive(static_cast<uint32_t>(_seed * 0x47));
+        if (max > 1) var1 = static_cast<int>(static_cast<long>(static_cast<uint64_t>(var1 & 0x7FFFFFFF)) % static_cast<long>(max));
         
         return var1;
     }
 
-    RandomGen(uint seed) : _seed(seed), _init(0xA3000000) {}
+    RandomGen(uint32_t seed) : _seed(seed), _init(0xA3000000) {}
 };
 
 /// @brief Responsible for rendering the final level image.
@@ -149,6 +170,11 @@ protected:
     std::shared_ptr<Dirs> _dirs;
     std::shared_ptr<spdlog::logger> _logger;
 
+    RenderConfig _config;
+
+    Shader _vflip;
+    int _vflip_texture_loc;
+
     /// @brief Removes the white background.
     Shader _white_remover;
     int _white_remover_texture_loc;
@@ -177,6 +203,27 @@ protected:
     int _red_encoder_depth_loc;
     int _red_encoder_flipv_loc;
 
+    Shader _rgb_apply_palette;
+    int _rgb_apply_palette_texture_loc;
+    int _rgb_apply_palette_palette_loc;
+    int _rgb_apply_palette_lightmap_loc;
+    int _rgb_apply_palette_depth_loc;
+    int _rgb_apply_palette_vflip_loc;
+
+    Shader _palette_sky;
+    int _palette_sky_texture_loc;
+
+    Shader _sill;
+    int _sill_texture_loc;
+    int _sill_invert_loc;
+    int _sill_vflip_loc;
+
+    Shader _cross_sill;
+    int _cross_sill_texture_loc;
+    int _cross_sill_sill_loc;
+    int _cross_sill_invert_loc;
+    int _cross_sill_vflip_loc;
+
     TileDex     *_tiles;
     PropDex     *_props;
     MaterialDex *_materials;
@@ -198,6 +245,7 @@ protected:
         _dc_layers_initialized,
         _ga_layers_initialized,
         _gb_layers_initialized,
+        _quadified_initialized,
         _lightmap_initialized,
         _final_initialized;
 
@@ -206,10 +254,14 @@ protected:
         _dc_layers_cleaned,
         _ga_layers_cleaned,
         _gb_layers_cleaned,
+        _quadified_cleaned,
         _lightmap_cleaned,
         _final_cleaned;
 
-    size_t _layers_init_progress, _layers_clean_progress;
+    size_t _layers_init_progress, 
+        _layers_clean_progress, 
+        _light_render_progress, 
+        _quadify_progress;
     int _layers_compose_progress;
 
     /// 1 - tiles
@@ -232,6 +284,15 @@ protected:
         _tiles_to_render2,
         _tiles_to_render3;
 
+    // For each selected camera, an array of render type array of material cells.
+    // accessed as the following:
+    // array[selected_camera][material_rendertype][cell]
+    // note: selected_camera is the index of _config.cameras.
+    std::vector<std::vector<std::vector<Render_TileCell>>> 
+        _materials_to_render1,
+        _materials_to_render2,
+        _materials_to_render3;
+
     /// A lot of draw calls here
     /// TODO: continue here.
     ///
@@ -251,13 +312,17 @@ public:
     RenderTexture2D _dc_layers[30];
     RenderTexture2D _ga_layers[30];
     RenderTexture2D _gb_layers[30];
+    RenderTexture2D _quadified_layers[30];
 
     RenderTexture2D _composed_layers;
 
+    RenderTexture2D _composed_lightmap;
     RenderTexture2D _final_lightmap;
 
     /// @brief The final texture of the level.
     RenderTexture2D _final;
+
+    inline void configure(const RenderConfig &c) noexcept { _config = c; }
 
     /// @brief Initializes render textures and data; happens independently
     /// from the state of the level.
@@ -281,11 +346,27 @@ public:
     void frame_compose(
         int min_layer,
         int max_layer,
-        int offsetx,
-        int offsety,
+        float offsetx,
+        float offsety,
         bool fog,
         int threshold = 10
     );
+
+    #ifdef FEATURE_PALETTES
+    void frame_compose_palette(
+        int min_layer,
+        int max_layer,
+        float offsetx,
+        float offsety,
+        bool fog,
+        const Palette &palette,
+        int threshold = 10
+    );
+    #endif
+
+    bool frame_quadify_layers(int threshold = 10);
+
+    bool frame_render_light(int threshold = 10);
 
     void frame_render_final(int threshold = 10);
 
@@ -299,6 +380,8 @@ public:
     inline bool is_preparation_done() const noexcept { return _preparation_done; }
 
     inline int get_render_progress() const noexcept { return _render_progress; }
+    inline bool is_light_render_done() const noexcept { return _light_render_progress >= 29; }
+    inline bool is_quadification_done() const noexcept { return _quadify_progress >= 29; }
 
     /// @brief Renders a portion of the level at a time.
     /// @return Returns true if the level is not completely done.

@@ -3,7 +3,7 @@
 #include <atomic>
 #include <string>
 #include <random>
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 #include <algorithm>
 
@@ -11,11 +11,12 @@
 
 #include <spdlog/spdlog.h>
 
-#include <MobitRenderer/renderer.h>
+#include <MobitRenderer/vec.h>
 #include <MobitRenderer/dirs.h>
 #include <MobitRenderer/level.h>
 #include <MobitRenderer/state.h>
 #include <MobitRenderer/matrix.h>
+#include <MobitRenderer/renderer.h>
 #include <MobitRenderer/definitions.h>
 
 #define RENDER_PROGRESS_TILES 1
@@ -47,10 +48,36 @@ Renderer::Renderer(
     _materials(materialdex), 
     _castlibs(castlibs),
 
+    _vflip_texture_loc(0),
     _white_remover_texture_loc(0),
     _white_remover_vflip_texture_loc(0),
     _bevel_texture_loc(0),
+
     _invb_texture_loc(0),
+    _invb_vertices_loc(0),
+    _invb_tex_coord_loc(0),
+
+    _red_encoder_texture_loc(0),
+    _red_encoder_lightmap_loc(0),
+    _rgb_apply_palette_lightmap_loc(0),
+    _red_encoder_depth_loc(0),
+    _red_encoder_flipv_loc(0),
+
+    _rgb_apply_palette_texture_loc(0),
+    _rgb_apply_palette_palette_loc(0),
+    _rgb_apply_palette_depth_loc(0),
+    _rgb_apply_palette_vflip_loc(0),
+
+    _palette_sky_texture_loc(0),
+
+    _sill_texture_loc(0),
+    _sill_invert_loc(0),
+    _sill_vflip_loc(0),
+
+    _cross_sill_texture_loc(0),
+    _cross_sill_sill_loc(0),
+    _cross_sill_invert_loc(0),
+    _cross_sill_vflip_loc(0),
     
     _preparation_done(false),
     _initialized(false),
@@ -62,6 +89,7 @@ Renderer::Renderer(
     _dc_layers_initialized(false),
     _ga_layers_initialized(false),
     _gb_layers_initialized(false),
+    _quadified_initialized(false),
     _lightmap_initialized(false),
     _final_initialized(false),
 
@@ -69,6 +97,7 @@ Renderer::Renderer(
     _dc_layers_cleaned(false),
     _ga_layers_cleaned(false),
     _gb_layers_cleaned(false),
+    _quadified_cleaned(false),
     _lightmap_cleaned(false),
     _final_cleaned(false),
 
@@ -79,6 +108,8 @@ Renderer::Renderer(
     _layers_init_progress(0),
     _layers_clean_progress(0),
     _layers_compose_progress(29),
+    _light_render_progress(0),
+    _quadify_progress(0),
 
     _render_progress(0),
 
@@ -97,13 +128,17 @@ Renderer::~Renderer() {
             UnloadRenderTexture(_dc_layers[l]);
             UnloadRenderTexture(_ga_layers[l]);
             UnloadRenderTexture(_gb_layers[l]);
+            UnloadRenderTexture(_quadified_layers[l]);
         }
 
         UnloadRenderTexture(_final);
+        UnloadRenderTexture(_final_lightmap);
+        UnloadRenderTexture(_composed_lightmap);
         UnloadRenderTexture(_composed_layers);
     
-        if (_preparation_thread.joinable()) _preparation_thread.join();
     }
+
+    if (_preparation_thread.joinable()) _preparation_thread.join();
 }
 
 void Renderer::initialize() {
@@ -119,11 +154,11 @@ void Renderer::initialize() {
         _logger->info("[Renderer] (initialization) loading render textures");
 
         for (size_t l = 0; l < 30; l++) {
-            _layers[l]    = LoadRenderTexture(work_width, work_height);
-            _dc_layers[l] = LoadRenderTexture(work_width, work_height);
-            _ga_layers[l] = LoadRenderTexture(work_width, work_height);
-            _ga_layers[l] = LoadRenderTexture(work_width, work_height);
-            _gb_layers[l] = LoadRenderTexture(work_width, work_height);
+            _layers[l]    = LoadRenderTexture(final_width, final_height);
+            _dc_layers[l] = LoadRenderTexture(final_width, final_height);
+            _ga_layers[l] = LoadRenderTexture(final_width, final_height);
+            _ga_layers[l] = LoadRenderTexture(final_width, final_height);
+            _gb_layers[l] = LoadRenderTexture(final_width, final_height);
         }
 
         _final = LoadRenderTexture(final_width, final_height);
@@ -179,25 +214,53 @@ bool Renderer::frame_initialize(int threshold) {
     if (!_shaders_initialized) {
         const auto &shaders_dir = _dirs->get_shaders();
 
+        _vflip = LoadShader(nullptr, (shaders_dir / "vflip.frag").string().c_str());
         _white_remover = LoadShader(nullptr, (shaders_dir / "white_remover.frag").string().c_str());
         _white_remover_vflip = LoadShader(nullptr, (shaders_dir / "white_remover_vflip.frag").string().c_str());
         _composer = LoadShader(nullptr, (shaders_dir / "white_remover_apply_white_tint_vflip.frag").string().c_str());
         _bevel = LoadShader(nullptr, (shaders_dir / "bevel.frag").string().c_str());
         _invb = LoadShader((shaders_dir / "invb.vert").string().c_str(), (shaders_dir / "invb.frag").string().c_str());
         _red_encoder = LoadShader(nullptr, (shaders_dir / "red_encoder.frag").string().c_str());
+        _rgb_apply_palette = LoadShader(nullptr, (shaders_dir / "rgb_apply_palette.frag").string().c_str());
+        _palette_sky = LoadShader(nullptr, (shaders_dir / "palette_sky.frag").string().c_str());
+        _sill = LoadShader(nullptr, (shaders_dir / "binary_map.frag").string().c_str());
+        _cross_sill = LoadShader(nullptr, (shaders_dir / "cross_binary_map.frag").string().c_str());
+        
+        _vflip_texture_loc = GetShaderLocation(_vflip, "texture0");
         
         _white_remover_texture_loc = GetShaderLocation(_white_remover, "texture0");
         _white_remover_vflip_texture_loc = GetShaderLocation(_white_remover_vflip, "texture0");
+        
         _composer_texture_loc = GetShaderLocation(_composer, "texture0");
         _composer_tint_loc = GetShaderLocation(_composer, "tint");
+        
         _bevel_texture_loc = GetShaderLocation(_bevel, "texture0");
+        
         _invb_texture_loc = GetShaderLocation(_invb, "textureSampler");
         _invb_vertices_loc = GetShaderLocation(_invb, "vertex_pos");
         _invb_tex_coord_loc = GetShaderLocation(_invb, "tex_coord_pos");
+        
         _red_encoder_texture_loc = GetShaderLocation(_red_encoder, "texture0");
         _red_encoder_lightmap_loc = GetShaderLocation(_red_encoder, "lightmap");
         _red_encoder_depth_loc = GetShaderLocation(_red_encoder, "depth");
         _red_encoder_flipv_loc = GetShaderLocation(_red_encoder, "flipv");
+        
+        _rgb_apply_palette_texture_loc = GetShaderLocation(_rgb_apply_palette, "texture0");
+        _rgb_apply_palette_palette_loc = GetShaderLocation(_rgb_apply_palette, "palette");
+        _rgb_apply_palette_lightmap_loc = GetShaderLocation(_rgb_apply_palette, "lightmap");
+        _rgb_apply_palette_depth_loc = GetShaderLocation(_rgb_apply_palette, "depth");
+        _rgb_apply_palette_vflip_loc = GetShaderLocation(_rgb_apply_palette, "vflip");
+
+        _palette_sky_texture_loc = GetShaderLocation(_palette_sky, "texture0");
+
+        _sill_texture_loc = GetShaderLocation(_sill, "texture0");
+        _sill_invert_loc = GetShaderLocation(_sill, "invert");
+        _sill_vflip_loc = GetShaderLocation(_sill, "vflip");
+
+        _cross_sill_texture_loc = GetShaderLocation(_cross_sill, "texture0");
+        _cross_sill_sill_loc = GetShaderLocation(_cross_sill, "map");
+        _cross_sill_invert_loc = GetShaderLocation(_cross_sill, "invert");
+        _cross_sill_vflip_loc = GetShaderLocation(_cross_sill, "vflip");
 
         _shaders_initialized = true;
         return false;
@@ -207,7 +270,7 @@ bool Renderer::frame_initialize(int threshold) {
         int progress = 0;
 
         while (progress < threshold && (_layers_init_progress) < 30) {
-            _layers[_layers_init_progress] = LoadRenderTexture(work_width, work_height);
+            _layers[_layers_init_progress] = LoadRenderTexture(final_width, final_height);
             
             _layers_init_progress++;
             progress++;
@@ -222,7 +285,7 @@ bool Renderer::frame_initialize(int threshold) {
         int progress = 0;
 
         while (progress < threshold && (_layers_init_progress) < 30) {
-            _dc_layers[_layers_init_progress] = LoadRenderTexture(work_width, work_height);
+            _dc_layers[_layers_init_progress] = LoadRenderTexture(final_width, final_height);
             
             _layers_init_progress++;
             progress++;
@@ -237,7 +300,7 @@ bool Renderer::frame_initialize(int threshold) {
         int progress = 0;
 
         while (progress < threshold && (_layers_init_progress) < 30) {
-            _ga_layers[_layers_init_progress] = LoadRenderTexture(work_width, work_height);
+            _ga_layers[_layers_init_progress] = LoadRenderTexture(final_width, final_height);
 
             _layers_init_progress++;
             progress++;
@@ -252,7 +315,7 @@ bool Renderer::frame_initialize(int threshold) {
         int progress = 0;
 
         while (progress < threshold && (_layers_init_progress) < 30) {
-            _gb_layers[_layers_init_progress] = LoadRenderTexture(work_width, work_height);
+            _gb_layers[_layers_init_progress] = LoadRenderTexture(final_width, final_height);
         
             _layers_init_progress++;
             progress++;
@@ -263,7 +326,23 @@ bool Renderer::frame_initialize(int threshold) {
         return false;
     }
 
+    if (!_quadified_initialized) {
+        int progress = 0;
+
+        while (progress < threshold && (_layers_init_progress) < 30) {
+            _quadified_layers[_layers_init_progress] = LoadRenderTexture(final_width, final_height);
+        
+            _layers_init_progress++;
+            progress++;
+        }
+
+        _quadified_initialized = _layers_init_progress > 29;
+        if (_quadified_initialized) _layers_init_progress = 0;
+        return false;
+    }
+
     if (!_lightmap_initialized) {
+        _composed_lightmap = LoadRenderTexture(final_width, final_height);
         _final_lightmap = LoadRenderTexture(final_width, final_height);
 
         _lightmap_initialized = true;
@@ -354,8 +433,13 @@ bool Renderer::frame_cleanup(int threshold) {
 
     if (!_lightmap_cleaned) {
         BeginTextureMode(_final_lightmap);
-        ClearBackground(WHITE);
+        ClearBackground(BLACK);
         EndTextureMode();
+
+        BeginTextureMode(_composed_lightmap);
+        ClearBackground(BLACK);
+        EndTextureMode();
+
         _lightmap_cleaned = true;
     }
 
@@ -373,6 +457,7 @@ bool Renderer::frame_cleanup(int threshold) {
 
     _render_progress = 0;
     _tile_layer_progress = 0;
+    _light_render_progress = 0;
 
     _cleaned_up = true;
 
@@ -391,9 +476,11 @@ void Renderer::frame_compose(int threshold) {
     int progress = 0;
 
     BeginTextureMode(_composed_layers);
+    
+    if (_layers_compose_progress == 29) ClearBackground(WHITE);
+
     while (progress < threshold && (_layers_compose_progress) >= 0) {
         const auto &l = _layers[_layers_compose_progress];
-        if (_layers_compose_progress == 29) ClearBackground(WHITE);
         
         BeginShaderMode(_composer);
         SetShaderValueTexture(_composer, _composer_texture_loc, l.texture);
@@ -413,8 +500,8 @@ void Renderer::frame_compose(int threshold) {
 void Renderer::frame_compose(
     int min_layer,
     int max_layer,
-    int offsetx,
-    int offsety,
+    float offsetx,
+    float offsety,
     bool fog,
     int threshold
 ) {
@@ -448,59 +535,236 @@ void Renderer::frame_compose(
     if (_layers_compose_progress <= -1) { _layers_compose_progress = 29; }
 }
 
+#ifdef FEATURE_PALETTES
+void Renderer::frame_compose_palette(
+    int min_layer,
+    int max_layer,
+    float offsetx,
+    float offsety,
+    bool fog,
+    const Palette &palette,
+    int threshold
+) {
+    if (!_initialized) return;
+
+    int progress = 0;
+
+    BeginTextureMode(_composed_layers);
+    if (_layers_compose_progress == 29) {
+        BeginShaderMode(_palette_sky);
+        SetShaderValueTexture(_palette_sky, _palette_sky_texture_loc, palette.get_texture());
+        DrawTexturePro(
+            palette.get_texture(), 
+            {0,0,32,16}, 
+            {0,0,final_width,final_height},
+            {0,0},
+            0, 
+            WHITE
+        );
+        EndShaderMode();
+    }
+
+    while (
+        progress < threshold && 
+        _layers_compose_progress >= 0
+    ) {
+        if (_layers_compose_progress <= max_layer && _layers_compose_progress >= min_layer) {
+            const auto &l = _quadified_layers[_layers_compose_progress];
+            
+            BeginShaderMode(_rgb_apply_palette);
+            SetShaderValueTexture(_rgb_apply_palette, _rgb_apply_palette_texture_loc, l.texture);
+            SetShaderValueTexture(_rgb_apply_palette, _rgb_apply_palette_palette_loc, palette.get_texture());
+            SetShaderValueTexture(_rgb_apply_palette, _rgb_apply_palette_lightmap_loc, _final_lightmap.texture);
+            SetShaderValue(_rgb_apply_palette, _rgb_apply_palette_depth_loc, &_layers_compose_progress, SHADER_UNIFORM_INT);
+            int vflip = 1;
+            SetShaderValue(_rgb_apply_palette, _rgb_apply_palette_vflip_loc, &vflip, SHADER_UNIFORM_INT);
+
+            DrawTexture(l.texture, 5 - offsetx * _layers_compose_progress, 5 - offsety * _layers_compose_progress, WHITE);
+            EndShaderMode();
+        }
+
+        _layers_compose_progress--;
+        progress--;
+    }
+    EndTextureMode();
+
+    if (_layers_compose_progress <= -1) { _layers_compose_progress = 29; }
+}
+#endif
+
+bool Renderer::frame_quadify_layers(int threshold) {
+    if (!_initialized) return false;
+
+    if (_quadify_progress == 29) _quadify_progress = 0;
+
+    int progress = 0;
+
+    auto camera = _level->cameras[0];
+    camera.set_position(Vector2{0, 0});
+    const auto quadify = [](Vector2 pos, float radius, int degree, int depth) {
+        const float scaled_radius = radius * (depth - 5);
+        const float rotated_angle = (degree - 90) * (PI / 180.0f);
+
+        return Vector2{
+            pos.x + scaled_radius * (float)cos(rotated_angle),
+            pos.y + scaled_radius * (float)sin(rotated_angle)
+        }; 
+    };
+
+    auto quad = Quad(
+        Vector2{0,0},
+        Vector2{final_width, 0},
+        Vector2{final_width, final_height},
+        Vector2{0, final_height}
+    );
+    
+    // quad.topleft -= Vector2{5, 5};
+    // quad.topright -= Vector2{5, 5};
+    // quad.bottomright -= Vector2{5, 5};
+    // quad.bottomleft -= Vector2{5, 5};
+
+    while (progress < threshold && _quadify_progress < 30) {
+
+        quad.topleft = Vector2 { 1,  1} * _quadify_progress + quadify(camera.get_top_left_point(), camera.get_top_left_radius(), camera.get_top_left_angle(), _quadify_progress);
+        quad.topright = Vector2 {-1,  1} * _quadify_progress + quadify(camera.get_top_right_point(), camera.get_top_right_radius(), camera.get_top_right_angle(), _quadify_progress);;
+        quad.bottomright = Vector2 {-1, -1} * _quadify_progress + quadify(camera.get_bottom_right_point(), camera.get_bottom_right_radius(), camera.get_bottom_right_angle(), _quadify_progress);;
+        quad.bottomleft = Vector2 { 1, -1} * _quadify_progress + quadify(camera.get_bottom_left_point(), camera.get_bottom_left_radius(), camera.get_bottom_left_angle(), _quadify_progress);;
+
+        BeginTextureMode(_quadified_layers[_quadify_progress]);
+        ClearBackground(WHITE);
+
+        BeginShaderMode(_vflip);
+        SetShaderValueTexture(_vflip, _vflip_texture_loc, _layers[_quadify_progress].texture);
+
+        mr::draw::draw_texture(
+            _layers[_quadify_progress].texture,
+            quad
+        );
+
+        EndShaderMode();
+
+        EndTextureMode();
+
+        progress++;
+        _quadify_progress++;
+    }
+
+    return _quadify_progress >= 30;
+}
+
+bool Renderer::frame_render_light(int threshold) {
+    if (!_initialized) return false;
+
+    if (_light_render_progress == 29) _light_render_progress = 0;
+
+    float rad = (_level->light_angle - 90) * (PI / 180.0f);
+    float angle_x = -cos(rad);
+    float angle_y = sin(rad);
+
+    if (std::abs(angle_x) < 1e-6) {
+        angle_x = 0;
+    }
+    if (std::abs(angle_y) < 1e-6) {
+        angle_y = 0;
+    }
+
+    auto projection_angle = Vector2{ angle_x, angle_y };
+
+    int cinvert = 1;
+    int finvert = 1; // does not do anything
+    
+    int cvflip = 1;
+    int fvflip = 1;
+
+    int progress = 1;
+
+    auto dest = Rectangle {
+        0,
+        0,
+        final_width,
+        final_height
+    };
+
+    while (progress < threshold && _light_render_progress < 30) {
+        if (_light_render_progress == 0) {
+            BeginTextureMode(_composed_lightmap);
+            ClearBackground(BLACK);
+            EndTextureMode();
+
+            BeginTextureMode(_final_lightmap);
+            ClearBackground(BLACK);
+            EndTextureMode();
+        }
+
+        const auto &texture = _quadified_layers[_light_render_progress].texture;
+
+        BeginTextureMode(_final_lightmap);
+        BeginShaderMode(_cross_sill);
+        SetShaderValueTexture(_cross_sill, _cross_sill_texture_loc, texture);
+        SetShaderValueTexture(_cross_sill, _cross_sill_sill_loc, _composed_lightmap.texture);
+        SetShaderValue(_cross_sill, _cross_sill_invert_loc, &finvert, SHADER_UNIFORM_INT);
+        SetShaderValue(_cross_sill, _cross_sill_vflip_loc, &fvflip, SHADER_UNIFORM_INT);
+
+        DrawTexturePro(
+            texture,
+            dest,
+            dest,
+            Vector2 {0, 0},
+            0,
+            WHITE
+        );
+
+        EndShaderMode();
+        EndTextureMode();
+
+
+        BeginTextureMode(_composed_lightmap);
+        BeginShaderMode(_sill);
+        SetShaderValueTexture(_sill, _sill_texture_loc, texture);
+        SetShaderValue(_sill, _sill_invert_loc, &cinvert, SHADER_UNIFORM_INT);
+        SetShaderValue(_sill, _sill_vflip_loc, &cvflip, SHADER_UNIFORM_INT);
+
+        const auto angle = projection_angle * (_level->light_flatness + _light_render_progress - 1);
+
+        DrawTexturePro(
+            texture,
+            dest,
+            Rectangle {angle.x, angle.y, final_width, final_height},
+            // Rectangle {0, 3.0f+_light_render_progress, final_width, final_height},
+            Vector2 {0, 0},
+            0,
+            WHITE
+        );
+
+        EndShaderMode();
+        EndTextureMode();
+
+        progress++;
+        _light_render_progress++;
+    }
+
+    return _light_render_progress >= 29;
+}
+
 void Renderer::frame_render_final(int threshold) {
     if (!_initialized) return;
     if (_layers_compose_progress <= -1) return;
     if (_layers_compose_progress == 29) ClearBackground(WHITE);
 
     int progress = 0;
-
-    auto camera = _level->cameras[0];
-
-    camera.set_position(Vector2{0, 0});
-    
-    auto quad = Quad(
-        camera.get_top_left_point(),
-        camera.get_top_right_point(),
-        camera.get_bottom_right_point(),
-        camera.get_bottom_left_point()
-    );
-    
-    // quad = Quad(
-    //     Vector2{0,0},
-    //     Vector2{final_width, 0},
-    //     Vector2{final_width, final_height},
-    //     Vector2{0, final_height}
-    // );
-
     int flipv = 1;
 
     BeginTextureMode(_final);
     while (progress < threshold && (_layers_compose_progress) >= 0) {
-        const auto &l = _layers[_layers_compose_progress];
+        const auto &l = _quadified_layers[_layers_compose_progress].texture;
       
-        // idk why the hell they're subtracted
-        quad.topleft -= Vector2 {1, 1};
-        quad.topright -= Vector2 {-1, 1};
-        quad.bottomright -= Vector2 {-1, -1};
-        quad.bottomleft -= Vector2 {1, -1};
-        
         BeginShaderMode(_red_encoder);
-        SetShaderValueTexture(_red_encoder, _red_encoder_texture_loc, l.texture);
-        SetShaderValueTexture(_red_encoder, _red_encoder_lightmap_loc, _level->get_lightmap().texture);
+        SetShaderValueTexture(_red_encoder, _red_encoder_texture_loc, l);
+        SetShaderValueTexture(_red_encoder, _red_encoder_lightmap_loc, _final_lightmap.texture);
         SetShaderValue(_red_encoder, _red_encoder_depth_loc, &_layers_compose_progress, SHADER_UNIFORM_INT);
         SetShaderValue(_red_encoder, _red_encoder_flipv_loc, &flipv, SHADER_UNIFORM_INT);
 
-        mr::draw::draw_texture(
-            l.texture,
-            Rectangle{
-                0,
-                0,
-                final_width,
-                final_height
-            },
-            quad
-        );
+        DrawTexture(l, 0, 0, WHITE);
 
         EndShaderMode();
 
@@ -531,6 +795,10 @@ void Renderer::_prepare() {
     _tiles_to_render2.clear();
     _tiles_to_render3.clear();
 
+    _materials_to_render1.clear();
+    _materials_to_render2.clear();
+    _materials_to_render3.clear();
+
     for (matrix_t x = 0; x < mtx.get_width(); x++) {
         for (matrix_t y = 0; y < mtx.get_height(); y++) {
             const auto *cell1 = mtx.get_const_ptr(x, y, 0);
@@ -547,6 +815,75 @@ void Renderer::_prepare() {
 
             if (cell3 != nullptr && cell3->type == TileType::head && cell3->tile_def != nullptr) {
                 _tiles_to_render3.push_back(Render_TileCell{ _rand.next(100000), x, y, 2, cell3 });
+            }
+        }
+    }
+
+    if (_config.cameras.empty()) {
+        _materials_to_render1.resize(_level->cameras.size());
+        _materials_to_render2.resize(_level->cameras.size());
+        _materials_to_render3.resize(_level->cameras.size());
+    } else {
+        _materials_to_render1.resize(_config.cameras.size());
+        _materials_to_render2.resize(_config.cameras.size());
+        _materials_to_render3.resize(_config.cameras.size());
+    }
+
+    for (size_t c = 0; c < _materials_to_render1.size(); c++) {
+        const auto &camera = _config.cameras.empty() 
+            ? _level->cameras[c] 
+            : _level->cameras[_config.cameras[c]];
+
+        _materials_to_render1[c] = std::vector<std::vector<Render_TileCell>>();
+        _materials_to_render2[c] = std::vector<std::vector<Render_TileCell>>();
+        _materials_to_render3[c] = std::vector<std::vector<Render_TileCell>>();
+        
+        _materials_to_render1[c].resize(18);
+        _materials_to_render2[c].resize(18);
+        _materials_to_render3[c].resize(18);
+    
+        auto pos = camera.get_position();
+        auto mtx_pos = ivec2 { 
+            static_cast<int>(pos.x / 20), 
+            static_cast<int>(pos.y / 20) 
+        };
+
+        const auto *default_material = _materials->material(_level->default_material);
+
+        const auto &mtx = _level->get_const_tile_matrix();
+
+        for (matrix_t x = mtx_pos.x; x < mtx_pos.x + columns; x++) {
+            for (matrix_t y = mtx_pos.y; y < mtx_pos.y + rows; y++) {
+                if (!mtx.is_in_bounds(x, y, 0)) continue;
+                
+                const auto *cell1 = mtx.get_const_ptr(x, y, 0);
+                const auto *cell2 = mtx.get_const_ptr(x, y, 1);
+                const auto *cell3 = mtx.get_const_ptr(x, y, 2);
+
+                if (cell1 != nullptr) {
+                    if (cell1->type == TileType::material && cell1->material_def != nullptr) {
+                        _materials_to_render1[c][static_cast<size_t>(cell1->material_def->get_type())].push_back(Render_TileCell(0, x, y, 0, cell1));
+                    } else if (cell1->type == TileType::_default && default_material != nullptr) {
+                        _materials_to_render1[c][static_cast<size_t>(default_material->get_type())].push_back(Render_TileCell(0, x, y, 0, cell1));
+                    }
+                }
+
+                if (cell2 != nullptr) {
+                    if (cell2->type == TileType::material && cell2->material_def != nullptr) {
+                        _materials_to_render2[c][static_cast<size_t>(cell2->material_def->get_type())].push_back(Render_TileCell(0, x, y, 1, cell2));
+                    } else if (cell2->type == TileType::_default && default_material != nullptr) {
+                        _materials_to_render2[c][static_cast<size_t>(default_material->get_type())].push_back(Render_TileCell(0, x, y, 1, cell2));
+                    }
+                }
+
+                if (cell3 != nullptr) {
+                    if (cell3->type == TileType::material && cell3->material_def != nullptr) {
+                        _materials_to_render3[c][static_cast<size_t>(cell3->material_def->get_type())].push_back(Render_TileCell(0, x, y, 2, cell3));
+                    } else if (cell2->type == TileType::_default && default_material != nullptr) {
+                        _materials_to_render3[c][static_cast<size_t>(default_material->get_type())].push_back(Render_TileCell(0, x, y, 2, cell3));
+                    }
+                }
+
             }
         }
     }
@@ -577,9 +914,9 @@ void Renderer::_prepare() {
 void Renderer::prepare() {
     if (_preparation_thread.joinable()) _preparation_thread.join();
 
-    _prepare();
-    _preparation_done = true;
-    // _preparation_thread = std::thread([this]() {this->_prepare();});
+    // _prepare();
+    // _preparation_done = true;
+    _preparation_thread = std::thread([this]() {this->_prepare(); this->_preparation_done = true;});
 }
 
 void Renderer::_set_render_progress(int step) {
