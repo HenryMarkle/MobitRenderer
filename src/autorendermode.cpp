@@ -5,8 +5,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 
 #include <imgui.h>
 #include <raylib.h>
@@ -571,9 +569,9 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("Size");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text((std::to_string(level->get_width()) + " * " +
-                         std::to_string(level->get_height()))
-                            .c_str());
+            ImGui::Text("%s", (std::to_string(level->get_width()) + " * " +
+                               std::to_string(level->get_height()))
+                                  .c_str());
 
             ImGui::TableNextRow();
 
@@ -581,7 +579,7 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("Cameras");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text(std::to_string(level->cameras.size()).c_str());
+            ImGui::Text("%s", std::to_string(level->cameras.size()).c_str());
 
             ImGui::TableNextRow();
 
@@ -589,7 +587,7 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("Seed");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text(std::to_string(level->seed).c_str());
+            ImGui::Text("%s", std::to_string(level->seed).c_str());
 
             ImGui::TableNextRow();
 
@@ -597,7 +595,7 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("Water");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text(std::to_string(level->water).c_str());
+            ImGui::Text("%s", std::to_string(level->water).c_str());
 
             ImGui::TableNextRow();
 
@@ -621,7 +619,7 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("Light Angle");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text(std::to_string(level->light_angle).c_str());
+            ImGui::Text("%s", std::to_string(level->light_angle).c_str());
 
             ImGui::TableNextRow();
 
@@ -629,7 +627,7 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("Light Flatness");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text(std::to_string(level->light_flatness).c_str());
+            ImGui::Text("%s", std::to_string(level->light_flatness).c_str());
 
             ImGui::TableNextRow();
 
@@ -666,7 +664,7 @@ int auto_render_window(int argc, char *argv[]) {
             if (cameras.empty())
               ImGui::Text("All");
             else if (selected_cameras_cstr != nullptr)
-              ImGui::Text(selected_cameras_cstr);
+              ImGui::Text("%s", selected_cameras_cstr);
             else
               ImGui::Text("Error");
 
