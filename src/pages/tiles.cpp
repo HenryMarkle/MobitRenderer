@@ -310,10 +310,11 @@ void Tile_Page::_erase_cell() noexcept {
 
       rect.x = startx * 20.0f;
       rect.y = starty * 20.0f;
+      const auto hz = _hovered_cell->head_pos_z;
 
       for (matrix_t x = startx; x < startx + def->get_width(); x++) {
         for (matrix_t y = starty; y < starty + def->get_height(); y++) {
-          level->get_tile_matrix().set_noexcept(x, y, _hovered_cell->head_pos_z, TileCell());
+          level->get_tile_matrix().set_noexcept(x, y, hz, TileCell());
         }
       }
 
@@ -321,10 +322,10 @@ void Tile_Page::_erase_cell() noexcept {
       DrawRectangleRec(rect, WHITE);
       EndTextureMode();
 
-      if (!def->get_specs2().empty() && _hovered_cell->head_pos_z < 2) {
+      if (!def->get_specs2().empty() && hz < 2) {
         for (matrix_t x = startx; x < startx + def->get_width(); x++) {
           for (matrix_t y = starty; y < starty + def->get_height(); y++) {
-            level->get_tile_matrix().set_noexcept(x, y, _hovered_cell->head_pos_z + 1, TileCell());
+            level->get_tile_matrix().set_noexcept(x, y, hz + 1, TileCell());
           }
         }
 
@@ -337,7 +338,7 @@ void Tile_Page::_erase_cell() noexcept {
         EndTextureMode();
       }
 
-      if (!def->get_specs3().empty() && _hovered_cell->head_pos_z == 0) {
+      if (!def->get_specs3().empty() && hz == 0) {
         for (matrix_t x = startx; x < startx + def->get_width(); x++) {
           for (matrix_t y = starty; y < starty + def->get_height(); y++) {
             level->get_tile_matrix().set_noexcept(x, y, 2, TileCell());
