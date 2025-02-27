@@ -561,7 +561,7 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("Name");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text(level->get_name().c_str());
+            ImGui::Text("%s", level->get_name().c_str());
 
             ImGui::TableNextRow();
 
