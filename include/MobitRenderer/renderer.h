@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include <vector>
 #include <thread>
 #include <atomic>
@@ -96,6 +97,16 @@ struct Render_TileCell {
     {}
 };
 
+struct Render_Material {
+    const MaterialDef *def;
+    Matrix<bool> matrix;
+
+    Render_Material(const MaterialDef *def, matrix_t width, matrix_t height) :
+        def(def),
+        matrix(Matrix<bool>(width, height, 1)) 
+    {}
+};
+
 class RandomGen {
 
 private:
@@ -189,6 +200,11 @@ protected:
     /// removes the white background.
     Shader _bevel;
     int _bevel_texture_loc;
+    int _bevel_tex_size_loc;
+    int _bevel_thick_loc;
+    int _bevel_highlight_loc;
+    int _bevel_shadow_loc;
+    int _bevel_vflip_loc;
 
     /// @brief Draws a texture using Inverse-Bilinear Interpolation algorithm
     /// and removes the white background.
@@ -264,6 +280,15 @@ protected:
         _quadify_progress;
     int _layers_compose_progress;
 
+    size_t 
+        _material_progress,
+        _material_layer_progress,
+        _material_progress_x,
+        _material_progress_y;
+
+    size_t _camera_index;
+    LevelCamera const*_camera;
+
     /// 1 - tiles
     /// 2 - materials
     /// 3 - props
@@ -279,7 +304,7 @@ protected:
 
     uint8_t _tile_layer_progress;
 
-    std::vector<Render_TileCell> 
+    std::vector<std::vector<Render_TileCell>> 
         _tiles_to_render1,
         _tiles_to_render2,
         _tiles_to_render3;
@@ -288,7 +313,7 @@ protected:
     // accessed as the following:
     // array[selected_camera][material_rendertype][cell]
     // note: selected_camera is the index of _config.cameras.
-    std::vector<std::vector<std::vector<Render_TileCell>>> 
+    std::vector<std::vector<std::queue<Render_TileCell>>> 
         _materials_to_render1,
         _materials_to_render2,
         _materials_to_render3;
@@ -304,6 +329,20 @@ protected:
     void _draw_tiles_layer(uint8_t layer) noexcept;
     void _draw_materials_layer(uint8_t layer) noexcept;
 
+    bool _frame_render_materials_layer(uint8_t layer, int threshold = 10);
+
+    bool _frame_draw_materials_layer_unified(
+        std::queue<Render_TileCell> *cells,
+        uint8_t layer,
+        int threshold = 10
+    );
+
+    bool _frame_render_bricks_layer(uint8_t layer, int threshold = 300);
+    void _render_bricks_layer(uint8_t layer);
+    void _render_standard_layer(uint8_t layer);
+    void _render_chaotic_stone_layer(uint8_t layer);
+
+
 public:
 
     /// @brief The main working layers.
@@ -313,6 +352,8 @@ public:
     RenderTexture2D _ga_layers[30];
     RenderTexture2D _gb_layers[30];
     RenderTexture2D _quadified_layers[30];
+
+    RenderTexture2D _material_canvas;
 
     RenderTexture2D _composed_layers;
 

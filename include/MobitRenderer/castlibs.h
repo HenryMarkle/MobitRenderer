@@ -1,12 +1,30 @@
 #pragma once
 
 #include <string>
+#include <algorithm>
 #include <filesystem>
 #include <unordered_map>
 
 #include <raylib.h>
 
 namespace mr {
+
+// Custom case-insensitive hash function
+struct CaseInsensitiveHash {
+    inline size_t operator()(const std::string &s) const {
+        std::string lower = s;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        return std::hash<std::string>{}(lower);
+    }
+};
+
+// Custom case-insensitive equality function
+struct CaseInsensitiveEqual {
+    inline bool operator()(const std::string &a, const std::string &b) const {
+        return std::equal(a.begin(), a.end(), b.begin(), b.end(),
+                          [](char c1, char c2) { return std::tolower(c1) == std::tolower(c2); });
+    }
+};
 
 class CastMember {
     
@@ -29,6 +47,7 @@ public:
     inline const Texture2D &get_loaded_texture() {
         if (!loaded) {
             texture = LoadTexture(texture_path.string().c_str());
+            loaded = true;
         }
         return texture;
     }
@@ -65,22 +84,22 @@ private:
 
     const std::string name;
     const std::filesystem::path directory;
-    std::unordered_map<std::string, CastMember*> members;
+    std::unordered_map<std::string, CastMember*, CaseInsensitiveHash, CaseInsensitiveEqual> members;
     bool loaded;
 
 public:
 
     inline const std::string &get_name() const noexcept { return name; }
     inline const std::filesystem::path &get_directory() const noexcept { return directory; }
-    inline const std::unordered_map<std::string, CastMember*> &get_members() const noexcept { return members;  }
+    inline const std::unordered_map<std::string, CastMember*, CaseInsensitiveHash, CaseInsensitiveEqual> &get_members() const noexcept { return members;  }
     inline bool is_loaded() const noexcept { return loaded; }
 
     /// @brief Looks up for a cast member by name.
     /// @return A pointer to the member if found; otherwise a nullptr is returned.
     inline CastMember *member(const std::string &name) const noexcept {
         auto iter = members.find(name);
-        if (iter == members.end()) return nullptr;
-        return iter->second;
+        if (iter != members.end()) return iter->second;
+        return nullptr;
     }
 
     /// @brief Looks up for a cast member by name.
@@ -131,7 +150,7 @@ private:
 
     std::filesystem::path cast_dir;
     bool registered;
-    std::unordered_map<std::string, CastLib*> _libs;
+    std::unordered_map<std::string, CastLib*, CaseInsensitiveHash, CaseInsensitiveEqual> _libs;
 
 public:
 
@@ -140,7 +159,7 @@ public:
     inline bool are_libs_registered() const noexcept { return registered; }
     CastLib *lib(std::string const&) const noexcept;
     CastLib *lib_or_throw(std::string const&) const;
-    inline const std::unordered_map<std::string, CastLib*> &libs() const noexcept { return _libs; }    
+    inline const std::unordered_map<std::string, CastLib*, CaseInsensitiveHash, CaseInsensitiveEqual> &libs() const noexcept { return _libs; }    
 
     /// @brief Looks up a member in all libraries.
     /// @return returns the first instance with a matching name. 

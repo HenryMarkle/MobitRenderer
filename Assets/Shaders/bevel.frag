@@ -8,6 +8,7 @@ uniform vec2 texSize;    // Texture size in pixels
 uniform int edgeThickness; // Edge thickness control
 uniform bool highlights; // Enable/disable blue edges (top/left)
 uniform bool shadows;  // Enable/disable red edges (bottom/right)
+uniform int vflip;
 
 out vec4 finalColor;
 
@@ -22,7 +23,16 @@ int classifyColor(vec3 color) {
 
 void main() {
     vec2 texel = 1.0 / texSize; // Texel size
-    int c = classifyColor(texture(texture0, fragTexCoord).rgb); // Center pixel
+    vec4 pixel;
+
+    if (vflip == 0) {
+        pixel = texture(texture0, fragTexCoord);
+    } else {
+        pixel = texture(texture0, vec2(fragTexCoord.x, 1.0 - fragTexCoord.y));
+    }
+
+    if (pixel.r == 1 && pixel.g == 1 && pixel.b == 1 && pixel.a == 1) { discard; }
+    int c = classifyColor(pixel.rgb); // Center pixel
 
     bool isEdge = false;
     float gx = 0.0;
@@ -50,9 +60,9 @@ void main() {
         } else if ((gx >= 0.0 || gy >= 0.0) && shadows) {
             finalColor = vec4(1.0, 0.0, 0.0, 1.0); // Red for bottom/right edges
         } else {
-            finalColor = texture(texture0, fragTexCoord); // Keep original texture if no color is enabled
+            finalColor = pixel; // Keep original texture if no color is enabled
         }
     } else {
-        finalColor = texture(texture0, fragTexCoord); // Keep original texture
+        finalColor = pixel; // Keep original texture
     }
 }

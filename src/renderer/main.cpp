@@ -1,3 +1,4 @@
+#include <queue>
 #include <vector>
 #include <thread>
 #include <atomic>
@@ -51,7 +52,13 @@ Renderer::Renderer(
     _vflip_texture_loc(0),
     _white_remover_texture_loc(0),
     _white_remover_vflip_texture_loc(0),
+
     _bevel_texture_loc(0),
+    _bevel_tex_size_loc(0),
+    _bevel_thick_loc(0),
+    _bevel_highlight_loc(0),
+    _bevel_shadow_loc(0),
+    _bevel_vflip_loc(0),
 
     _invb_texture_loc(0),
     _invb_vertices_loc(0),
@@ -114,7 +121,15 @@ Renderer::Renderer(
     _render_progress(0),
 
     _tile_layer_progress(0),
-    _rand(0)
+    _rand(0),
+
+    _camera_index(0),
+    _camera(nullptr),
+
+    _material_progress(0),
+    _material_layer_progress(0),
+    _material_progress_x(0),
+    _material_progress_y(0)
 {}
 
 Renderer::~Renderer() {
@@ -135,7 +150,7 @@ Renderer::~Renderer() {
         UnloadRenderTexture(_final_lightmap);
         UnloadRenderTexture(_composed_lightmap);
         UnloadRenderTexture(_composed_layers);
-    
+        UnloadRenderTexture(_material_canvas);
     }
 
     if (_preparation_thread.joinable()) _preparation_thread.join();
@@ -235,6 +250,11 @@ bool Renderer::frame_initialize(int threshold) {
         _composer_tint_loc = GetShaderLocation(_composer, "tint");
         
         _bevel_texture_loc = GetShaderLocation(_bevel, "texture0");
+        _bevel_tex_size_loc = GetShaderLocation(_bevel, "texSize");
+        _bevel_thick_loc = GetShaderLocation(_bevel, "edgeThickness");
+        _bevel_highlight_loc = GetShaderLocation(_bevel, "highlights");
+        _bevel_shadow_loc = GetShaderLocation(_bevel, "shadows");
+        _bevel_vflip_loc = GetShaderLocation(_bevel, "vflip");
         
         _invb_texture_loc = GetShaderLocation(_invb, "textureSampler");
         _invb_vertices_loc = GetShaderLocation(_invb, "vertex_pos");
@@ -351,6 +371,7 @@ bool Renderer::frame_initialize(int threshold) {
     if (!_final_initialized) {
         _final = LoadRenderTexture(final_width, final_height);
         _composed_layers = LoadRenderTexture(final_width, final_height);
+        _material_canvas = LoadRenderTexture(final_width, final_height);
         _final_initialized = true;
         return false;
     }
@@ -797,27 +818,75 @@ void Renderer::_prepare() {
 
     _materials_to_render1.clear();
     _materials_to_render2.clear();
-    _materials_to_render3.clear();
+    _materials_to_render3.clear();  
 
-    for (matrix_t x = 0; x < mtx.get_width(); x++) {
-        for (matrix_t y = 0; y < mtx.get_height(); y++) {
-            const auto *cell1 = mtx.get_const_ptr(x, y, 0);
-            const auto *cell2 = mtx.get_const_ptr(x, y, 1);
-            const auto *cell3 = mtx.get_const_ptr(x, y, 2);
+    _tiles_to_render1.resize(_config.cameras.empty() ? _level->cameras.size() : _config.cameras.size());
+    _tiles_to_render2.resize(_config.cameras.empty() ? _level->cameras.size() : _config.cameras.size());
+    _tiles_to_render3.resize(_config.cameras.empty() ? _level->cameras.size() : _config.cameras.size());
 
-            if (cell1 != nullptr && cell1->type == TileType::head && cell1->tile_def != nullptr) {
-                _tiles_to_render1.push_back(Render_TileCell{ _rand.next(100000), x, y, 0, cell1 });
-            }
+    for (int c = 0; c < _tiles_to_render1.size(); c++) {
+        const auto &camera = _config.cameras.empty() ? _level->cameras[c] : _level->cameras[_config.cameras[c]];
 
-            if (cell2 != nullptr && cell2->type == TileType::head && cell2->tile_def != nullptr) {
-                _tiles_to_render2.push_back(Render_TileCell{ _rand.next(100000), x, y, 1, cell2 });
-            }
+        for (int x = 0; x < columns; x++) {
+            for (int y = 0; y < rows; y++) {
+                const int mx = x + static_cast<int>(camera.get_position().x/20);
+                const int my = y + static_cast<int>(camera.get_position().y/20);
 
-            if (cell3 != nullptr && cell3->type == TileType::head && cell3->tile_def != nullptr) {
-                _tiles_to_render3.push_back(Render_TileCell{ _rand.next(100000), x, y, 2, cell3 });
+                if (mtx.is_in_bounds(mx, my, 0)) {
+                    const auto *cell1 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 0);
+
+                    if (cell1 != nullptr && cell1->type == TileType::head && cell1->tile_def != nullptr) {
+                        _tiles_to_render1[c]
+                            .push_back(
+                                Render_TileCell{ 
+                                    _rand.next(100000), 
+                                    static_cast<matrix_t>(x), 
+                                    static_cast<matrix_t>(y), 
+                                    0, 
+                                    cell1 
+                                }
+                            );
+                    }
+                }
+
+                if (mtx.is_in_bounds(mx, my, 1)) {
+                    const auto *cell2 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 1);
+
+                    if (cell2 != nullptr && cell2->type == TileType::head && cell2->tile_def != nullptr) {
+                        _tiles_to_render2[c]
+                            .push_back(
+                                Render_TileCell{ 
+                                    _rand.next(100000), 
+                                    static_cast<matrix_t>(x), 
+                                    static_cast<matrix_t>(y), 
+                                    1, 
+                                    cell2 
+                                }
+                            );
+                    }
+                }
+
+                if (mtx.is_in_bounds(mx, my, 2)) {
+                    const auto *cell3 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 2);
+        
+                    if (cell3 != nullptr && cell3->type == TileType::head && cell3->tile_def != nullptr) {
+                        _tiles_to_render3[c]
+                            .push_back(
+                                Render_TileCell{ 
+                                    _rand.next(100000), 
+                                    static_cast<matrix_t>(x), 
+                                    static_cast<matrix_t>(y), 
+                                    2, 
+                                    cell3 
+                                }
+                            );
+                    }
+                }
+
             }
         }
     }
+
 
     if (_config.cameras.empty()) {
         _materials_to_render1.resize(_level->cameras.size());
@@ -829,84 +898,138 @@ void Renderer::_prepare() {
         _materials_to_render3.resize(_config.cameras.size());
     }
 
-    for (size_t c = 0; c < _materials_to_render1.size(); c++) {
-        const auto &camera = _config.cameras.empty() 
-            ? _level->cameras[c] 
-            : _level->cameras[_config.cameras[c]];
+    // for (size_t c = 0; c < _materials_to_render1.size(); c++) {
+    //     const auto &camera = _config.cameras.empty() 
+    //         ? _level->cameras[c] 
+    //         : _level->cameras[_config.cameras[c]];
 
-        _materials_to_render1[c] = std::vector<std::vector<Render_TileCell>>();
-        _materials_to_render2[c] = std::vector<std::vector<Render_TileCell>>();
-        _materials_to_render3[c] = std::vector<std::vector<Render_TileCell>>();
+    //     _materials_to_render1[c] = std::vector<std::queue<Render_TileCell>>();
+    //     _materials_to_render2[c] = std::vector<std::queue<Render_TileCell>>();
+    //     _materials_to_render3[c] = std::vector<std::queue<Render_TileCell>>();
         
-        _materials_to_render1[c].resize(18);
-        _materials_to_render2[c].resize(18);
-        _materials_to_render3[c].resize(18);
+    //     _materials_to_render1[c].resize(18);
+    //     _materials_to_render2[c].resize(18);
+    //     _materials_to_render3[c].resize(18);
     
-        auto pos = camera.get_position();
-        auto mtx_pos = ivec2 { 
-            static_cast<int>(pos.x / 20), 
-            static_cast<int>(pos.y / 20) 
-        };
+    //     const auto *default_material = _materials->material(_level->default_material);
 
-        const auto *default_material = _materials->material(_level->default_material);
+    //     const auto &mtx = _level->get_const_tile_matrix();
 
-        const auto &mtx = _level->get_const_tile_matrix();
+    //     for (int x = 0; x < columns; x++) {
+    //         for (int y = 0; y < rows; y++) {
+    //             int mx = x + static_cast<int>(camera.get_position().x/20);
+    //             int my = y + static_cast<int>(camera.get_position().y/20);
 
-        for (matrix_t x = mtx_pos.x; x < mtx_pos.x + columns; x++) {
-            for (matrix_t y = mtx_pos.y; y < mtx_pos.y + rows; y++) {
-                if (!mtx.is_in_bounds(x, y, 0)) continue;
+    //             if (!mtx.is_in_bounds(mx, my, 0)) continue;
                 
-                const auto *cell1 = mtx.get_const_ptr(x, y, 0);
-                const auto *cell2 = mtx.get_const_ptr(x, y, 1);
-                const auto *cell3 = mtx.get_const_ptr(x, y, 2);
+    //             const auto *cell1 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 0);
+    //             const auto *cell2 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 1);
+    //             const auto *cell3 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 2);
 
-                if (cell1 != nullptr) {
-                    if (cell1->type == TileType::material && cell1->material_def != nullptr) {
-                        _materials_to_render1[c][static_cast<size_t>(cell1->material_def->get_type())].push_back(Render_TileCell(0, x, y, 0, cell1));
-                    } else if (cell1->type == TileType::_default && default_material != nullptr) {
-                        _materials_to_render1[c][static_cast<size_t>(default_material->get_type())].push_back(Render_TileCell(0, x, y, 0, cell1));
-                    }
-                }
+    //             if (cell1 != nullptr) {
+    //                 if (cell1->type == TileType::material && cell1->material_def != nullptr) {
+    //                     _materials_to_render1[c][static_cast<size_t>(cell1->material_def->get_type())]
+    //                         .push(
+    //                             Render_TileCell(
+    //                                 0, 
+    //                                 static_cast<matrix_t>(x), 
+    //                                 static_cast<matrix_t>(y), 
+    //                                 0, 
+    //                                 cell1
+    //                             )
+    //                         );
+    //                 } else if (cell1->type == TileType::_default && default_material != nullptr) {
+    //                     _materials_to_render1[c][static_cast<size_t>(default_material->get_type())]
+    //                         .push(
+    //                             Render_TileCell(
+    //                                 0, 
+    //                                 static_cast<matrix_t>(x), 
+    //                                 static_cast<matrix_t>(y), 
+    //                                 0, 
+    //                                 cell1
+    //                             )
+    //                         );
+    //                 }
+    //             }
 
-                if (cell2 != nullptr) {
-                    if (cell2->type == TileType::material && cell2->material_def != nullptr) {
-                        _materials_to_render2[c][static_cast<size_t>(cell2->material_def->get_type())].push_back(Render_TileCell(0, x, y, 1, cell2));
-                    } else if (cell2->type == TileType::_default && default_material != nullptr) {
-                        _materials_to_render2[c][static_cast<size_t>(default_material->get_type())].push_back(Render_TileCell(0, x, y, 1, cell2));
-                    }
-                }
+    //             if (cell2 != nullptr) {
+    //                 if (cell2->type == TileType::material && cell2->material_def != nullptr) {
+    //                     _materials_to_render2[c][static_cast<size_t>(cell2->material_def->get_type())]
+    //                         .push(
+    //                             Render_TileCell(
+    //                                 0, 
+    //                                 static_cast<matrix_t>(x), 
+    //                                 static_cast<matrix_t>(y),  
+    //                                 1, 
+    //                                 cell2
+    //                             )
+    //                         );
+    //                 } else if (cell2->type == TileType::_default && default_material != nullptr) {
+    //                     _materials_to_render2[c][static_cast<size_t>(default_material->get_type())]
+    //                         .push(
+    //                             Render_TileCell(
+    //                                 0, 
+    //                                 static_cast<matrix_t>(x), 
+    //                                 static_cast<matrix_t>(y),  
+    //                                 1, 
+    //                                 cell2
+    //                             )
+    //                         );
+    //                 }
+    //             }
 
-                if (cell3 != nullptr) {
-                    if (cell3->type == TileType::material && cell3->material_def != nullptr) {
-                        _materials_to_render3[c][static_cast<size_t>(cell3->material_def->get_type())].push_back(Render_TileCell(0, x, y, 2, cell3));
-                    } else if (cell2->type == TileType::_default && default_material != nullptr) {
-                        _materials_to_render3[c][static_cast<size_t>(default_material->get_type())].push_back(Render_TileCell(0, x, y, 2, cell3));
-                    }
-                }
+    //             if (cell3 != nullptr) {
+    //                 if (cell3->type == TileType::material && cell3->material_def != nullptr) {
+    //                     _materials_to_render3[c][static_cast<size_t>(cell3->material_def->get_type())]
+    //                         .push(
+    //                             Render_TileCell(
+    //                                 0, 
+    //                                 static_cast<matrix_t>(x), 
+    //                                 static_cast<matrix_t>(y), 
+    //                                 2, 
+    //                                 cell3
+    //                             )
+    //                         );
+    //                 } else if (cell2->type == TileType::_default && default_material != nullptr) {
+    //                     _materials_to_render3[c][static_cast<size_t>(default_material->get_type())]
+    //                         .push(
+    //                             Render_TileCell(
+    //                                 0, 
+    //                                 static_cast<matrix_t>(x), 
+    //                                 static_cast<matrix_t>(y), 
+    //                                 2, 
+    //                                 cell3
+    //                             )
+    //                         );
+    //                 }
+    //             }
 
-            }
-        }
-    }
+    //         }
+    //     }
+    // }
 
     const auto sort_alg = [](const Render_TileCell &c1, const Render_TileCell &c2) { return c1.rnd < c2.rnd; };
 
-    std::sort(
-        _tiles_to_render1.begin(), 
-        _tiles_to_render1.end(), 
-        sort_alg
-    );
+    for (int c = 0; c < _tiles_to_render1.size(); c++) {
+        std::sort(
+            _tiles_to_render1[c].begin(), 
+            _tiles_to_render1[c].end(), 
+            sort_alg
+        );
+    
+        std::sort(
+            _tiles_to_render2[c].begin(), 
+            _tiles_to_render2[c].end(), 
+            sort_alg
+        );
+    
+        std::sort(
+            _tiles_to_render3[c].begin(), 
+            _tiles_to_render3[c].end(), 
+            sort_alg
+        );
+    }
 
-    std::sort(
-        _tiles_to_render2.begin(), 
-        _tiles_to_render2.end(), 
-        sort_alg
-    );
-
-    std::sort(
-        _tiles_to_render3.begin(), 
-        _tiles_to_render3.end(), 
-        sort_alg
-    );
 
     _preparation_done = true;
 }
@@ -941,6 +1064,8 @@ void Renderer::_set_render_progress(int step) {
 bool Renderer::frame_render() {
     if (!_preparation_done) return false;
 
+    if (_camera == nullptr) _camera = &_level->cameras[0];
+
     if (_render_progress == 0) _set_render_progress(RENDER_PROGRESS_TILES);
 
     if (_render_progress == RENDER_PROGRESS_TILES) {
@@ -953,7 +1078,12 @@ bool Renderer::frame_render() {
 
     if (_render_progress == RENDER_PROGRESS_MATERIALS) {
 
-        _set_render_progress(RENDER_PROGRESS_PROPS);
+        if (_frame_render_materials_layer(_material_layer_progress, 300)) {
+            _material_layer_progress++;
+            _material_progress = 0;
+            if (_material_layer_progress >= 3) _set_render_progress(RENDER_PROGRESS_PROPS);
+        }
+
         return false;
     }
 

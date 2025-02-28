@@ -32,8 +32,8 @@ void Renderer::_draw_tile_origin_mtx(TileDef *def, matrix_t x, matrix_t y, uint8
 
     auto offset = def->get_head_offset();
 
-    float ox = (x - offset.x - def->get_buffer()) * 20.0f - _level->cameras[0].get_position().x;
-    float oy = (y - offset.y - def->get_buffer()) * 20.0f - _level->cameras[0].get_position().y;
+    float ox = (x - offset.x - def->get_buffer()) * 20.0f;
+    float oy = (y - offset.y - def->get_buffer()) * 20.0f;
 
     float width = def->calculate_width();
     float height = def->calculate_height();
@@ -349,15 +349,15 @@ void Renderer::_draw_tile_origin_mtx(TileDef *def, matrix_t x, matrix_t y, uint8
 void Renderer::_draw_tiles_layer(uint8_t layer) noexcept {
     switch (layer) {
     case 0:
-        for (auto &c : _tiles_to_render1) _draw_tile_origin_mtx(c.cell->tile_def, c.x, c.y, 0);
+        for (auto &c : _tiles_to_render1[_camera_index]) _draw_tile_origin_mtx(c.cell->tile_def, c.x, c.y, 0);
     break;
 
     case 1:
-        for (auto &c : _tiles_to_render2) _draw_tile_origin_mtx(c.cell->tile_def, c.x, c.y, 1);
+        for (auto &c : _tiles_to_render2[_camera_index]) _draw_tile_origin_mtx(c.cell->tile_def, c.x, c.y, 1);
     break;
 
     case 2:
-        for (auto &c : _tiles_to_render3) _draw_tile_origin_mtx(c.cell->tile_def, c.x, c.y, 2);
+        for (auto &c : _tiles_to_render3[_camera_index]) _draw_tile_origin_mtx(c.cell->tile_def, c.x, c.y, 2);
     break;
     }
 }

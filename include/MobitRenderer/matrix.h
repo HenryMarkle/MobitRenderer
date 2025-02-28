@@ -175,7 +175,7 @@ public:
   matrix_t get_height() const;
   matrix_t get_depth() const;
 
-  bool is_in_bounds(matrix_t x, matrix_t y, matrix_t z) const;
+  bool is_in_bounds(int x, int y, int z) const;
 
   // Crash if index is out of bounds and copies the cell.
   T get_copy(matrix_t x, matrix_t y, matrix_t z) const;
@@ -188,7 +188,9 @@ public:
   T *get_ptr(matrix_t x, matrix_t y, matrix_t z) noexcept;
   const T *get_const_ptr(matrix_t x, matrix_t y, matrix_t z) const noexcept;
 
-  void set(matrix_t x, matrix_t y, matrix_t z, T element);
+  void set(matrix_t x, matrix_t y, matrix_t z, const T &element);
+  void set(matrix_t x, matrix_t y, matrix_t z, T&& element);
+  void set_noexcept(matrix_t x, matrix_t y, matrix_t z, const T &element) noexcept;
   void set_noexcept(matrix_t x, matrix_t y, matrix_t z, T &&element) noexcept;
   
   void resize(int16_t left, int16_t top, int16_t right, int16_t bottom);
@@ -221,11 +223,9 @@ Matrix<T>::Matrix(matrix_t _width, matrix_t _height, matrix_t _depth) {
   height = _height;
   depth = _depth;
 
-  matrix.reserve(width * height * depth);
+  matrix.resize(width * height * depth);
 
-  for (size_t x = 0; x < width * height * depth; x++) {
-    matrix.push_back(T());
-  }
+  std::fill(matrix.begin(), matrix.end(), T());
 }
 
 template <typename T>
@@ -267,7 +267,7 @@ template <typename T> matrix_t Matrix<T>::get_height() const { return height; }
 template <typename T> matrix_t Matrix<T>::get_depth() const { return depth; }
 
 template <typename T>
-bool Matrix<T>::is_in_bounds(matrix_t x, matrix_t y, matrix_t z) const {
+bool Matrix<T>::is_in_bounds(int x, int y, int z) const {
   return x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth;
 }
 
@@ -313,11 +313,28 @@ const T *Matrix<T>::get_const_ptr(matrix_t x, matrix_t y,
 }
 
 template <typename T>
-void Matrix<T>::set(matrix_t x, matrix_t y, matrix_t z, T element) {
+void Matrix<T>::set(matrix_t x, matrix_t y, matrix_t z, const T &element) {
   if (!is_in_bounds(x, y, z))
     throw std::out_of_range("matrix index is out of bounds");
 
   matrix[index(x, y, z)] = element;
+}
+
+template <typename T>
+void Matrix<T>::set(matrix_t x, matrix_t y, matrix_t z, T &&element) {
+  if (!is_in_bounds(x, y, z))
+    throw std::out_of_range("matrix index is out of bounds");
+
+  matrix[index(x, y, z)] = element;
+}
+
+template <typename T>
+void Matrix<T>::set_noexcept(matrix_t x, matrix_t y, matrix_t z,
+                             const T &element) noexcept {
+  if (!is_in_bounds(x, y, z))
+    return;
+
+  matrix[index(x, y, z)] = std::move(element);
 }
 
 template <typename T>
