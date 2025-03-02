@@ -8,6 +8,10 @@
 #include <stdexcept>
 #include <algorithm>
 
+#if IS_DEBUG_BUILD
+#include <iostream>
+#endif
+
 #include <raylib.h>
 
 #include <spdlog/spdlog.h>
@@ -22,6 +26,29 @@
 #include <MobitRenderer/renderer.h>
 #include <MobitRenderer/definitions.h>
 
+#define CONNECTION_VERTICAL static_cast<uint8_t>(0b00101)
+#define CONNECTION_HORIZONTAL static_cast<uint8_t>(0b01010)
+#define CONNECTION_CROSS static_cast<uint8_t>(0b01111)
+#define CONNECTION_TRB static_cast<uint8_t>(0b00111)
+#define CONNECTION_BLT static_cast<uint8_t>(0b01101)
+#define CONNECTION_LTR static_cast<uint8_t>(0b01110)
+#define CONNECTION_RBL static_cast<uint8_t>(0b01011)
+#define CONNECTION_RB static_cast<uint8_t>(0b00011)
+#define CONNECTION_BL static_cast<uint8_t>(0b01001)
+#define CONNECTION_LT static_cast<uint8_t>(0b01100)
+#define CONNECTION_TR static_cast<uint8_t>(0b00110)
+#define CONNECTION_L static_cast<uint8_t>(0b01000)
+#define CONNECTION_R static_cast<uint8_t>(0b00010)
+#define CONNECTION_T static_cast<uint8_t>(0b00100)
+#define CONNECTION_B static_cast<uint8_t>(0b00001)
+#define CONNECTION_SLOPE_NW static_cast<uint8_t>(0b10000)
+#define CONNECTION_SLOPE_NE static_cast<uint8_t>(0b11000)
+#define CONNECTION_SLOPE_ES static_cast<uint8_t>(0b11100)
+#define CONNECTION_SLOPE_SW static_cast<uint8_t>(0b11110)
+#define CONNECTION_SINGLE static_cast<uint8_t>(0b00000)
+#define CONNECTION_PLATFORM static_cast<uint8_t>(0b11111)
+#define CONNECTION_GLASS static_cast<uint8_t>(0b10111)
+
 namespace mr::renderer {
 
 bool Renderer::_frame_render_materials_layer(uint8_t layer, int threshold) {
@@ -33,13 +60,14 @@ bool Renderer::_frame_render_materials_layer(uint8_t layer, int threshold) {
     case 0: done = true; _render_bricks_layer(layer); break;
     case 1: done = true; _render_standard_layer(layer); break;
     case 2: done = true; _render_chaotic_stone_layer(layer); break;
+    case 3: done = true; _render_small_pipes_layer(layer); break;
     default: return true;
     }
 
     if (done) {
         _material_progress_x = _material_progress_y = 0;
         _material_progress++;
-        if (_material_progress < 3) return false;
+        if (_material_progress < 4) return false;
     }
     else return false;
 
@@ -491,6 +519,205 @@ void Renderer::_render_chaotic_stone_layer(uint8_t layer) {
     }
 
     UnloadRenderTexture(rt);
+}
+
+void Renderer::_render_small_pipes_layer(uint8_t layer) {
+    /*
+        Highly inefficient; Should list only the cells of the materials, 
+        since it's not typically used excessively. 
+    */
+
+    if (layer > 2) return;
+
+    auto *member = _castlibs->member("pipeTiles2");
+    if (member == nullptr) return;
+
+    const auto &texture = member->get_loaded_texture();
+    if (!member->is_loaded()) return;
+
+    const auto *def = _materials->material("Small Pipes");
+    if (def == nullptr) return;
+
+    size_t sublayer = layer * 10;
+
+    const auto &mtx = _level->get_const_tile_matrix();
+    const auto &geos = _level->get_const_geo_matrix();
+
+    const auto get_connection = [this, &mtx, &geos, def, layer](int mx, int my){
+        const auto *geo = geos.get_const_ptr(mx, my, layer);
+        const auto *tile = geos.get_const_ptr(mx, my, layer);
+
+        if (geo == nullptr || tile == nullptr) return static_cast<uint8_t>(0);
+        if (geo->is_air()) return static_cast<uint8_t>(0);
+
+        uint8_t connection = static_cast<uint8_t>(0b00000);
+
+        if (!_is_material(mx, my, layer, def)) return static_cast<uint8_t>(0);
+
+        switch (geo->type) {
+        case GeoType::solid:
+        {
+            
+            auto left   = _is_material(mx - 1, my    , layer, def);
+            auto top    = _is_material(mx    , my - 1, layer, def);
+            auto right  = _is_material(mx + 1, my    , layer, def);
+            auto bottom = _is_material(mx    , my + 1, layer, def);
+
+            if (
+                left || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx - 1), static_cast<matrix_t>(my), layer)
+                )
+            ) connection |= CONNECTION_L;
+
+            if (
+                top || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx), static_cast<matrix_t>(my - 1), layer)
+                )
+            ) connection |= CONNECTION_T;
+            
+            if (
+                right || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx + 1), static_cast<matrix_t>(my), layer)
+                )
+            ) connection |= CONNECTION_R;
+            
+            if (
+                bottom || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx), static_cast<matrix_t>(my + 1), layer)
+                )
+            ) connection |= CONNECTION_B;
+        }
+        break;
+
+        case GeoType::slope_nw: return CONNECTION_SLOPE_NW;
+        case GeoType::slope_ne: return CONNECTION_SLOPE_NE;
+        case GeoType::slope_es: return CONNECTION_SLOPE_ES;
+        case GeoType::slope_sw: return CONNECTION_SLOPE_SW;
+        case GeoType::platform: return CONNECTION_PLATFORM;
+        case GeoType::glass: return CONNECTION_GLASS;
+
+        default: return static_cast<uint8_t>(0);
+        }
+
+        return connection;
+    };
+
+    const auto get_src_pos = [](uint8_t connection){
+        if (connection == CONNECTION_VERTICAL  ) return  1;
+        if (connection == CONNECTION_HORIZONTAL) return  3;
+        if (connection == CONNECTION_CROSS     ) return  5;
+        if (connection == CONNECTION_TRB       ) return  7;
+        if (connection == CONNECTION_BLT       ) return  9;
+        if (connection == CONNECTION_LTR       ) return 11;
+        if (connection == CONNECTION_RBL       ) return 13;
+        if (connection == CONNECTION_RB        ) return 15;
+        if (connection == CONNECTION_BL        ) return 17;
+        if (connection == CONNECTION_LT        ) return 19;
+        if (connection == CONNECTION_TR        ) return 21;
+        if (connection == CONNECTION_L         ) return 23;
+        if (connection == CONNECTION_R         ) return 25;
+        if (connection == CONNECTION_T         ) return 27;
+        if (connection == CONNECTION_B         ) return 29;
+        if (connection == CONNECTION_SLOPE_NW  ) return 31; // SlopeNW
+        if (connection == CONNECTION_SLOPE_NE  ) return 32; // SlopeNE
+        if (connection == CONNECTION_SLOPE_ES  ) return 35; // SlopeES
+        if (connection == CONNECTION_SLOPE_SW  ) return 37; // SlopeSW
+        if (connection == CONNECTION_SINGLE    ) return 39;
+        if (connection == CONNECTION_PLATFORM  ) return 41; // Platform
+        if (connection == CONNECTION_GLASS     ) return 43; // Glass
+
+        return 0;
+    };
+
+    for (int x = 0; x < columns; x++) {
+        for (int y = 0; y < rows; y++) {
+            int mx = x + static_cast<int>(_camera->get_position().x/20);
+            int my = y + static_cast<int>(_camera->get_position().y/20);
+        
+            if (!mtx.is_in_bounds(mx, my, layer)) continue;
+
+            auto connection = get_connection(mx, my);
+            
+            if (connection == 0) continue;
+
+            auto pos = get_src_pos(connection);
+
+            BeginTextureMode(_layers[sublayer + 5]);
+            DrawRectangleLinesEx(
+                {x * 20.0f, y * 20.0f, 20.0f, 20.0f},
+                2,
+                {0, 255, 0, 255}
+            );
+            EndTextureMode();
+
+            auto src = Rectangle {
+                pos * 20.0f + 1.0f,
+                (_rand.next(4)*2 + 1) * 20.0f + 1.0f,
+                20.0f,
+                20.0f
+            };
+
+            BeginTextureMode(_layers[sublayer + 2]);
+            BeginShaderMode(_white_remover);
+            SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+            DrawTexturePro(
+                texture,
+                src,
+                {x*20.0f, y*20.0f, 20.0f, 20.0f},
+                {0,0},
+                0,
+                WHITE
+            );
+            EndShaderMode();
+            EndTextureMode();
+
+            BeginTextureMode(_layers[sublayer + 3]);
+            BeginShaderMode(_white_remover);
+            SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+            DrawTexturePro(
+                texture,
+                src,
+                {x*20.0f, y*20.0f, 20.0f, 20.0f},
+                {0,0},
+                0,
+                WHITE
+            );
+            EndShaderMode();
+            EndTextureMode();
+
+            BeginTextureMode(_layers[sublayer + 7]);
+            BeginShaderMode(_white_remover);
+            SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+            DrawTexturePro(
+                texture,
+                src,
+                {x*20.0f, y*20.0f, 20.0f, 20.0f},
+                {0,0},
+                0,
+                WHITE
+            );
+            EndShaderMode();
+            EndTextureMode();
+
+            BeginTextureMode(_layers[sublayer + 8]);
+            BeginShaderMode(_white_remover);
+            SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+            DrawTexturePro(
+                texture,
+                src,
+                {x*20.0f, y*20.0f, 20.0f, 20.0f},
+                {0,0},
+                0,
+                WHITE
+            );
+            EndShaderMode();
+            EndTextureMode();
+        }
+    }
 }
 
 }

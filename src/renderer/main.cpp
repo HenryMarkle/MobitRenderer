@@ -1112,4 +1112,54 @@ bool Renderer::frame_render() {
     return _render_progress == RENDER_PROGRESS_DONE;
 }
 
+bool Renderer::_is_material(int x, int y, int z) {
+    const auto &geos = _level->get_const_geo_matrix();
+    const auto &tiles = _level->get_const_tile_matrix();
+
+    if (!geos.is_in_bounds(x, y, z)) return false;
+    if (!tiles.is_in_bounds(x, y, z)) return false;
+
+    const matrix_t 
+        mx = static_cast<matrix_t>(x), 
+        my = static_cast<matrix_t>(y), 
+        mz = static_cast<matrix_t>(z);
+
+    const auto &geo = geos.get_const(mx, my, mz);
+
+    if (!geo.is_solid() && !geo.is_slope()) 
+        return false;
+
+    const auto &tile = tiles.get_const(mx, my, mz);
+
+    return tile.type == TileType::material || tile.type == TileType::_default;
+}
+
+bool Renderer::_is_material(int x, int y, int z, const MaterialDef *def) {
+    const auto &geos = _level->get_const_geo_matrix();
+    const auto &tiles = _level->get_const_tile_matrix();
+
+    if (!geos.is_in_bounds(x, y, z)) return false;
+    if (!tiles.is_in_bounds(x, y, z)) return false;
+
+    const matrix_t 
+        mx = static_cast<matrix_t>(x), 
+        my = static_cast<matrix_t>(y), 
+        mz = static_cast<matrix_t>(z);
+
+    const auto &geo = geos.get_const(mx, my, mz);
+
+    if (!geo.is_solid() && !geo.is_slope()) 
+        return false;
+
+    const auto &tile = tiles.get_const(mx, my, mz);
+
+    if (tile.type == TileType::material) {
+        return tile.material_def == def;
+    } else if (tile.type == TileType::_default) {
+        return tile.und_name == _level->default_material;
+    }
+
+    return false;
+}
+
 };

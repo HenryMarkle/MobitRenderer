@@ -318,6 +318,10 @@ protected:
         _materials_to_render2,
         _materials_to_render3;
 
+    
+    bool _is_material(int x, int y, int z);
+    bool _is_material(int x, int y, int z, const MaterialDef *def);
+
     /// A lot of draw calls here
     /// TODO: continue here.
     ///
@@ -341,6 +345,7 @@ protected:
     void _render_bricks_layer(uint8_t layer);
     void _render_standard_layer(uint8_t layer);
     void _render_chaotic_stone_layer(uint8_t layer);
+    void _render_small_pipes_layer(uint8_t layer);
 
 
 public:
