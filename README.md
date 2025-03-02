@@ -2,10 +2,11 @@
 
 ## Prerequisites
 
+- Git
+- CMake
 - A C++ compiler
     - For Windows, use [MinGW64 DevKit](https://github.com/skeeto/w64devkit/).
 
-- CMake
 
 ## Preparation
 
@@ -100,3 +101,68 @@ This project does not prioritize accomplishing the exact same results as with th
 
 This project is not designed for people who do not know basic coding skills, such as C/C++ programming languages, Git & GitHub, and CMake.
 
+
+## The Source Code
+
+The code is not well-documented, therefore rely on the code being self-documented.
+All libraries are stored in `/libs`.
+
+The entry point for the editor is in `src/main.cpp`, and for the auto-renderer is in `src/autorenderermode.cpp`.
+
+I could not compile `raylib` on Windows, therefore I use the pre-compiled files as a temproray solution. 
+
+I do not own a Mac, so I could not compile and test the project on MacOS.
+
+### Strong Guidlines
+
+- The C++ standard will not be upgraded untill the next standard receives as much adoptions and popularity.
+- No other language is acceptable, except for `C`.
+
+### Weak Guidelines
+
+#### C++ Standard
+
+- C++17 was chosen specifically as the sweet spot between old, but well supported and new but not widely adopted.
+- Despite the number of features the languages supports, only a subset of the features is preferable to the cose sane.
+
+#### Conditional Compilation
+
+There exist the following compiler definitions:
+
+| Compiler Definition | Description |
+|---------------------|-------------|
+| APP_VERSION | is defined a string to indicate the app version |
+| BUILD_TYPE | is defined as a string to indicate the build type: `Release` and `Debug` |
+| IS_DEBUG_BUILD | Indicated that the program is compiled in `Debug` mode |
+| FEATURE_PALETTES | is defined to enable the use of palettes |
+| FEATURE_DATAPACKS | is defined to enable datapacks support |
+
+#### Naming Conventions
+
+- Functions, variables, and namespaces use `snake_case`.
+- Types use `PascalCase`.
+- Compiler constants (`#define`) use `SCREAMING_SNAKE_CASE`.
+- Private class members have a leading underscore '_'.
+- **Never** use `using` or `#define` in header files.
+
+#### Pointers
+
+Summary: don't do stupid shit.
+
+- Whereever a shared pointer is used, know that I either couldn't bother managing its lifetime or wanted to save memory from copying data repeatedly.
+
+- The usage of smart pointers does not stop the code from using the underlying raw pointer (i.e `ptr.get()`).
+
+- Whenever a raw pointer is used, whether in a function or a data type, must always be expected to be null.
+
+- A raw pointer that is not null is always assumed to be valid.
+
+- If a data type stores a raw pointer, the data type typically does not manage the pointer, _unless_ it is explicitly stated in the constructor/destructor (and that is the exception and not the rule).
+
+- Pointers must always be initialized, whether to null or a valid memory address.
+
+#### Types
+
+- `typedef`s are discouraged, except for shortening type names.
+- `auto` is usually preferred, except for explcit numeric type casting.
+    - Example: `float result = 10 / 2`.
