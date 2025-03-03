@@ -3,9 +3,10 @@
 #endif
 
 #include <raylib.h>
+#include <rlgl.h>
 
-#include <MobitRenderer/atlas.h>
 #include <MobitRenderer/draw.h>
+#include <MobitRenderer/atlas.h>
 #include <MobitRenderer/matrix.h>
 
 namespace mr {
@@ -89,6 +90,120 @@ void draw_geo_shape(
       );
     }
     break;
+  }
+}
+
+void draw_geo_texture(
+  const Texture2D &texture,
+  const GeoCell &geo,
+  float x,
+  float y,
+  float scale
+) noexcept {
+  switch (geo.type) {
+  case GeoType::solid:
+  DrawTexturePro(
+    texture,
+    Rectangle {x, y, scale, scale},
+    Rectangle {x, y, scale, scale},
+    Vector2 {0,0},
+    0,
+    WHITE
+  );
+  break;
+
+  case GeoType::slope_es:
+
+  rlSetTexture(texture.id);
+
+  rlBegin(RL_QUADS);
+
+  rlColor4ub(255, 255, 255, 255);
+
+  rlTexCoord2f(0, 0);
+  rlVertex2f(x, y);
+  
+  rlTexCoord2f(0, 1);
+  rlVertex2f(x, y + scale);
+
+  rlTexCoord2f(1, 0);
+  rlVertex2f(x + scale, y);
+
+  rlEnd();
+  rlSetTexture(0);
+
+  break;
+
+  case GeoType::slope_ne:
+  rlSetTexture(texture.id);
+
+  rlBegin(RL_QUADS);
+
+  rlColor4ub(255, 255, 255, 255);
+
+  rlTexCoord2f(0, 0);
+  rlVertex2f(x, y);
+  
+  rlTexCoord2f(0, 1);
+  rlVertex2f(x, y + scale);
+
+  rlTexCoord2f(1, 1);
+  rlVertex2f(x + scale, y + scale);
+
+  rlEnd();
+  rlSetTexture(0);
+  break;
+
+  case GeoType::slope_nw:
+  rlSetTexture(texture.id);
+
+  rlBegin(RL_QUADS);
+
+  rlColor4ub(255, 255, 255, 255);
+
+  rlTexCoord2f(1, 0);
+  rlVertex2f(x + scale, y);
+  
+  rlTexCoord2f(1, 1);
+  rlVertex2f(x + scale, y + scale);
+
+  rlTexCoord2f(0, 1);
+  rlVertex2f(x, y + scale);
+
+  rlEnd();
+  rlSetTexture(0);
+  break;
+
+  case GeoType::slope_sw:
+  rlSetTexture(texture.id);
+
+  rlBegin(RL_QUADS);
+
+  rlColor4ub(255, 255, 255, 255);
+
+  rlTexCoord2f(0, 0);
+  rlVertex2f(x, y);
+  
+  rlTexCoord2f(1, 0);
+  rlVertex2f(x + scale, y);
+
+  rlTexCoord2f(1, 1);
+  rlVertex2f(x + scale, y + scale);
+
+  rlEnd();
+  rlSetTexture(0);
+  break;
+
+  case GeoType::platform:
+  DrawTexturePro(
+    texture,
+    Rectangle {x, y, scale, scale},
+    Rectangle {x, y, scale, scale/2},
+    Vector2 {0, 0},
+    0,
+    WHITE
+  );
+  break;
   }
 }
 

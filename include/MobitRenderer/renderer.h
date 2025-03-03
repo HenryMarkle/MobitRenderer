@@ -190,6 +190,11 @@ protected:
     Shader _white_remover;
     int _white_remover_texture_loc;
 
+    /// @brief Removes the white background and replaces the 
+    /// the rest with a color.
+    Shader _ink;
+    int _ink_texture_loc;
+
     Shader _white_remover_vflip;
     int _white_remover_vflip_texture_loc;
 
@@ -342,10 +347,17 @@ protected:
     );
 
     bool _frame_render_bricks_layer(uint8_t layer, int threshold = 300);
-    void _render_bricks_layer(uint8_t layer);
+
+    void _render_unified_layer(uint8_t layer);
+
+    void _render_concrete_layer(u_int8_t layer);
     void _render_standard_layer(uint8_t layer);
+    void _render_bricks_layer(uint8_t layer);
     void _render_chaotic_stone_layer(uint8_t layer);
     void _render_small_pipes_layer(uint8_t layer);
+    void _render_trash_layer(uint8_t layer);
+
+    void _render_poles_layer(uint8_t layer);
 
 
 public:

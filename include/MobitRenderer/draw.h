@@ -101,6 +101,13 @@ void draw_texture(
   Color color
 ) noexcept;
 
+void draw_texture_triangle(
+  const Texture2D &texture,
+  const Vector2 &p1,
+  const Vector2 &p2,
+  const Vector2 &p3
+) noexcept;
+
 void draw_grid(levelsize width, levelsize height, Color color = GRAY, int scale = 20, int thickness = 1) noexcept;
 void draw_nested_grid(levelsize width, levelsize height, Color color, int scale = 20, int thickness = 1) noexcept;
 
@@ -114,6 +121,14 @@ void draw_double_frame(int x, int y, levelpixelsize width, levelpixelsize height
 /// @param width Matrix' width
 /// @param height Matrix' height
 void draw_ruler(int x, int y, int width, int height, Color color, float scale = 20.0f) noexcept;
+
+void draw_geo_texture(
+  const Texture2D &texture,
+  const GeoCell &geo,
+  float x,
+  float y,
+  float scale = 20.0f
+) noexcept;
 
 void draw_geo_shape(GeoType type, float x, float y, float scale, Color color);
 

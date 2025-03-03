@@ -580,6 +580,31 @@ void draw_ruler(int x, int y, int width, int height, Color color, float scale) n
     );
 }
 
+void draw_texture_triangle(
+    const Texture2D &texture,
+    const Vector2 &p1,
+    const Vector2 &p2,
+    const Vector2 &p3
+) noexcept {
+    Vector2 uv1 = { 0.0f, 0.0f };
+    Vector2 uv2 = { 0.0f, 1.0f };
+    Vector2 uv3 = { 1.0f, 1.0f };
+
+    rlSetTexture(texture.id);
+
+    rlBegin(RL_TRIANGLES);
+  
+    rlColor4ub(255, 255, 255, 255);
+
+    rlTexCoord2f(uv1.x, uv1.y); rlVertex2f(p1.x, p1.y);
+    rlTexCoord2f(uv2.x, uv2.y); rlVertex2f(p2.x, p2.y);
+    rlTexCoord2f(uv3.x, uv3.y); rlVertex2f(p3.x, p3.y);
+
+    rlEnd();
+
+    rlSetTexture(0);
+}
+
 };
     
 };

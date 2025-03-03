@@ -1,9 +1,10 @@
 #include <exception>
 #include <filesystem>
-#include <iomanip>
 #include <iostream>
-#include <memory>
+#include <cstdint>
+#include <iomanip>
 #include <sstream>
+#include <memory>
 #include <string>
 
 #include <imgui.h>
@@ -343,7 +344,7 @@ int auto_render_window(int argc, char *argv[]) {
 
   logger->info("initializing window");
 
-  SetTargetFPS(15);
+  SetTargetFPS(30);
 
 #ifdef IS_DEBUG_BUILD
   InitWindow(1400 + 300, 800 + 35, "Mobit Renderer");
@@ -417,6 +418,8 @@ int auto_render_window(int argc, char *argv[]) {
   bool prev_fog = true;
 #endif
 
+  uint64_t frame = 0;
+
   while (!WindowShouldClose()) {
 
     if (!renderer->is_initialized()) {
@@ -484,12 +487,12 @@ int auto_render_window(int argc, char *argv[]) {
       continue;
     }
 
-    if (renderer->get_render_progress() < 7)
-      renderer->frame_render();
-    else if (!renderer->is_quadification_done())
-      renderer->frame_quadify_layers();
-    else if (!renderer->is_light_render_done())
-      renderer->frame_render_light();
+    
+    if (renderer->get_render_progress() < 7) {
+      if (frame % 3 <= 1) renderer->frame_render();
+    }
+    else if (!renderer->is_quadification_done()) renderer->frame_quadify_layers();
+    else if (!renderer->is_light_render_done()) renderer->frame_render_light();
     else {
 #ifdef IS_DEBUG_BUILD
 #ifdef FEATURE_PALETTES
@@ -514,7 +517,7 @@ int auto_render_window(int argc, char *argv[]) {
 
       renderer->frame_render_final();
     }
-
+    
     {
       // if (IsKeyPressed(KEY_ONE)) current_page = 1;
       // if (IsKeyPressed(KEY_TWO)) current_page = 2;
@@ -653,7 +656,7 @@ int auto_render_window(int argc, char *argv[]) {
             ImGui::Text("FPS");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text("15");
+            ImGui::Text("%d", GetFPS());
 
             ImGui::TableNextRow();
 
@@ -911,6 +914,8 @@ int auto_render_window(int argc, char *argv[]) {
 
       EndDrawing();
     }
+
+    ++frame;
   }
 
   logger->info("exiting main loop");

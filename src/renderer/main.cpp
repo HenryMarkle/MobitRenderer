@@ -134,10 +134,6 @@ Renderer::Renderer(
 
 Renderer::~Renderer() {
     if (_initialized) {
-        UnloadShader(_white_remover);
-        UnloadShader(_bevel);
-        UnloadShader(_invb);
-
         for (size_t l = 0; l < 30; l++) {
             UnloadRenderTexture(_layers[l]);
             UnloadRenderTexture(_dc_layers[l]);
@@ -151,6 +147,19 @@ Renderer::~Renderer() {
         UnloadRenderTexture(_composed_lightmap);
         UnloadRenderTexture(_composed_layers);
         UnloadRenderTexture(_material_canvas);
+
+        UnloadShader(_vflip);
+        UnloadShader(_white_remover);
+        UnloadShader(_ink);
+        UnloadShader(_white_remover_vflip);
+        UnloadShader(_composer);
+        UnloadShader(_bevel);
+        UnloadShader(_invb);
+        UnloadShader(_red_encoder);
+        UnloadShader(_rgb_apply_palette);
+        UnloadShader(_palette_sky);
+        UnloadShader(_sill);
+        UnloadShader(_cross_sill);
     }
 
     if (_preparation_thread.joinable()) _preparation_thread.join();
@@ -232,6 +241,7 @@ bool Renderer::frame_initialize(int threshold) {
         _vflip = LoadShader(nullptr, (shaders_dir / "vflip.frag").string().c_str());
         _white_remover = LoadShader(nullptr, (shaders_dir / "white_remover.frag").string().c_str());
         _white_remover_vflip = LoadShader(nullptr, (shaders_dir / "white_remover_vflip.frag").string().c_str());
+        _ink = LoadShader(nullptr, (shaders_dir / "white_remover_apply_color.frag").string().c_str());
         _composer = LoadShader(nullptr, (shaders_dir / "white_remover_apply_white_tint_vflip.frag").string().c_str());
         _bevel = LoadShader(nullptr, (shaders_dir / "bevel.frag").string().c_str());
         _invb = LoadShader((shaders_dir / "invb.vert").string().c_str(), (shaders_dir / "invb.frag").string().c_str());
@@ -245,6 +255,8 @@ bool Renderer::frame_initialize(int threshold) {
         
         _white_remover_texture_loc = GetShaderLocation(_white_remover, "texture0");
         _white_remover_vflip_texture_loc = GetShaderLocation(_white_remover_vflip, "texture0");
+
+        _ink_texture_loc = GetShaderLocation(_ink, "texture0");
         
         _composer_texture_loc = GetShaderLocation(_composer, "texture0");
         _composer_tint_loc = GetShaderLocation(_composer, "tint");
@@ -1081,7 +1093,15 @@ bool Renderer::frame_render() {
         if (_frame_render_materials_layer(_material_layer_progress, 300)) {
             _material_layer_progress++;
             _material_progress = 0;
-            if (_material_layer_progress >= 3) _set_render_progress(RENDER_PROGRESS_PROPS);
+            
+            if (_material_layer_progress >= 3) {
+            
+                _render_poles_layer(0);
+                _render_poles_layer(1);
+                _render_poles_layer(2);
+
+                _set_render_progress(RENDER_PROGRESS_PROPS);
+            }
         }
 
         return false;
@@ -1160,6 +1180,33 @@ bool Renderer::_is_material(int x, int y, int z, const MaterialDef *def) {
     }
 
     return false;
+}
+
+void Renderer::_render_poles_layer(uint8_t layer) {
+    if (layer > 2) return;
+
+    const auto &geos = _level->get_const_geo_matrix();
+
+    for (int x = 0; x < columns; x++) {
+        for (int y = 0; y < rows; y++) {
+            const int mx = x + static_cast<int>(_camera->get_position().x/20);
+            const int my = y + static_cast<int>(_camera->get_position().y/20);
+
+            if (!geos.is_in_bounds(mx, my, layer)) continue;
+
+            const auto &geo = geos.get_const(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), layer);
+
+            // if (geo.is_solid()) continue;
+
+            if (geo.has_feature(GeoFeature::vertical_pole)) {
+                DrawRectangle(x * 20 + 8, y * 20, 4, 20, Color{255, 0, 0, 255});
+            }
+
+            if (geo.has_feature(GeoFeature::horizontal_pole)) {
+                DrawRectangle(x * 20, y * 20 + 8, 20, 4, Color{255, 0, 0, 255});
+            }
+        }
+    }
 }
 
 };

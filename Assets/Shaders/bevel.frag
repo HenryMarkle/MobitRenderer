@@ -25,18 +25,29 @@ void main() {
     vec2 texel = 1.0 / texSize; // Texel size
     vec4 pixel;
 
+    vec4 white = vec4(1, 1, 1, 1);
+    vec4 red = vec4(1, 0, 0, 1);
+    vec4 green = vec4(0, 1, 0, 1);
+    vec4 blue = vec4(0, 0, 1, 1);
+
     if (vflip == 0) {
         pixel = texture(texture0, fragTexCoord);
     } else {
         pixel = texture(texture0, vec2(fragTexCoord.x, 1.0 - fragTexCoord.y));
     }
 
-    if (pixel.r == 1 && pixel.g == 1 && pixel.b == 1 && pixel.a == 1) { discard; }
+    if (pixel == white) { discard; }
+    
     int c = classifyColor(pixel.rgb); // Center pixel
 
     bool isEdge = false;
-    float gx = 0.0;
-    float gy = 0.0;
+    int gx = 0;
+    int gy = 0;
+
+    //int left = classifyColor(texture(texture0, fragTexCoord + texel * vec2(-edgeThickness, 0)).rgb);
+    //int top  = classifyColor(texture(texture0, fragTexCoord + texel * vec2(0, -edgeThickness)).rgb);
+    //int right  = classifyColor(texture(texture0, fragTexCoord + texel * vec2(edgeThickness, 0)).rgb);    
+    //int right  = classifyColor(texture(texture0, fragTexCoord + texel * vec2(0, edgeThickness)).rgb); 
 
     // Expand edge detection based on thickness
     for (int x = -edgeThickness; x <= edgeThickness; x++) {
@@ -44,21 +55,21 @@ void main() {
             if (x == 0 && y == 0) continue; // Skip center pixel
 
             vec2 offset = texel * vec2(float(x), float(y));
-            int neighbor = classifyColor(texture(texture0, fragTexCoord + offset).rgb);
+            vec4 neighbor = texture(texture0, fragTexCoord + offset);
 
-            if (neighbor != c && c != 0) { // Detect edges (ignore white background)
+            if (neighbor == white) {
                 isEdge = true;
-                gx += float(x);
-                gy += float(y);
+                gx += x;
+                gy += y;
             }
         }
     }
 
     if (isEdge) {
         if ((gx < 0.0 || gy < 0.0) && highlights) {
-            finalColor = vec4(0.0, 0.0, 1.0, 1.0); // Blue for top/left edges
+            finalColor = blue; // Blue for top/left edges
         } else if ((gx >= 0.0 || gy >= 0.0) && shadows) {
-            finalColor = vec4(1.0, 0.0, 0.0, 1.0); // Red for bottom/right edges
+            finalColor = red; // Red for bottom/right edges
         } else {
             finalColor = pixel; // Keep original texture if no color is enabled
         }
