@@ -27,28 +27,6 @@
 #include <MobitRenderer/renderer.h>
 #include <MobitRenderer/definitions.h>
 
-#define CONNECTION_VERTICAL static_cast<uint8_t>(0b00101)
-#define CONNECTION_HORIZONTAL static_cast<uint8_t>(0b01010)
-#define CONNECTION_CROSS static_cast<uint8_t>(0b01111)
-#define CONNECTION_TRB static_cast<uint8_t>(0b00111)
-#define CONNECTION_BLT static_cast<uint8_t>(0b01101)
-#define CONNECTION_LTR static_cast<uint8_t>(0b01110)
-#define CONNECTION_RBL static_cast<uint8_t>(0b01011)
-#define CONNECTION_RB static_cast<uint8_t>(0b00011)
-#define CONNECTION_BL static_cast<uint8_t>(0b01001)
-#define CONNECTION_LT static_cast<uint8_t>(0b01100)
-#define CONNECTION_TR static_cast<uint8_t>(0b00110)
-#define CONNECTION_L static_cast<uint8_t>(0b01000)
-#define CONNECTION_R static_cast<uint8_t>(0b00010)
-#define CONNECTION_T static_cast<uint8_t>(0b00100)
-#define CONNECTION_B static_cast<uint8_t>(0b00001)
-#define CONNECTION_SLOPE_NW static_cast<uint8_t>(0b10000)
-#define CONNECTION_SLOPE_NE static_cast<uint8_t>(0b11000)
-#define CONNECTION_SLOPE_ES static_cast<uint8_t>(0b11100)
-#define CONNECTION_SLOPE_SW static_cast<uint8_t>(0b11110)
-#define CONNECTION_SINGLE static_cast<uint8_t>(0b00000)
-#define CONNECTION_PLATFORM static_cast<uint8_t>(0b11111)
-#define CONNECTION_GLASS static_cast<uint8_t>(0b10111)
 
 namespace mr::renderer {
 
@@ -58,124 +36,272 @@ bool Renderer::_frame_render_materials_layer(uint8_t layer, int threshold) {
     bool done = false;
 
     switch (_material_progress) {
-    case 0: done = true; _render_bricks_layer(layer); break;
+    case 0: done = _frame_render_unified_layer(layer, threshold); break;
     case 1: done = true; _render_chaotic_stone_layer(layer); break;
     case 2: done = true; _render_small_pipes_layer(layer); break;
     case 3: done = true; _render_trash_layer(layer); break;
-    case 4: done = true; _render_standard_layer(layer); break;
-    case 5: done = true; _render_concrete_layer(layer); break;
     default: return true;
     }
 
-    if (done) {
-        _material_progress_x = _material_progress_y = 0;
-        _material_progress++;
-        if (_material_progress < 6) return false;
-    }
-    else return false;
+    if (!done) return false;
 
-    
-    
-    return true;
+    _material_progress_x = _material_progress_y = 0;
+    _material_progress++;
+
+    return _material_progress >= 4;
 }
 
-bool Renderer::_frame_draw_materials_layer_unified(
-    std::queue<Render_TileCell> *cells,
-    uint8_t layer,
-    int threshold
-) {
-    if (cells == nullptr || cells->empty() || layer > 2) return true;
+bool Renderer::_frame_render_unified_layer(uint8_t layer, int threshold) {
+    if (layer > 2 || threshold <= 0) return true;
 
+    auto &queue = _materials_to_render[_camera_index][layer][0];
     int progress = 0;
+    uint8_t sublayer = layer * 10;
+    auto *default_material = _materials->material(_level->default_material);
+    MaterialDef *def = nullptr;
+    Rectangle rect;
+    CastMember *tileset = nullptr, *mat_texture = nullptr;
 
-    // if (_material_progress == 0) {
-    //     BeginTextureMode(_material_canvas);
-    //     ClearBackground(WHITE);
-    //     EndTextureMode();
-    // }
+    Texture2D ts_texture, texture;
 
-    BeginTextureMode(_material_canvas);
-    // BeginTextureMode(_layers[layer * 10]);
-    while (progress < threshold && !cells->empty()) {
-        const auto &material = cells->front();
-    
-        const auto *def = material.cell->material_def;
-        mr::CastMember *member = nullptr;
-        Texture2D texture;
+    std::pair<ivec2, ivec2> profl;
+    int gt_at_v = 0, gt_at_h = 0;
+    Rectangle pst_rect;
 
-        const auto x = material.x * 20.0f - _camera->get_position().x;
-        const auto y = material.y * 20.0f - _camera->get_position().y;
+    while (progress < threshold && !queue.empty()) {
         
-        if (def == nullptr) goto next;
+        const auto &cell = queue.front();
 
-        if (def->get_name() == "Standard") {
-            DrawRectangle(x, y, 20, 20, Color{0, 255, 0, 255});
-            goto next;
-        } 
-        else if (def->get_name() == "Bricks") {
-            member = _castlibs->member("bricksTexture");
-            if (member == nullptr) goto next;
-            texture = member->get_loaded_texture();
-            if (!member->is_loaded()) goto next;
-            DrawTextureRec(texture, {0,0,20,20}, {x, y}, WHITE);
+        if (cell.geo.is_air()) goto skip;
+        if (
+            (cell.tile->type == TileType::material && cell.tile->material_def == nullptr) || 
+            (
+                cell.tile->type == TileType::_default && 
+                (
+                    default_material == nullptr || default_material->get_type() != MaterialRenderType::unified
+                )
+            )
+        ) goto skip;
+
+        def = cell.tile->type == TileType::material ? cell.tile->material_def : default_material;
+
+        if (
+            def->get_name() == "Concrete" || 
+            def->get_name() == "RainStone" || 
+            def->get_name() == "Bricks" || 
+            def->get_name() == "Tiny Signs" || 
+            def->get_name() == "Cliff" ||
+            def->get_name() == "Non-Slip Metal" ||
+            def->get_name() == "BulkMetal" || 
+            def->get_name() == "MassiveBulkMetal" || 
+            def->get_name() == "Asphalt")
+        {
+            mat_texture = _castlibs->member(def->get_name() + "Texture");
+            if (mat_texture == nullptr) continue;
+            texture = mat_texture->get_loaded_texture();
+            if (!mat_texture->is_loaded()) continue;
+
+            if (cell.geo.is_solid()) {
+                BeginTextureMode(_layers[sublayer]);
+                BeginShaderMode(_white_remover);
+                SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+                DrawTexturePro(
+                    texture,
+                    Rectangle {
+                        (cell.x * 20) % texture.width * 1.0f,
+                        (cell.y * 20) % texture.height * 1.0f,
+                        20.0f,
+                        20.0f
+                    },
+                    Rectangle {
+                        cell.x * 20.0f,
+                        cell.y * 20.0f,
+                        20.0f,
+                        20.0f
+                    },
+                    Vector2 {0, 0},
+                    0,
+                    WHITE
+                );
+                EndShaderMode();
+                EndTextureMode();
+            }
         }
-        else {
-            member = _castlibs->member(material.cell->material_def->get_name()+"Texture");
-            if (member == nullptr) goto next;
-    
-            texture = member->get_loaded_texture();
-            if (!member->is_loaded()) goto next;
-    
-            DrawTexture(texture, x, y, WHITE);
-        }
+
+        rect = { cell.x * 20.0f, cell.y * 20.0f, 20.0f, 20.0f };
         
-        next:
-        cells->pop();
-        progress++;
-        // _material_progress++;
-    }
-    EndTextureMode();
+        if (def->get_name() == "Scaffolding") tileset = _castlibs->member("ScaffoldingDR");
+        else if (def->get_name() == "Invisible") tileset = _castlibs->member("Superstructure");
+        else tileset = _castlibs->member("tileSet" + def->get_name());
 
-    if (cells->empty()) {
+        if (tileset == nullptr) continue;
+        ts_texture = tileset->get_loaded_texture();
+        if (!tileset->is_loaded()) continue;
 
-        float size[2] = { 
-            static_cast<float>(_material_canvas.texture.width), 
-            static_cast<float>(_material_canvas.texture.height) 
-        };
-        int highlight = 1, shadow = 1, vflip = 0, thick = 1;
+        if (cell.geo.is_solid()) {
 
-        BeginTextureMode(_layers[layer * 10]);
-        BeginShaderMode(_bevel);
-        SetShaderValueTexture(_bevel, _bevel_texture_loc, _material_canvas.texture);
-        SetShaderValueV(_bevel, _bevel_tex_size_loc, size, SHADER_UNIFORM_FLOAT, 2);
-        SetShaderValue(_bevel, _bevel_thick_loc, &thick, SHADER_UNIFORM_INT);
-        SetShaderValue(_bevel, _bevel_highlight_loc, &highlight, SHADER_UNIFORM_INT);
-        SetShaderValue(_bevel, _bevel_shadow_loc, &shadow, SHADER_UNIFORM_INT);
-        SetShaderValue(_bevel, _bevel_vflip_loc, &vflip, SHADER_UNIFORM_INT);
+            for (int f = 1; f <= 4; f++) {
+                switch (f) {
+                case 1: 
+                    profl = { ivec2{-1, 0}, ivec2{0, -1} }; 
+                    gt_at_v = 2; 
+                    pst_rect = {
+                        rect.x,
+                        rect.y,
+                        rect.width - 10,
+                        rect.height - 10
+                    }; 
+                break;
+                case 2: 
+                    profl = { ivec2{ 1, 0}, ivec2{0, -1} }; 
+                    gt_at_v = 4; 
+                    pst_rect = {
+                        rect.x + 10,
+                        rect.y,
+                        rect.width - 10,
+                        rect.height - 10
+                    }; 
+                break;
+                case 3:
+                    profl = { ivec2{ 1, 0}, ivec2{0, 1} }; 
+                    gt_at_v = 6; 
+                    pst_rect = {
+                        rect.x + 10,
+                        rect.y + 10,
+                        rect.width - 10,
+                        rect.height - 10
+                    }; 
+                break;
+                case 4:
+                    profl = { ivec2{-1, 0}, ivec2{0, 1} }; 
+                    gt_at_v = 8; 
+                    pst_rect = {
+                        rect.x,
+                        rect.y + 10,
+                        rect.width - 10,
+                        rect.height - 10
+                    };
+                break;
+                }
 
-        BeginShaderMode(_white_remover);
-        SetShaderValueTexture(_white_remover, _white_remover_texture_loc, _material_canvas.texture);
-        
-        DrawTexture(_material_canvas.texture, 0, 0, WHITE);
-    
-        EndShaderMode();
-        EndTextureMode();
-    
-        for (int x = 1; x < 10; x++) {
-            BeginTextureMode(_layers[layer * 10 + x]);
-            BeginShaderMode(_white_remover);
-            SetShaderValueTexture(_white_remover, _white_remover_texture_loc, _material_canvas.texture);
+                uint8_t id = 0;
 
-            DrawTexture(_material_canvas.texture, 0, 0, WHITE);
+                auto first = _is_material(
+                    cell.mx + profl.first.x, 
+                    cell.my + profl.first.y, 
+                    layer, 
+                    def
+                );
+                auto second = _is_material(
+                    cell.mx + profl.second.x, 
+                    cell.my + profl.second.y, 
+                    layer, 
+                    def
+                );
             
-            EndShaderMode();
-            EndTextureMode();
+                if (first) id |= 0b00000010;
+                if (second) id |= 0b00000001;
+
+                if (id == 3) {
+                    if (
+                        _is_material(
+                            cell.mx + profl.first.x + profl.second.x,
+                            cell.my + profl.first.y + profl.second.y,
+                            layer,
+                            def
+                        )
+                    ) {
+                        gt_at_h = 10;
+                        gt_at_v = 2;
+                    } else {
+                        gt_at_h = 8;
+                    }
+                } else {
+                    // if (id == 0 || id == 1 || id == 3) gt_at_h = id * 2;
+                    // else gt_at_h = 0;
+                    switch (id) {
+                        case 0b00000000: gt_at_h = 2; break;
+                        case 0b00000001: gt_at_h = 4; break;
+                        case 0b00000010: gt_at_h = 6; break;
+                        default: gt_at_h = 0; break;
+                    }
+                }
+
+                if (gt_at_h == 4) {
+                    if (gt_at_v == 6) {
+                        gt_at_v = 4;
+                    } else if (gt_at_v == 8) {
+                        gt_at_v = 2;
+                    }
+                } else if (gt_at_h == 6) {
+                    if (gt_at_v == 4 || gt_at_v == 8) {
+                        gt_at_v -= 2;
+                    }
+                }
+
+                auto gt_rect = Rectangle {
+                    (gt_at_h - 1)*10.0f,
+                    (gt_at_v - 1)*10.0f,
+                    10.0f, 10.0f
+                };
+
+                BeginTextureMode(_layers[sublayer]);
+                BeginShaderMode(_white_remover);
+                SetShaderValueTexture(_white_remover, _white_remover_texture_loc, ts_texture);
+                DrawTexturePro(
+                    ts_texture,
+                    gt_rect,
+                    Rectangle {
+                        pst_rect.x,
+                        pst_rect.y,
+                        pst_rect.width,
+                        pst_rect.height
+                    },
+                    // pst_rect,
+                    Vector2 {0, 0},
+                    0,
+                    WHITE
+                );
+                EndShaderMode();
+                EndTextureMode();
+
+                for (int l = 1; l < 10; l++) {
+                    BeginTextureMode(_layers[sublayer + l]);
+                    BeginShaderMode(_white_remover);
+                    SetShaderValueTexture(_white_remover, _white_remover_texture_loc, ts_texture);
+                    DrawTexturePro(
+                        ts_texture,
+                        Rectangle {
+                            gt_rect.x + 120,
+                            gt_rect.y,
+                            gt_rect.width,
+                            gt_rect.height
+                        },
+                        Rectangle {
+                            pst_rect.x,
+                            pst_rect.y,
+                            pst_rect.width,
+                            pst_rect.height
+                        },
+                        // pst_rect,
+                        Vector2 {0, 0},
+                        0,
+                        WHITE
+                    );
+                    EndShaderMode();
+                    EndTextureMode();
+                }
+            }
+
         }
 
-        return true;
+        skip:
+
+        queue.pop();
+        progress++;
     }
 
-    return false;
+    return queue.empty();
 }
 
 bool Renderer::_frame_render_bricks_layer(uint8_t layer, int threshold) {
@@ -613,6 +739,29 @@ void Renderer::_render_small_pipes_layer(uint8_t layer) {
         since it's not typically used excessively. 
     */
 
+    static const auto CONNECTION_VERTICAL = static_cast<uint8_t>(0b00101);
+    static const auto CONNECTION_HORIZONTAL = static_cast<uint8_t>(0b01010);
+    static const auto CONNECTION_CROSS = static_cast<uint8_t>(0b01111);
+    static const auto CONNECTION_TRB = static_cast<uint8_t>(0b00111);
+    static const auto CONNECTION_BLT = static_cast<uint8_t>(0b01101);
+    static const auto CONNECTION_LTR = static_cast<uint8_t>(0b01110);
+    static const auto CONNECTION_RBL = static_cast<uint8_t>(0b01011);
+    static const auto CONNECTION_RB = static_cast<uint8_t>(0b00011);
+    static const auto CONNECTION_BL = static_cast<uint8_t>(0b01001);
+    static const auto CONNECTION_LT = static_cast<uint8_t>(0b01100);
+    static const auto CONNECTION_TR = static_cast<uint8_t>(0b00110);
+    static const auto CONNECTION_L = static_cast<uint8_t>(0b01000);
+    static const auto CONNECTION_R = static_cast<uint8_t>(0b00010);
+    static const auto CONNECTION_T = static_cast<uint8_t>(0b00100);
+    static const auto CONNECTION_B = static_cast<uint8_t>(0b00001);
+    static const auto CONNECTION_SLOPE_NW = static_cast<uint8_t>(0b10000);
+    static const auto CONNECTION_SLOPE_NE = static_cast<uint8_t>(0b11000);
+    static const auto CONNECTION_SLOPE_ES = static_cast<uint8_t>(0b11100);
+    static const auto CONNECTION_SLOPE_SW = static_cast<uint8_t>(0b11110);
+    static const auto CONNECTION_SINGLE = static_cast<uint8_t>(0b00000);
+    static const auto CONNECTION_PLATFORM = static_cast<uint8_t>(0b11111);
+    static const auto CONNECTION_GLASS = static_cast<uint8_t>(0b10111);
+
     if (layer > 2) return;
 
     auto *member = _castlibs->member("pipeTiles2");
@@ -808,6 +957,29 @@ void Renderer::_render_small_pipes_layer(uint8_t layer) {
 
 void Renderer::_render_trash_layer(uint8_t layer) {
     if (layer > 2) return;
+
+    static const auto CONNECTION_VERTICAL = static_cast<uint8_t>(0b00101);
+    static const auto CONNECTION_HORIZONTAL = static_cast<uint8_t>(0b01010);
+    static const auto CONNECTION_CROSS = static_cast<uint8_t>(0b01111);
+    static const auto CONNECTION_TRB = static_cast<uint8_t>(0b00111);
+    static const auto CONNECTION_BLT = static_cast<uint8_t>(0b01101);
+    static const auto CONNECTION_LTR = static_cast<uint8_t>(0b01110);
+    static const auto CONNECTION_RBL = static_cast<uint8_t>(0b01011);
+    static const auto CONNECTION_RB = static_cast<uint8_t>(0b00011);
+    static const auto CONNECTION_BL = static_cast<uint8_t>(0b01001);
+    static const auto CONNECTION_LT = static_cast<uint8_t>(0b01100);
+    static const auto CONNECTION_TR = static_cast<uint8_t>(0b00110);
+    static const auto CONNECTION_L = static_cast<uint8_t>(0b01000);
+    static const auto CONNECTION_R = static_cast<uint8_t>(0b00010);
+    static const auto CONNECTION_T = static_cast<uint8_t>(0b00100);
+    static const auto CONNECTION_B = static_cast<uint8_t>(0b00001);
+    static const auto CONNECTION_SLOPE_NW = static_cast<uint8_t>(0b10000);
+    static const auto CONNECTION_SLOPE_NE = static_cast<uint8_t>(0b11000);
+    static const auto CONNECTION_SLOPE_ES = static_cast<uint8_t>(0b11100);
+    static const auto CONNECTION_SLOPE_SW = static_cast<uint8_t>(0b11110);
+    static const auto CONNECTION_SINGLE = static_cast<uint8_t>(0b00000);
+    static const auto CONNECTION_PLATFORM = static_cast<uint8_t>(0b11111);
+    static const auto CONNECTION_GLASS = static_cast<uint8_t>(0b10111);
 
     auto *member = _castlibs->member("trashTiles3");
     if (member == nullptr) return;
@@ -1006,10 +1178,195 @@ void Renderer::_render_trash_layer(uint8_t layer) {
                     src,
                     Quad(target).rotated(_rand.next(360))
                 );
+                EndShaderMode();
                 EndTextureMode();
             }
         }
     }
+}
+
+void Renderer::_render_bigmetal_layer(uint8_t layer) {
+    if (layer > 2) return;
+
+    auto *tileset = _castlibs->member("tileSetBigMetal");
+    if (tileset == nullptr) return;
+
+    auto *tileset_floor = _castlibs->member("tileSetBigMetalFloor");
+
+    const auto &texture = tileset->get_loaded_texture();
+    if (!tileset->is_loaded()) return;
+
+    Texture2D texture2;
+    if (tileset_floor != nullptr) texture2 = tileset_floor->get_loaded_texture();
+
+    const auto *def = _materials->material("BigMetal");
+    if (def == nullptr) return;
+
+    bool skip_default = _level->default_material != def->get_name();
+
+    static const auto LEFT         = static_cast<uint8_t>(0b10000000);
+    static const auto TOP          = static_cast<uint8_t>(0b01000000);
+    static const auto RIGHT        = static_cast<uint8_t>(0b00100000);
+    static const auto BOTTOM       = static_cast<uint8_t>(0b00010000);
+    static const auto TOP_LEFT     = static_cast<uint8_t>(0b00001000);
+    static const auto TOP_RIGHT    = static_cast<uint8_t>(0b00000100);
+    static const auto BOTTOM_RIGHT = static_cast<uint8_t>(0b00000010);
+    static const auto BOTTOM_LEFT  = static_cast<uint8_t>(0b00000001);
+
+    auto src_v = Rectangle { 30.0f, 10.0f, 10.0f, 10.0f };
+    auto src_h = Rectangle { 50.0f, 10.0f, 10.0f, 10.0f };
+    
+    auto src_tl = Rectangle { 10.0f, 10.0f, 10.0f, 10.0f };
+    auto src_tr = Rectangle { 10.0f, 30.0f, 10.0f, 10.0f };
+    auto src_br = Rectangle { 10.0f, 50.0f, 10.0f, 10.0f };
+    auto src_bl = Rectangle { 10.0f, 70.0f, 10.0f, 10.0f };
+
+    auto src_i_tl = Rectangle { 70.0f, 10.0f, 10.0f, 10.0f };
+    auto src_i_tr = Rectangle { 70.0f, 30.0f, 10.0f, 10.0f };
+    auto src_i_br = Rectangle { 70.0f, 50.0f, 10.0f, 10.0f };
+    auto src_i_bl = Rectangle { 70.0f, 70.0f, 10.0f, 10.0f };
+    auto e_src = Rectangle { 90.0f, 10.0f, 10.0f, 10.0f };
+    
+    const auto &tiles = _level->get_const_tile_matrix();
+    const auto &geos = _level->get_const_geo_matrix();
+
+    auto rt = LoadRenderTexture(final_width, final_height);
+
+    BeginTextureMode(rt);
+    ClearBackground(WHITE);
+
+    for (int x = 0; x < columns; x++) {
+        for (int y = 0; y < rows; y++) {
+            int cx = x + static_cast<int>(_camera->get_position().x/20);
+            int cy = y + static_cast<int>(_camera->get_position().y/20);
+        
+            if (!tiles.is_in_bounds(cx, cy, layer)) continue;
+
+            matrix_t mx = static_cast<matrix_t>(cx);
+            matrix_t my = static_cast<matrix_t>(cy);
+
+            const auto &tile = tiles.get_const(mx, my, layer);
+            const auto &geo = geos.get_const(mx, my, layer);
+
+            if (geo.is_air()) continue;
+            if (tile.type != TileType::material && tile.type != TileType::_default) continue;
+            if (
+                (tile.type == TileType::material && tile.material_def != def) || 
+                (tile.type == TileType::_default && skip_default)
+            ) continue;
+
+            DrawRectangleRec(
+                Rectangle { x * 20.0f, y * 20.0f, 20.0f, 20.0f },
+                Color { 0, 255, 0, 255 }
+            );
+
+            uint8_t connection = 0;
+
+            auto left = _is_material(mx - 1, my, layer, def);
+            auto top = _is_material(mx, my - 1, layer, def);
+            auto right = _is_material(mx + 1, my, layer, def);
+            auto bottom = _is_material(mx, my + 1, layer, def);
+
+            auto topleft = _is_material(mx - 1, my - 1, layer, def);
+            auto topright = _is_material(mx + 1, my - 1, layer, def);
+            auto bottomright = _is_material(mx + 1, my + 1, layer, def);
+            auto bottomleft = _is_material(mx - 1, my + 1, layer, def);
+
+            if (left) connection |= LEFT;
+            if (top) connection |= TOP;
+            if (right) connection |= RIGHT;
+            if (bottom) connection |= BOTTOM;
+
+            if (topleft) connection |= TOP_LEFT;
+            if (topright) connection |= TOP_RIGHT;
+            if (bottomright) connection |= BOTTOM_RIGHT;
+            if (bottomleft) connection |= BOTTOM_LEFT;
+
+
+            Rectangle tl_target = { x * 20.0f        , y * 20.0f        , 10.0f, 10.0f };
+            Rectangle tr_target = { x * 20.0f + 10.0f, y * 20.0f        , 10.0f, 10.0f };
+            Rectangle br_target = { x * 20.0f + 10.0f, y * 20.0f + 10.0f, 10.0f, 10.0f };
+            Rectangle bl_target = { x * 20.0f        , y * 20.0f + 10.0f, 10.0f, 10.0f };
+
+            Rectangle tl_src, tr_src, br_src, bl_src;
+            
+            switch (connection) {
+                case LEFT: tl_src = bl_src = src_h; tr_src = src_tr; br_src = src_br; break;
+                case TOP: tl_src = tr_src = src_tr; bl_src = src_bl; br_src = src_br; break;
+                case RIGHT: tr_src = br_src = src_h; tl_src = src_tl; bl_src = src_bl; break;
+                case BOTTOM: bl_src = br_src = src_v; tl_src = src_tl; tr_src = src_tr; break;
+
+                case TOP | BOTTOM: tl_src = tr_src = br_src = bl_src = src_v; break;
+                case LEFT | RIGHT: tl_src = tr_src = br_src = bl_src = src_h; break;
+
+                case LEFT | TOP | RIGHT | BOTTOM:
+                    tl_src = src_i_tl; 
+                    tl_src = src_i_tr;
+                    br_src = src_i_br;
+                    bl_src = src_i_bl;
+                break;
+
+                case TOP | LEFT: tl_src = src_i_tl; tr_src = src_v; br_src = src_br; bl_src = src_h; break;
+                case TOP | RIGHT: tl_src = src_v; tr_src = src_i_tr; br_src = src_h; bl_src = src_bl; break;
+                case BOTTOM | RIGHT: tl_src = src_tl; tr_src = src_h; br_src = src_i_br; bl_src = src_v; break;
+                case BOTTOM | LEFT: tl_src = src_h; tr_src = src_tr; br_src = src_v; src_i_bl; break;
+            }
+
+            if (connection & TOP_LEFT) src_tl = e_src;
+            if (connection & TOP_RIGHT) src_tr = e_src;
+            if (connection & BOTTOM_RIGHT) src_br = e_src;
+            if (connection & BOTTOM_LEFT) src_bl = e_src;
+
+            DrawTexturePro(
+                texture,
+                tl_src,
+                tl_target,
+                Vector2 { 0, 0 },
+                0,
+                WHITE
+            );
+
+            DrawTexturePro(
+                texture,
+                tr_src,
+                tr_target,
+                Vector2 { 0, 0 },
+                0,
+                WHITE
+            );
+
+            DrawTexturePro(
+                texture,
+                br_src,
+                br_target,
+                Vector2 { 0, 0 },
+                0,
+                WHITE
+            );
+
+            DrawTexturePro(
+                texture,
+                bl_src,
+                bl_target,
+                Vector2 { 0, 0 },
+                0,
+                WHITE
+            );
+        }
+    }
+
+    EndTextureMode();
+
+    for (int l = 0; l < 10; l++) {
+        BeginTextureMode(_layers[layer * 10 + l]);
+        BeginShaderMode(_white_remover_vflip);
+        SetShaderValueTexture(_white_remover_vflip, _white_remover_vflip_texture_loc, rt.texture);
+        DrawTexture(rt.texture, 0, 0, WHITE);
+        EndShaderMode();
+        EndTextureMode();
+    }
+
+    UnloadRenderTexture(rt);
 }
 
 }

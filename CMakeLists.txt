@@ -85,7 +85,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${PROJECT_SOURCE_Data}
         ${PROJECT_BINARY_Data}
-    COMMENT "Copying Data folder to binary directory"
+    COMMENT "Copying Data folder to binary directory as 'Data'"
   )
   #
 
@@ -101,7 +101,9 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(MobitRenderer PRIVATE PROJECT_SRC_DIR="${CMAKE_SOURCE_DIR}")
   target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=1)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
 else()
+  target_compile_definitions(MobitRenderer PRIVATE PROJECT_SRC_DIR="${CMAKE_SOURCE_DIR}")
   target_compile_definitions(MobitRenderer PRIVATE IS_DEBUG_BUILD=0)
 endif()
 

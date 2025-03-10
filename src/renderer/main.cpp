@@ -23,10 +23,11 @@
 #define RENDER_PROGRESS_TILES 1
 #define RENDER_PROGRESS_MATERIALS 2
 #define RENDER_PROGRESS_PROPS 3
-#define RENDER_PROGRESS_EFFECTS 4
-#define RENDER_PROGRESS_LIGHT 5
-#define RENDER_PROGRESS_TEXT 6
-#define RENDER_PROGRESS_DONE 7
+#define RENDER_PROGRESS_EXTRA 4
+#define RENDER_PROGRESS_EFFECTS 5
+#define RENDER_PROGRESS_LIGHT 6
+#define RENDER_PROGRESS_TEXT 7
+#define RENDER_PROGRESS_DONE 8
 
 namespace mr::renderer {
 
@@ -556,7 +557,7 @@ void Renderer::frame_compose(
             SetShaderValueTexture(_composer, _composer_texture_loc, l.texture);
             float tint = fog * (_layers_compose_progress) / 32.0f;
             SetShaderValue(_composer, _composer_tint_loc, &tint, SHADER_UNIFORM_FLOAT);
-            DrawTexture(l.texture, 5 - offsetx * _layers_compose_progress, 5 - offsety * _layers_compose_progress, WHITE);
+            DrawTexture(l.texture, offsetx * (5 - _layers_compose_progress), offsety * (5 - _layers_compose_progress), WHITE);
             EndShaderMode();
         }
 
@@ -823,14 +824,13 @@ void Renderer::_prepare() {
     _rand = RandomGen(_level->seed);
 
     const auto &mtx = _level->get_const_tile_matrix();
+    const auto &geos = _level->get_const_geo_matrix();
 
     _tiles_to_render1.clear();
     _tiles_to_render2.clear();
     _tiles_to_render3.clear();
 
-    _materials_to_render1.clear();
-    _materials_to_render2.clear();
-    _materials_to_render3.clear();  
+    _materials_to_render.clear();
 
     _tiles_to_render1.resize(_config.cameras.empty() ? _level->cameras.size() : _config.cameras.size());
     _tiles_to_render2.resize(_config.cameras.empty() ? _level->cameras.size() : _config.cameras.size());
@@ -899,127 +899,6 @@ void Renderer::_prepare() {
         }
     }
 
-
-    if (_config.cameras.empty()) {
-        _materials_to_render1.resize(_level->cameras.size());
-        _materials_to_render2.resize(_level->cameras.size());
-        _materials_to_render3.resize(_level->cameras.size());
-    } else {
-        _materials_to_render1.resize(_config.cameras.size());
-        _materials_to_render2.resize(_config.cameras.size());
-        _materials_to_render3.resize(_config.cameras.size());
-    }
-
-    // for (size_t c = 0; c < _materials_to_render1.size(); c++) {
-    //     const auto &camera = _config.cameras.empty() 
-    //         ? _level->cameras[c] 
-    //         : _level->cameras[_config.cameras[c]];
-
-    //     _materials_to_render1[c] = std::vector<std::queue<Render_TileCell>>();
-    //     _materials_to_render2[c] = std::vector<std::queue<Render_TileCell>>();
-    //     _materials_to_render3[c] = std::vector<std::queue<Render_TileCell>>();
-        
-    //     _materials_to_render1[c].resize(18);
-    //     _materials_to_render2[c].resize(18);
-    //     _materials_to_render3[c].resize(18);
-    
-    //     const auto *default_material = _materials->material(_level->default_material);
-
-    //     const auto &mtx = _level->get_const_tile_matrix();
-
-    //     for (int x = 0; x < columns; x++) {
-    //         for (int y = 0; y < rows; y++) {
-    //             int mx = x + static_cast<int>(camera.get_position().x/20);
-    //             int my = y + static_cast<int>(camera.get_position().y/20);
-
-    //             if (!mtx.is_in_bounds(mx, my, 0)) continue;
-                
-    //             const auto *cell1 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 0);
-    //             const auto *cell2 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 1);
-    //             const auto *cell3 = mtx.get_const_ptr(static_cast<matrix_t>(mx), static_cast<matrix_t>(my), 2);
-
-    //             if (cell1 != nullptr) {
-    //                 if (cell1->type == TileType::material && cell1->material_def != nullptr) {
-    //                     _materials_to_render1[c][static_cast<size_t>(cell1->material_def->get_type())]
-    //                         .push(
-    //                             Render_TileCell(
-    //                                 0, 
-    //                                 static_cast<matrix_t>(x), 
-    //                                 static_cast<matrix_t>(y), 
-    //                                 0, 
-    //                                 cell1
-    //                             )
-    //                         );
-    //                 } else if (cell1->type == TileType::_default && default_material != nullptr) {
-    //                     _materials_to_render1[c][static_cast<size_t>(default_material->get_type())]
-    //                         .push(
-    //                             Render_TileCell(
-    //                                 0, 
-    //                                 static_cast<matrix_t>(x), 
-    //                                 static_cast<matrix_t>(y), 
-    //                                 0, 
-    //                                 cell1
-    //                             )
-    //                         );
-    //                 }
-    //             }
-
-    //             if (cell2 != nullptr) {
-    //                 if (cell2->type == TileType::material && cell2->material_def != nullptr) {
-    //                     _materials_to_render2[c][static_cast<size_t>(cell2->material_def->get_type())]
-    //                         .push(
-    //                             Render_TileCell(
-    //                                 0, 
-    //                                 static_cast<matrix_t>(x), 
-    //                                 static_cast<matrix_t>(y),  
-    //                                 1, 
-    //                                 cell2
-    //                             )
-    //                         );
-    //                 } else if (cell2->type == TileType::_default && default_material != nullptr) {
-    //                     _materials_to_render2[c][static_cast<size_t>(default_material->get_type())]
-    //                         .push(
-    //                             Render_TileCell(
-    //                                 0, 
-    //                                 static_cast<matrix_t>(x), 
-    //                                 static_cast<matrix_t>(y),  
-    //                                 1, 
-    //                                 cell2
-    //                             )
-    //                         );
-    //                 }
-    //             }
-
-    //             if (cell3 != nullptr) {
-    //                 if (cell3->type == TileType::material && cell3->material_def != nullptr) {
-    //                     _materials_to_render3[c][static_cast<size_t>(cell3->material_def->get_type())]
-    //                         .push(
-    //                             Render_TileCell(
-    //                                 0, 
-    //                                 static_cast<matrix_t>(x), 
-    //                                 static_cast<matrix_t>(y), 
-    //                                 2, 
-    //                                 cell3
-    //                             )
-    //                         );
-    //                 } else if (cell2->type == TileType::_default && default_material != nullptr) {
-    //                     _materials_to_render3[c][static_cast<size_t>(default_material->get_type())]
-    //                         .push(
-    //                             Render_TileCell(
-    //                                 0, 
-    //                                 static_cast<matrix_t>(x), 
-    //                                 static_cast<matrix_t>(y), 
-    //                                 2, 
-    //                                 cell3
-    //                             )
-    //                         );
-    //                 }
-    //             }
-
-    //         }
-    //     }
-    // }
-
     const auto sort_alg = [](const Render_TileCell &c1, const Render_TileCell &c2) { return c1.rnd < c2.rnd; };
 
     for (int c = 0; c < _tiles_to_render1.size(); c++) {
@@ -1042,6 +921,94 @@ void Renderer::_prepare() {
         );
     }
 
+    size_t cams_num = _config.cameras.empty() ? _level->cameras.size() : _config.cameras.size();
+    const auto *default_material = _materials->material(_level->default_material);
+
+    _materials_to_render.resize(cams_num);
+
+    for (size_t c = 0; c < cams_num; c++) {
+        _materials_to_render[c].resize(3);
+
+        _materials_to_render[c][0].resize(18);
+        _materials_to_render[c][1].resize(18);
+        _materials_to_render[c][2].resize(18);
+
+        const auto &camera = _config.cameras.empty() ? _level->cameras[c] : _level->cameras[_config.cameras[c]];
+
+        for (int x = 0; x < columns; x++) {
+            for (int y = 0; y < rows; y++) {
+                int cx = x + static_cast<int>(camera.get_position().x/20);
+                int cy = y + static_cast<int>(camera.get_position().y/20);
+
+                if (!mtx.is_in_bounds(cx, cy, 0)) continue;
+
+                matrix_t mx = static_cast<matrix_t>(cx);
+                matrix_t my = static_cast<matrix_t>(cy);
+
+                const auto &tile1 = mtx.get_const(mx, my, 0);
+                const auto &tile2 = mtx.get_const(mx, my, 1);
+                const auto &tile3 = mtx.get_const(mx, my, 2);
+
+                const auto &geo1 = geos.get_const(mx, my, 0);
+                const auto &geo2 = geos.get_const(mx, my, 1);
+                const auto &geo3 = geos.get_const(mx, my, 2);
+            
+                if (!geo1.is_air()) {
+                    if (tile1.type == TileType::material && tile1.material_def != nullptr) 
+                    {
+                        _materials_to_render
+                            [c]
+                            [0]
+                            [static_cast<size_t>(tile1.material_def->get_type())]
+                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 0, geo1, &tile1));
+                    }
+                    else if (tile1.type == TileType::_default) {
+                        _materials_to_render
+                            [c]
+                            [0]
+                            [static_cast<size_t>(default_material->get_type())]
+                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 0, geo1, &tile1));
+                    }
+                }
+
+                if (!geo2.is_air()) {
+                    if (tile2.type == TileType::material && tile2.material_def != nullptr) 
+                    {
+                        _materials_to_render
+                            [c]
+                            [1]
+                            [static_cast<size_t>(tile2.material_def->get_type())]
+                            .push(Render_MaterialCell(0, mx, my, 1, x, y, 1, geo2, &tile2));
+                    }
+                    else if (tile2.type == TileType::_default) {
+                        _materials_to_render
+                            [c]
+                            [1]
+                            [static_cast<size_t>(default_material->get_type())]
+                            .push(Render_MaterialCell(0, mx, my, 1, x, y, 1, geo2, &tile2));
+                    }
+                }
+
+                if (!geo3.is_air()) {
+                    if (tile3.type == TileType::material && tile3.material_def != nullptr) 
+                    {
+                        _materials_to_render
+                            [c]
+                            [2]
+                            [static_cast<size_t>(tile3.material_def->get_type())]
+                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 2, geo3, &tile3));
+                    }
+                    else if (tile3.type == TileType::_default) {
+                        _materials_to_render
+                            [c]
+                            [2]
+                            [static_cast<size_t>(default_material->get_type())]
+                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 2, geo3, &tile3));
+                    }
+                }
+            }
+        }
+    }
 
     _preparation_done = true;
 }
@@ -1065,10 +1032,11 @@ void Renderer::_set_render_progress(int step) {
         case 1: _logger->info("[Renderer] rendering tiles"); break;
         case 2: _logger->info("[Renderer] rendering materials"); break;
         case 3: _logger->info("[Renderer] rendering props"); break;
-        case 4: _logger->info("[Renderer] rendering effects"); break;
-        case 5: _logger->info("[Renderer] rendering light"); break;
-        case 6: _logger->info("[Renderer] generating text"); break;
-        case 7: _logger->info("[Renderer] done"); break;
+        case 4: _logger->info("[Renderer] rendering geometry extras"); break;
+        case 5: _logger->info("[Renderer] rendering effects"); break;
+        case 6: _logger->info("[Renderer] rendering light"); break;
+        case 7: _logger->info("[Renderer] generating text"); break;
+        case 8: _logger->info("[Renderer] done"); break;
     }
 
 }
@@ -1090,19 +1058,24 @@ bool Renderer::frame_render() {
 
     if (_render_progress == RENDER_PROGRESS_MATERIALS) {
 
-        if (_frame_render_materials_layer(_material_layer_progress, 300)) {
+        if (_frame_render_materials_layer(_material_layer_progress, 600)) {
             _material_layer_progress++;
             _material_progress = 0;
             
             if (_material_layer_progress >= 3) {
-            
-                _render_poles_layer(0);
-                _render_poles_layer(1);
-                _render_poles_layer(2);
-
-                _set_render_progress(RENDER_PROGRESS_PROPS);
+                _set_render_progress(RENDER_PROGRESS_EXTRA);
             }
         }
+
+        return false;
+    }
+
+    if (_render_progress == RENDER_PROGRESS_EXTRA) {
+        _render_poles_layer(0);
+        _render_poles_layer(1);
+        _render_poles_layer(2);
+
+        _set_render_progress(RENDER_PROGRESS_PROPS);
 
         return false;
     }
@@ -1176,7 +1149,7 @@ bool Renderer::_is_material(int x, int y, int z, const MaterialDef *def) {
     if (tile.type == TileType::material) {
         return tile.material_def == def;
     } else if (tile.type == TileType::_default) {
-        return tile.und_name == _level->default_material;
+        return def->get_name() == _level->default_material;
     }
 
     return false;
@@ -1186,6 +1159,8 @@ void Renderer::_render_poles_layer(uint8_t layer) {
     if (layer > 2) return;
 
     const auto &geos = _level->get_const_geo_matrix();
+
+    BeginTextureMode(_layers[layer * 10 + 4]);
 
     for (int x = 0; x < columns; x++) {
         for (int y = 0; y < rows; y++) {
@@ -1199,14 +1174,22 @@ void Renderer::_render_poles_layer(uint8_t layer) {
             // if (geo.is_solid()) continue;
 
             if (geo.has_feature(GeoFeature::vertical_pole)) {
-                DrawRectangle(x * 20 + 8, y * 20, 4, 20, Color{255, 0, 0, 255});
+                DrawRectangleRec(
+                    Rectangle{x * 20.0f + 8, y * 20.0f, 4.0f, 20.0f}, 
+                    Color{255, 0, 0, 255}
+                );
             }
 
             if (geo.has_feature(GeoFeature::horizontal_pole)) {
-                DrawRectangle(x * 20, y * 20 + 8, 20, 4, Color{255, 0, 0, 255});
+                DrawRectangleRec(
+                    Rectangle{x * 20.0f, y * 20.0f + 8, 20.0f, 4.0f}, 
+                    Color{255, 0, 0, 255}
+                );
             }
         }
     }
+
+    EndTextureMode();
 }
 
 };

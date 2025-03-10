@@ -97,14 +97,41 @@ struct Render_TileCell {
     {}
 };
 
-struct Render_Material {
-    const MaterialDef *def;
-    Matrix<bool> matrix;
+struct Render_MaterialCell {
+    int rnd;
+    matrix_t mx, my, mz;
+    int x, y, z;
+    const GeoCell geo;
+    const TileCell *tile;
 
-    Render_Material(const MaterialDef *def, matrix_t width, matrix_t height) :
-        def(def),
-        matrix(Matrix<bool>(width, height, 1)) 
+    Render_MaterialCell() : 
+        rnd(0), 
+        mx(0), my(0), mz(0), 
+        x(0), y(0), z(0), 
+        tile(nullptr),
+        geo({}) 
     {}
+    Render_MaterialCell(
+        int rnd, 
+        matrix_t mx, 
+        matrix_t my, 
+        matrix_t mz, 
+        int x,
+        int y,
+        int z,
+        const GeoCell geo,
+        const TileCell *tile
+    ) :
+        rnd(rnd),
+        mx(mx), my(my), mz(mz),
+        x(x), y(y), z(z),
+        geo(geo),
+        tile(tile)
+    {}
+};
+
+struct Render_ShortcutPath {
+    const matrix_t x, y, z;
 };
 
 class RandomGen {
@@ -318,10 +345,10 @@ protected:
     // accessed as the following:
     // array[selected_camera][material_rendertype][cell]
     // note: selected_camera is the index of _config.cameras.
-    std::vector<std::vector<std::queue<Render_TileCell>>> 
-        _materials_to_render1,
-        _materials_to_render2,
-        _materials_to_render3;
+    std::vector<std::vector<std::vector<std::queue<Render_MaterialCell>>>> 
+        _materials_to_render;
+
+    std::vector<std::queue<Render_ShortcutPath>> _shortcuts;
 
     
     bool _is_material(int x, int y, int z);
@@ -340,15 +367,9 @@ protected:
 
     bool _frame_render_materials_layer(uint8_t layer, int threshold = 10);
 
-    bool _frame_draw_materials_layer_unified(
-        std::queue<Render_TileCell> *cells,
-        uint8_t layer,
-        int threshold = 10
-    );
-
     bool _frame_render_bricks_layer(uint8_t layer, int threshold = 300);
 
-    void _render_unified_layer(uint8_t layer);
+    bool _frame_render_unified_layer(uint8_t layer, int threshold = 300);
 
     void _render_concrete_layer(u_int8_t layer);
     void _render_standard_layer(uint8_t layer);
@@ -356,9 +377,11 @@ protected:
     void _render_chaotic_stone_layer(uint8_t layer);
     void _render_small_pipes_layer(uint8_t layer);
     void _render_trash_layer(uint8_t layer);
+    void _render_bigmetal_layer(uint8_t layer);
 
     void _render_poles_layer(uint8_t layer);
-
+    void _render_shortcut_entries(uint8_t layer);
+    void _render_shortcuts();
 
 public:
 

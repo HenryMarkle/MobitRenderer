@@ -347,6 +347,7 @@ int auto_render_window(int argc, char *argv[]) {
   SetTargetFPS(30);
 
 #ifdef IS_DEBUG_BUILD
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(1400 + 300, 800 + 35, "Mobit Renderer");
   SetWindowState(FLAG_WINDOW_RESIZABLE);
   SetWindowMinSize(1400 + 300, 800 + 35);
@@ -356,6 +357,7 @@ int auto_render_window(int argc, char *argv[]) {
   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
   io.ConfigDockingWithShift = true;
 #else
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(1400, 800, "Mobit Renderer");
 #endif
 
@@ -488,14 +490,15 @@ int auto_render_window(int argc, char *argv[]) {
     }
 
     
-    if (renderer->get_render_progress() < 7) {
-      if (frame % 3 <= 1) renderer->frame_render();
+    if (renderer->get_render_progress() < 8) {
+      // if (frame % 3 >= 1) renderer->frame_render();
+      renderer->frame_render();
     }
     else if (!renderer->is_quadification_done()) renderer->frame_quadify_layers();
     else if (!renderer->is_light_render_done()) renderer->frame_render_light();
     else {
-#ifdef IS_DEBUG_BUILD
-#ifdef FEATURE_PALETTES
+    #ifdef IS_DEBUG_BUILD
+      #ifdef FEATURE_PALETTES
       if (use_palette) {
         renderer->frame_compose_palette(prev_min_layer, prev_max_layer,
                                         prev_offset_x, prev_offset_y, prev_fog,
@@ -505,32 +508,23 @@ int auto_render_window(int argc, char *argv[]) {
         renderer->frame_compose(prev_min_layer, prev_max_layer, prev_offset_x,
                                 prev_offset_y, prev_fog);
       }
-#else
+      #else
       ClearBackground(DARKGRAY);
       renderer->frame_compose(prev_min_layer, prev_max_layer, prev_offset_x,
                               prev_offset_y, prev_fog);
-#endif
-#else
+      #endif
+      #else
       ClearBackground(WHITE);
       renderer->frame_compose();
-#endif
+    #endif
 
       renderer->frame_render_final();
     }
     
     {
-      // if (IsKeyPressed(KEY_ONE)) current_page = 1;
-      // if (IsKeyPressed(KEY_TWO)) current_page = 2;
-      // if (IsKeyPressed(KEY_THREE)) current_page = 3;
-      // if (IsKeyPressed(KEY_FOUR)) current_page = 4;
-      // if (IsKeyPressed(KEY_FIVE)) current_page = 5;
-      // if (IsKeyPressed(KEY_SIX)) current_page = 6;
-    }
-
-    {
       BeginDrawing();
 
-#ifdef IS_DEBUG_BUILD
+      #ifdef IS_DEBUG_BUILD
       rlImGuiBegin();
       {
         ImGui::DockSpaceOverViewport(ImGui::GetWindowDockID(),
@@ -910,7 +904,14 @@ int auto_render_window(int argc, char *argv[]) {
 #endif
       }
       rlImGuiEnd();
-#endif
+      #else
+      
+      BeginShaderMode(shaders->vflip());
+      SetShaderValueTexture(shaders->vflip(), GetShaderLocation(shaders->vflip(), "texture0"), renderer->_composed_layers.texture);
+      DrawTexture(renderer->_composed_layers.texture, 0, 0, WHITE);
+      EndShaderMode();
+      
+      #endif
 
       EndDrawing();
     }

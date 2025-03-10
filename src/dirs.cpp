@@ -37,9 +37,9 @@ Dirs::Dirs() {
 
   executable = mr::get_executable_dir();
 
-  const auto src_dir = std::filesystem::path(PROJECT_SRC_DIR);
-
+  
   #ifdef IS_DEBUG_BUILD
+  const auto src_dir = std::filesystem::path(PROJECT_SRC_DIR);
   data = src_dir / "Data";
   datapacks = src_dir / "DataPacks";
   assets = src_dir / "Assets";

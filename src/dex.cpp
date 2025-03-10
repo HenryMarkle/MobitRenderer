@@ -243,7 +243,7 @@ void MaterialDex::load_internals() {
         new MaterialDef("RainStone",       "Materials", Color{   0,   0, 255, 255 }, MaterialRenderType::unified),
         new MaterialDef("Bricks",          "Materials", Color{ 200, 150, 100, 255 }, MaterialRenderType::unified),
         new MaterialDef("BigMetal",        "Materials", Color{ 255,   0,   0, 255 }, MaterialRenderType::unified),
-        new MaterialDef("Scaffolding",     "Materials", Color{ 60,  60,  40, 255 }, MaterialRenderType::unified),
+        new MaterialDef("Scaffolding",     "Materials", Color{  60,  60,  40, 255 }, MaterialRenderType::unified),
         new MaterialDef("Dense Pipes",     "Materials", Color{  10,  10, 255, 255 }, MaterialRenderType::dense_pipe),
         new MaterialDef("SuperStructure",  "Materials", Color{ 160, 180, 255, 255 }, MaterialRenderType::unified),
         new MaterialDef("SuperStructure2", "Materials", Color{ 190, 160,   0, 255 }, MaterialRenderType::unified),
