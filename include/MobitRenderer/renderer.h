@@ -101,7 +101,7 @@ struct Render_MaterialCell {
     int rnd;
     matrix_t mx, my, mz;
     int x, y, z;
-    const GeoCell geo;
+    GeoCell geo;
     const TileCell *tile;
 
     Render_MaterialCell() : 
@@ -119,7 +119,7 @@ struct Render_MaterialCell {
         int x,
         int y,
         int z,
-        const GeoCell geo,
+        GeoCell geo,
         const TileCell *tile
     ) :
         rnd(rnd),
@@ -343,13 +343,14 @@ protected:
 
     // For each selected camera, an array of render type array of material cells.
     // accessed as the following:
-    // array[selected_camera][material_rendertype][cell]
+    // array[selected_camera][layer][material_rendertype][cell]
     // note: selected_camera is the index of _config.cameras.
     std::vector<std::vector<std::vector<std::queue<Render_MaterialCell>>>> 
         _materials_to_render;
 
     std::vector<std::queue<Render_ShortcutPath>> _shortcuts;
 
+    std::vector<TileDef *> _random_machines;
     
     bool _is_material(int x, int y, int z);
     bool _is_material(int x, int y, int z, const MaterialDef *def);
@@ -370,6 +371,8 @@ protected:
     bool _frame_render_bricks_layer(uint8_t layer, int threshold = 300);
 
     bool _frame_render_unified_layer(uint8_t layer, int threshold = 300);
+    bool _frame_render_pipe_layer(uint8_t layer, int threshold = 300);
+    bool _frame_render_tiles_layer(uint8_t layer, int threshold = 300);
 
     void _render_concrete_layer(u_int8_t layer);
     void _render_standard_layer(uint8_t layer);

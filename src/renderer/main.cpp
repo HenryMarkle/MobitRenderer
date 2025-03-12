@@ -899,39 +899,45 @@ void Renderer::_prepare() {
         }
     }
 
-    const auto sort_alg = [](const Render_TileCell &c1, const Render_TileCell &c2) { return c1.rnd < c2.rnd; };
+    const auto tiles_sort_alg = [](const Render_TileCell &c1, const Render_TileCell &c2) { return c1.rnd < c2.rnd; };
 
     for (int c = 0; c < _tiles_to_render1.size(); c++) {
         std::sort(
             _tiles_to_render1[c].begin(), 
             _tiles_to_render1[c].end(), 
-            sort_alg
+            tiles_sort_alg
         );
     
         std::sort(
             _tiles_to_render2[c].begin(), 
             _tiles_to_render2[c].end(), 
-            sort_alg
+            tiles_sort_alg
         );
     
         std::sort(
             _tiles_to_render3[c].begin(), 
             _tiles_to_render3[c].end(), 
-            sort_alg
+            tiles_sort_alg
         );
     }
 
     size_t cams_num = _config.cameras.empty() ? _level->cameras.size() : _config.cameras.size();
     const auto *default_material = _materials->material(_level->default_material);
 
-    _materials_to_render.resize(cams_num);
+    auto materials_to_render = std::vector<std::vector<std::vector<std::vector<Render_MaterialCell>>>>(3);
+
+    materials_to_render.reserve(cams_num);
+
+    const auto materials_sort_alg = [](Render_MaterialCell const &p1, Render_MaterialCell const &p2) { 
+        return p1.rnd < p2.rnd; 
+    };
 
     for (size_t c = 0; c < cams_num; c++) {
-        _materials_to_render[c].resize(3);
+        materials_to_render[c].resize(3);
 
-        _materials_to_render[c][0].resize(18);
-        _materials_to_render[c][1].resize(18);
-        _materials_to_render[c][2].resize(18);
+        materials_to_render[c][0].resize(18);
+        materials_to_render[c][1].resize(18);
+        materials_to_render[c][2].resize(18);
 
         const auto &camera = _config.cameras.empty() ? _level->cameras[c] : _level->cameras[_config.cameras[c]];
 
@@ -956,58 +962,112 @@ void Renderer::_prepare() {
                 if (!geo1.is_air()) {
                     if (tile1.type == TileType::material && tile1.material_def != nullptr) 
                     {
-                        _materials_to_render
+                        materials_to_render
                             [c]
                             [0]
                             [static_cast<size_t>(tile1.material_def->get_type())]
-                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 0, geo1, &tile1));
+                            .push_back(Render_MaterialCell(_rand.next(100000), mx, my, 0, x, y, 0, geo1, &tile1));
                     }
                     else if (tile1.type == TileType::_default) {
-                        _materials_to_render
+                        materials_to_render
                             [c]
                             [0]
                             [static_cast<size_t>(default_material->get_type())]
-                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 0, geo1, &tile1));
+                            .push_back(Render_MaterialCell(_rand.next(100000), mx, my, 0, x, y, 0, geo1, &tile1));
                     }
                 }
 
                 if (!geo2.is_air()) {
                     if (tile2.type == TileType::material && tile2.material_def != nullptr) 
                     {
-                        _materials_to_render
+                        materials_to_render
                             [c]
                             [1]
                             [static_cast<size_t>(tile2.material_def->get_type())]
-                            .push(Render_MaterialCell(0, mx, my, 1, x, y, 1, geo2, &tile2));
+                            .push_back(Render_MaterialCell(_rand.next(100000), mx, my, 1, x, y, 1, geo2, &tile2));
                     }
                     else if (tile2.type == TileType::_default) {
-                        _materials_to_render
+                        materials_to_render
                             [c]
                             [1]
                             [static_cast<size_t>(default_material->get_type())]
-                            .push(Render_MaterialCell(0, mx, my, 1, x, y, 1, geo2, &tile2));
+                            .push_back(Render_MaterialCell(_rand.next(100000), mx, my, 1, x, y, 1, geo2, &tile2));
                     }
                 }
 
                 if (!geo3.is_air()) {
                     if (tile3.type == TileType::material && tile3.material_def != nullptr) 
                     {
-                        _materials_to_render
+                        materials_to_render
                             [c]
                             [2]
                             [static_cast<size_t>(tile3.material_def->get_type())]
-                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 2, geo3, &tile3));
+                            .push_back(Render_MaterialCell(_rand.next(100000), mx, my, 0, x, y, 2, geo3, &tile3));
                     }
                     else if (tile3.type == TileType::_default) {
-                        _materials_to_render
+                        materials_to_render
                             [c]
                             [2]
                             [static_cast<size_t>(default_material->get_type())]
-                            .push(Render_MaterialCell(0, mx, my, 0, x, y, 2, geo3, &tile3));
+                            .push_back(Render_MaterialCell(_rand.next(100000), mx, my, 0, x, y, 2, geo3, &tile3));
                     }
                 }
             }
         }
+    
+        for (int t = 0; t < 18; t++) {
+            std::sort(
+                materials_to_render[c][0][t].begin(),
+                materials_to_render[c][0][t].end(),
+                materials_sort_alg
+            );
+
+            std::sort(
+                materials_to_render[c][1][t].begin(),
+                materials_to_render[c][1][t].end(),
+                materials_sort_alg
+            );
+
+            std::sort(
+                materials_to_render[c][2][t].begin(),
+                materials_to_render[c][2][t].end(),
+                materials_sort_alg
+            );
+        }
+    }
+
+    _materials_to_render.resize(cams_num);
+
+    for (size_t c = 0; c < cams_num; c++) {
+        _materials_to_render[c].resize(3);
+
+        _materials_to_render[c][0].resize(18);
+        _materials_to_render[c][1].resize(18);
+        _materials_to_render[c][2].resize(18);
+
+        for (int t = 0; t < 18; t++) {
+            for (auto &m : materials_to_render[c][0][t]) {
+                _materials_to_render[c][0][t].push(m);
+            }
+
+            for (auto &m : materials_to_render[c][1][t]) {
+                _materials_to_render[c][1][t].push(m);
+            }
+
+            for (auto &m : materials_to_render[c][2][t]) {
+                _materials_to_render[c][2][t].push(m);
+            }
+        }
+    }
+
+
+    const auto machinery  = _tiles->category_tiles().find("Machinery");
+    const auto machinery2 = _tiles->category_tiles().find("Machinery2");
+
+    if (machinery != _tiles->category_tiles().end()) for (auto t : machinery->second) {
+        if (t == nullptr) continue;
+        if (t->get_width() >= 4 || t->get_height() >= 4) continue;
+        _random_machines.push_back(t);
     }
 
     _preparation_done = true;

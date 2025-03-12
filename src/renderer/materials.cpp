@@ -38,8 +38,7 @@ bool Renderer::_frame_render_materials_layer(uint8_t layer, int threshold) {
     switch (_material_progress) {
     case 0: done = _frame_render_unified_layer(layer, threshold); break;
     case 1: done = true; _render_chaotic_stone_layer(layer); break;
-    case 2: done = true; _render_small_pipes_layer(layer); break;
-    case 3: done = true; _render_trash_layer(layer); break;
+    case 2: done = _frame_render_pipe_layer(layer, threshold); break;
     default: return true;
     }
 
@@ -48,7 +47,7 @@ bool Renderer::_frame_render_materials_layer(uint8_t layer, int threshold) {
     _material_progress_x = _material_progress_y = 0;
     _material_progress++;
 
-    return _material_progress >= 4;
+    return _material_progress >= 3;
 }
 
 bool Renderer::_frame_render_unified_layer(uint8_t layer, int threshold) {
@@ -299,6 +298,362 @@ bool Renderer::_frame_render_unified_layer(uint8_t layer, int threshold) {
 
         queue.pop();
         progress++;
+    }
+
+    return queue.empty();
+}
+
+bool Renderer::_frame_render_pipe_layer(uint8_t layer, int threshold) {
+    /*
+        Only 2 materials are actually renderered: Small Pipes and Trash.
+        This is actually how it's rendererd.
+    */
+
+    if (layer > 2 || threshold <= 0) return true;
+
+    auto &queue = _materials_to_render[_camera_index][layer][static_cast<size_t>(MaterialRenderType::pipe)];
+    int progress = 0;
+    uint8_t sublayer = layer * 10;
+    auto *default_material = _materials->material(_level->default_material);
+
+    CastMember 
+        *pipe_tiles = _castlibs->member("pipeTiles2"), 
+        *trash_tiles = _castlibs->member("trashTiles3"), 
+        *large_trash_tiles = _castlibs->member("largeTrashTiles"), 
+        *dirt_tiles = _castlibs->member("dirtTiles"), 
+        *sandy_dirt_tiles = _castlibs->member("sandyDirtTiles"),
+        *assorted_trash = _castlibs->member("assortedTrash");
+
+    const auto get_tiles = [=](MaterialDef const *def){
+        if (def->get_name() == "Small Pipes") return pipe_tiles;
+        if (def->get_name() == "Trash") return trash_tiles;
+        if (def->get_name() == "LargeTrash") return large_trash_tiles;
+        if (def->get_name() == "MegaTrash") return large_trash_tiles;
+        if (def->get_name() == "Dirt") return dirt_tiles;
+        if (def->get_name() == "Sandy Dirt") return dirt_tiles;
+
+        return _castlibs->member(def->get_name() + "Tiles");
+    };
+
+    static const auto CONNECTION_VERTICAL   = static_cast<uint8_t>(0b00101);
+    static const auto CONNECTION_HORIZONTAL = static_cast<uint8_t>(0b01010);
+    static const auto CONNECTION_CROSS      = static_cast<uint8_t>(0b01111);
+    static const auto CONNECTION_TRB        = static_cast<uint8_t>(0b00111);
+    static const auto CONNECTION_BLT        = static_cast<uint8_t>(0b01101);
+    static const auto CONNECTION_LTR        = static_cast<uint8_t>(0b01110);
+    static const auto CONNECTION_RBL        = static_cast<uint8_t>(0b01011);
+    static const auto CONNECTION_RB         = static_cast<uint8_t>(0b00011);
+    static const auto CONNECTION_BL         = static_cast<uint8_t>(0b01001);
+    static const auto CONNECTION_LT         = static_cast<uint8_t>(0b01100);
+    static const auto CONNECTION_TR         = static_cast<uint8_t>(0b00110);
+    static const auto CONNECTION_L          = static_cast<uint8_t>(0b01000);
+    static const auto CONNECTION_R          = static_cast<uint8_t>(0b00010);
+    static const auto CONNECTION_T          = static_cast<uint8_t>(0b00100);
+    static const auto CONNECTION_B          = static_cast<uint8_t>(0b00001);
+    static const auto CONNECTION_SLOPE_NW   = static_cast<uint8_t>(0b10000);
+    static const auto CONNECTION_SLOPE_NE   = static_cast<uint8_t>(0b11000);
+    static const auto CONNECTION_SLOPE_ES   = static_cast<uint8_t>(0b11100);
+    static const auto CONNECTION_SLOPE_SW   = static_cast<uint8_t>(0b11110);
+    static const auto CONNECTION_SINGLE     = static_cast<uint8_t>(0b00000);
+    static const auto CONNECTION_PLATFORM   = static_cast<uint8_t>(0b11111);
+    static const auto CONNECTION_GLASS      = static_cast<uint8_t>(0b10111);
+
+    const auto &mtx = _level->get_const_tile_matrix();
+    const auto &geos = _level->get_const_geo_matrix();
+
+    const auto get_connection = [this, &mtx, &geos, layer](MaterialDef const* def, int mx, int my){
+        const auto *geo = geos.get_const_ptr(mx, my, layer);
+        const auto *tile = geos.get_const_ptr(mx, my, layer);
+
+        if (geo == nullptr || tile == nullptr) return static_cast<uint8_t>(0);
+        if (geo->is_air()) return static_cast<uint8_t>(0);
+
+        uint8_t connection = static_cast<uint8_t>(0b00000);
+
+        if (!_is_material(mx, my, layer, def)) return static_cast<uint8_t>(0);
+
+        switch (geo->type) {
+        case GeoType::solid:
+        {
+            
+            auto left   = _is_material(mx - 1, my    , layer, def);
+            auto top    = _is_material(mx    , my - 1, layer, def);
+            auto right  = _is_material(mx + 1, my    , layer, def);
+            auto bottom = _is_material(mx    , my + 1, layer, def);
+
+            if (
+                left || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx - 1), static_cast<matrix_t>(my), layer)
+                )
+            ) connection |= CONNECTION_L;
+
+            if (
+                top || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx), static_cast<matrix_t>(my - 1), layer)
+                )
+            ) connection |= CONNECTION_T;
+            
+            if (
+                right || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx + 1), static_cast<matrix_t>(my), layer)
+                )
+            ) connection |= CONNECTION_R;
+            
+            if (
+                bottom || 
+                (
+                    _rand.next(2) == 1 && _is_material(static_cast<matrix_t>(mx), static_cast<matrix_t>(my + 1), layer)
+                )
+            ) connection |= CONNECTION_B;
+        }
+        break;
+
+        case GeoType::slope_nw: return CONNECTION_SLOPE_NW;
+        case GeoType::slope_ne: return CONNECTION_SLOPE_NE;
+        case GeoType::slope_es: return CONNECTION_SLOPE_ES;
+        case GeoType::slope_sw: return CONNECTION_SLOPE_SW;
+        case GeoType::platform: return CONNECTION_PLATFORM;
+        case GeoType::glass: return CONNECTION_GLASS;
+
+        default: return static_cast<uint8_t>(0);
+        }
+
+        return connection;
+    };
+
+    static const auto get_src_pos = [](uint8_t connection){
+        if (connection == CONNECTION_VERTICAL  ) return  1;
+        if (connection == CONNECTION_HORIZONTAL) return  3;
+        if (connection == CONNECTION_CROSS     ) return  5;
+        if (connection == CONNECTION_TRB       ) return  7;
+        if (connection == CONNECTION_BLT       ) return  9;
+        if (connection == CONNECTION_LTR       ) return 11;
+        if (connection == CONNECTION_RBL       ) return 13;
+        if (connection == CONNECTION_RB        ) return 15;
+        if (connection == CONNECTION_BL        ) return 17;
+        if (connection == CONNECTION_LT        ) return 19;
+        if (connection == CONNECTION_TR        ) return 21;
+        if (connection == CONNECTION_L         ) return 23;
+        if (connection == CONNECTION_R         ) return 25;
+        if (connection == CONNECTION_T         ) return 27;
+        if (connection == CONNECTION_B         ) return 29;
+        if (connection == CONNECTION_SLOPE_NW  ) return 31; // SlopeNW
+        if (connection == CONNECTION_SLOPE_NE  ) return 32; // SlopeNE
+        if (connection == CONNECTION_SLOPE_ES  ) return 35; // SlopeES
+        if (connection == CONNECTION_SLOPE_SW  ) return 37; // SlopeSW
+        if (connection == CONNECTION_SINGLE    ) return 39;
+        if (connection == CONNECTION_PLATFORM  ) return 41; // Platform
+        if (connection == CONNECTION_GLASS     ) return 43; // Glass
+
+        return 0;
+    };
+
+    Rectangle src;
+    bool trash;
+
+    while (progress < threshold && !queue.empty()) {
+        
+        const auto &cell = queue.front();
+
+        if (cell.geo.is_air()) continue;
+
+        auto *tiles = get_tiles(cell.tile->material_def);
+        if (tiles == nullptr) continue;
+        const Texture2D &texture = tiles->get_loaded_texture();
+        if (!tiles->is_loaded()) continue;
+
+        trash = cell.tile->material_def->get_name() == "Trash";
+
+        uint8_t connection = get_connection(cell.tile->material_def, cell.mx, cell.my);
+
+        if (connection == 0) continue;
+
+        auto pos = get_src_pos(connection);
+
+        if (cell.tile->material_def->get_name() == "Small Pipes") {
+            BeginTextureMode(_layers[sublayer + 5]);
+            DrawRectangleLinesEx(
+                Rectangle { cell.x * 20.0f, cell.y * 20.0f, 20.0f, 20.0f },
+                2,
+                Color { 0, 255, 0, 255 }
+            );
+            EndTextureMode();
+        }
+
+        src = Rectangle {
+            pos * 20.0f + 1.0f,
+            (_rand.next(4)*2 + 1) * 20.0f + 1.0f,
+            20.0f,
+            20.0f
+        };
+
+        BeginTextureMode(_layers[sublayer + 2]);
+        BeginShaderMode(_white_remover);
+        SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+        DrawTexturePro(
+            texture,
+            src,
+            Rectangle { cell.x*20.0f, cell.y*20.0f, 20.0f, 20.0f },
+            Vector2 { 0, 0 },
+            0,
+            WHITE
+        );
+        EndShaderMode();
+        EndTextureMode();
+
+        BeginTextureMode(_layers[sublayer + 3]);
+        BeginShaderMode(_white_remover);
+        SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+        DrawTexturePro(
+            texture,
+            src,
+            Rectangle { cell.x*20.0f, cell.y*20.0f, 20.0f, 20.0f },
+            Vector2 { 0, 0 },
+            0,
+            WHITE
+        );
+        EndShaderMode();
+        EndTextureMode();
+
+        BeginTextureMode(_layers[sublayer + 7]);
+        BeginShaderMode(_white_remover);
+        SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+        DrawTexturePro(
+            texture,
+            src,
+            Rectangle { cell.x*20.0f, cell.y*20.0f, 20.0f, 20.0f },
+            Vector2 { 0, 0 },
+            0,
+            WHITE
+        );
+        EndShaderMode();
+        EndTextureMode();
+
+        BeginTextureMode(_layers[sublayer + 8]);
+        BeginShaderMode(_white_remover);
+        SetShaderValueTexture(_white_remover, _white_remover_texture_loc, texture);
+        DrawTexturePro(
+            texture,
+            src,
+            Rectangle { cell.x*20.0f, cell.y*20.0f, 20.0f, 20.0f },
+            Vector2 { 0, 0 },
+            0,
+            WHITE
+        );
+        EndShaderMode();
+        EndTextureMode();
+
+        if (trash) {
+            const Texture2D texture2 = assorted_trash->get_loaded_texture();
+            if (!assorted_trash->is_loaded()) {
+                for (int l = 0; l < 3; l++) {
+                    const auto s = sublayer + _rand.next(10);
+                    const auto srcx = _rand.next(48);
+                    const auto middle = Vector2{
+                        cell.x * 20.0f + 1.0f + _rand.next(18) * (_rand.next(2) == 1 ? -1 : 1),
+                        cell.y * 20.0f        + _rand.next(18) * (_rand.next(2) == 1 ? -1 : 1)
+                    };
+                    const auto src = Rectangle {
+                        srcx * 50.0f,
+                        0,
+                        50.0f,
+                        50.0f
+                    };
+                    const auto target = Rectangle {
+                        middle.x,
+                        middle.y,
+                        50.0f,
+                        50.0f
+                    };
+    
+                    BeginTextureMode(_layers[s]);
+                    BeginShaderMode(_ink);
+                    SetShaderValueTexture(_ink, _ink_texture_loc, texture2);
+                    mr::draw::draw_texture(
+                        texture2,
+                        src,
+                        Quad(target).rotated(_rand.next(360))
+                    );
+                    EndShaderMode();
+                    EndTextureMode();
+                }
+            }
+        }
+    
+        progress++;
+        queue.pop();
+    }
+
+    return queue.empty();
+}
+
+bool Renderer::_frame_render_tiles_layer(uint8_t layer, int threshold) {
+    if (layer > 2 || threshold <= 0) return true;
+
+    auto &queue = _materials_to_render[_camera_index][layer][0];
+    int progress = 0;
+    uint8_t sublayer = layer * 10;
+    auto *default_material = _materials->material(_level->default_material);
+
+    const auto &tiles = _level->get_const_tile_matrix();
+    const auto &geos = _level->get_const_geo_matrix();
+    Matrix<bool> taken(_level->get_width(), _level->get_height(), 1);
+
+    const auto fits = [&taken, &tiles, &geos, layer, default_material](const TileDef *tile, const MaterialDef *mat, matrix_t mx, matrix_t my){
+        for (int w = 0; w < tile->get_width(); w++) {
+            for (int h = 0; h < tile->get_height(); h++) {
+                if (taken.get_copy(mx + w, my + h, 0)) return false;
+
+                const auto *geo = geos.get_const_ptr(mx + w, my + h, layer);
+                if (geo == nullptr) return false;
+                if (geo->is_air()) return false;
+                if (!geo->is_solid() && (tile->get_width() > 1 || tile->get_height() > 1)) return false;
+                
+                const auto &tilecell = tiles.get_const(mx + w, my + h, layer);
+                if (
+                    tilecell.type == TileType::material && tilecell.material_def != mat || 
+                    tilecell.type == TileType::_default && mat != default_material
+                ) return false;
+            }
+        }
+
+        return true;
+    };
+
+    const auto take = [&taken](const TileDef *tile, matrix_t mx, matrix_t my) {
+        for (int w = 0; w < tile->get_width(); w++) {
+            for (int h = 0; h < tile->get_height(); h++) {
+                taken.set_noexcept(mx + w, my + h, 0, true);
+            }
+        }
+    };
+
+    MaterialDef 
+        *chaotic_stone = _materials->material("Chaotic Stone"),
+        *tiled_stone = _materials->material("Tiled Stone"),
+        *random_machines = _materials->material("Random Machines");
+
+    TileDef 
+        *square_stone = _tiles->tile("Square Stone"), 
+        *small_stone = _tiles->tile("Small Stone");
+
+    while (progress < threshold, !queue.empty()) {
+
+        const auto &cell = queue.front();
+
+        if (cell.tile->material_def == chaotic_stone) {
+            
+        } else if (cell.tile->material_def == tiled_stone) {
+
+        } else if (cell.tile->material_def == random_machines) {
+            
+        }
+
+        progress++;
+        queue.pop();
     }
 
     return queue.empty();
